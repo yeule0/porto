@@ -6,9 +6,12 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.59.20",
     "oddworld": "workspace:*",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "viem": "^2.21.44",
+    "wagmi": "^2.12.30"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

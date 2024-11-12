@@ -14,7 +14,9 @@
     "!jsr.json"
   ],
   "dependencies": {
-    "ox": "^0.1.4"
+    "mipd": "^0.0.7",
+    "ox": "^0.1.5",
+    "viem": "^2.21.44"
   },
   "peerDependencies": {
     "typescript": ">=5.4.0"
