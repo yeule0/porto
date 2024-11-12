@@ -4,22 +4,32 @@ import * as Hex from 'ox/Hex'
 import * as Provider from 'ox/Provider'
 import type * as RpcSchema from 'ox/RpcSchema'
 import type { Chain, Transport } from 'viem'
-import { http } from 'viem'
+import { http, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 
 import { accountDelegationAddress } from './generated.js'
+import * as AccountDelegation from './internal/accountDelegation.js'
 import * as Provider_internal from './internal/provider.js'
 
-type Schema = RpcSchema.From<{
-  Request: {
-    method: 'odyssey_ping'
-  }
-  ReturnType: string
-}>
+type Schema = RpcSchema.From<
+  | RpcSchema.Default
+  | {
+      Request: {
+        method: 'odyssey_ping'
+      }
+      ReturnType: string
+    }
+  | {
+      Request: {
+        method: 'odyssey_registerAccount'
+      }
+      ReturnType: Address.Address
+    }
+>
 
 export type Client = {
   announceProvider: () => Mipd.AnnounceProviderReturnType
-  provider: Provider.Provider<{ schema: Schema }>
+  provider: Provider.Provider<{ includeEvents: true; schema: Schema }>
 }
 
 /**
@@ -42,14 +52,22 @@ export function create<
 export function create(
   parameters: create.Parameters = create.defaultParameters,
 ): Client {
-  const { chains, transports } = parameters
+  const {
+    chains,
+    delegations,
+    headless = true,
+    transports,
+    webauthn,
+  } = parameters
 
   const emitter = Provider.createEmitter()
 
-  const account = '0x0000000000000000000000000000000000000000'
+  let accounts: readonly Address.Address[] = []
+
   const chain = chains[0]
   const chainId = Hex.fromNumber(chain.id)
-  const transport = transports[chain.id]!({ chain })
+  const client = createClient({ chain, transport: transports[chain.id]! })
+  const delegation = delegations[chain.id]!
 
   const provider = Provider.from({
     ...emitter,
@@ -57,17 +75,36 @@ export function create(
       switch (method) {
         case 'odyssey_ping':
           return 'pong'
-        case 'eth_requestAccounts':
+        case 'odyssey_registerAccount': {
+          if (!headless) throw Provider_internal.UnsupportedMethodError // TODO
+
+          const { account } = await AccountDelegation.create(client, {
+            delegation,
+            rpId: webauthn?.rpId,
+          })
+          accounts = [account.address]
           emitter.emit('connect', { chainId })
-          return [account]
+          emitter.emit('accountsChanged', accounts)
+          return account.address
+        }
+        case 'eth_requestAccounts': {
+          if (!headless) throw Provider_internal.UnsupportedMethodError // TODO
+
+          const { account } = await AccountDelegation.load(client)
+
+          accounts = [account.address]
+          emitter.emit('connect', { chainId })
+          emitter.emit('accountsChanged', accounts)
+          return accounts
+        }
         case 'eth_accounts':
-          return [account]
+          return accounts
         case 'eth_chainId':
           return chainId
         default:
           if (method.startsWith('wallet_'))
             throw Provider_internal.UnsupportedMethodError
-          return transport.request({ method, params })
+          return client.request({ method, params } as any)
       }
     },
   })
@@ -100,10 +137,28 @@ export namespace create {
       Transport
     >,
   > = {
+    /** List of supported chains. */
     chains: chains | readonly [Chain, ...Chain[]]
+    /** Delegation to use for each chain. */
     delegations: delegations | Record<chains[number]['id'], Address.Address>
+    /** Transport to use for each chain. */
     transports: transports | Record<chains[number]['id'], Transport>
-  }
+  } & (
+    | {
+        /** Whether to run EIP-1193 Provider in headless mode. */
+        headless: true
+        /** WebAuthn configuration. */
+        webauthn?:
+          | {
+              rpId?: string | undefined
+            }
+          | undefined
+      }
+    | {
+        headless?: false | undefined
+        webauthn?: undefined
+      }
+  )
 
   export const defaultParameters: create.Parameters = {
     chains: [odysseyTestnet],
