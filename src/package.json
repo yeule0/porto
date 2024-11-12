@@ -15,11 +15,11 @@
   ],
   "dependencies": {
     "mipd": "^0.0.7",
-    "ox": "^0.1.5",
-    "viem": "^2.21.44"
+    "ox": "^0.1.5"
   },
   "peerDependencies": {
-    "typescript": ">=5.4.0"
+    "typescript": ">=5.4.0",
+    "viem": ">=2.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {

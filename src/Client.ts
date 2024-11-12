@@ -1,8 +1,14 @@
 import * as Mipd from 'mipd'
+import type { Address } from 'ox'
 import * as Hex from 'ox/Hex'
 import * as Provider from 'ox/Provider'
 import type * as RpcSchema from 'ox/RpcSchema'
+import type { Chain, Transport } from 'viem'
+import { http } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
+
+import { accountDelegationAddress } from './generated.js'
+import * as Provider_internal from './internal/provider.js'
 
 type Schema = RpcSchema.From<{
   Request: {
@@ -28,15 +34,26 @@ export type Client = {
  * const blockNumber = await client.provider.request({ method: 'eth_blockNumber' })
  * ```
  */
-export function create(): Client {
+export function create<
+  const chains extends readonly [Chain, ...Chain[]],
+  delegations extends Record<chains[number]['id'], Address.Address>,
+  transports extends Record<chains[number]['id'], Transport>,
+>(parameters?: create.Parameters<chains, delegations, transports>): Client
+export function create(
+  parameters: create.Parameters = create.defaultParameters,
+): Client {
+  const { chains, transports } = parameters
+
   const emitter = Provider.createEmitter()
 
   const account = '0x0000000000000000000000000000000000000000'
-  const chainId = Hex.fromNumber(odysseyTestnet.id)
+  const chain = chains[0]
+  const chainId = Hex.fromNumber(chain.id)
+  const transport = transports[chain.id]!({ chain })
 
   const provider = Provider.from({
     ...emitter,
-    async request({ method }) {
+    async request({ method, params }) {
       switch (method) {
         case 'odyssey_ping':
           return 'pong'
@@ -48,7 +65,9 @@ export function create(): Client {
         case 'eth_chainId':
           return chainId
         default:
-          return null
+          if (method.startsWith('wallet_'))
+            throw Provider_internal.UnsupportedMethodError
+          return transport.request({ method, params })
       }
     },
   })
@@ -66,5 +85,33 @@ export function create(): Client {
       })
     },
     provider,
+  }
+}
+
+export namespace create {
+  export type Parameters<
+    chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
+    delegations extends Record<chains[number]['id'], Address.Address> = Record<
+      chains[number]['id'],
+      Address.Address
+    >,
+    transports extends Record<chains[number]['id'], Transport> = Record<
+      chains[number]['id'],
+      Transport
+    >,
+  > = {
+    chains: chains | readonly [Chain, ...Chain[]]
+    delegations: delegations | Record<chains[number]['id'], Address.Address>
+    transports: transports | Record<chains[number]['id'], Transport>
+  }
+
+  export const defaultParameters: create.Parameters = {
+    chains: [odysseyTestnet],
+    delegations: {
+      [odysseyTestnet.id]: accountDelegationAddress[odysseyTestnet.id],
+    },
+    transports: {
+      [odysseyTestnet.id]: http(),
+    },
   }
 }
