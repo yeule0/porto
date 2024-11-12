@@ -1,0 +1,30 @@
+{
+  "name": "oddworld",
+  "description": "Next-gen Account for Ethereum",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./_dist/index.js",
+  "types": "./_dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "*",
+    "!**/_test/**",
+    "!**/*.tsbuildinfo",
+    "!tsconfig.build.json",
+    "!jsr.json"
+  ],
+  "dependencies": {
+    "ox": "^0.1.4"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.4.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "license": "MIT",
+  "homepage": "https://ithaca.xyz",
+  "repository": "ithacaxyz/oddworld"
+}

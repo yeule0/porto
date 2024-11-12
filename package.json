@@ -1,4 +1,55 @@
 {
   "name": "oddworld",
-  "version": "0.0.0"
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm clean && tsc --project ./tsconfig.build.json",
+    "build:contracts": "forge build --config-path ./contracts/foundry.toml",
+    "changeset:prepublish": "pnpm build && tsx scripts/prepublish.ts",
+    "changeset:publish": "pnpm changeset:prepublish && changeset publish",
+    "changeset:version": "changeset version && pnpm format",
+    "check": "biome check . --fix --unsafe",
+    "check:repo": "sherif",
+    "check:types": "tsc --noEmit",
+    "clean": "rimraf src/_dist ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
+    "deps": "pnpx taze -r",
+    "dev": "pnpm preconstruct && pnpm run -r --parallel dev",
+    "knip": "knip --production",
+    "format": "biome format --write",
+    "postinstall": "pnpm preconstruct",
+    "preconstruct": "tsx ./scripts/preconstruct.ts",
+    "preinstall": "pnpx only-allow pnpm",
+    "prepare": "pnpm simple-git-hooks"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.7",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.5.4",
+    "@wagmi/cli": "^2.1.18",
+    "fs-extra": "^11.2.0",
+    "rimraf": "^5.0.10",
+    "sherif": "^0.11.0",
+    "simple-git-hooks": "^2.11.1",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4",
+    "viem": "^2.21.44"
+  },
+  "packageManager": "pnpm@9.7.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm check"
+  },
+  "knip": {
+    "ignore": [".github/**", "scripts/**", "src/_test/**", "src/package.json"],
+    "ignoreBinaries": ["dev", "only-allow", "printf"],
+    "workspaces": {
+      "src": {
+        "entry": ["index.ts!"]
+      }
+    }
+  }
 }
