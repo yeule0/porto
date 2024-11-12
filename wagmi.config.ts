@@ -9,7 +9,7 @@ export default defineConfig({
     foundry({
       deployments: {
         AccountDelegation: {
-          [odysseyTestnet.id]: '0x4c40985d65D01f941981187E7c191D3B4A764dC2',
+          [odysseyTestnet.id]: '0x00d2C28AB9DB357f52706E86277B2Ed3541322C2',
         },
         ExperimentERC20: {
           [odysseyTestnet.id]: '0x238c8CD93ee9F8c7Edf395548eF60c0d2e46665E',
