@@ -8,28 +8,6 @@ import { odysseyTestnet } from 'viem/chains'
 
 import { accountDelegationAddress } from './generated.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
-import * as Provider_internal from './internal/provider.js'
-
-type Schema = RpcSchema.From<
-  | RpcSchema.Default
-  | {
-      Request: {
-        method: 'odyssey_ping'
-      }
-      ReturnType: string
-    }
-  | {
-      Request: {
-        method: 'odyssey_registerAccount'
-      }
-      ReturnType: Address.Address
-    }
->
-
-export type Client = {
-  announceProvider: () => Mipd.AnnounceProviderReturnType
-  provider: Provider.Provider<{ includeEvents: true; schema: Schema }>
-}
 
 /**
  * Instantiates an Oddworld Client instance.
@@ -59,23 +37,36 @@ export function create(
     webauthn,
   } = parameters
 
-  const emitter = Provider.createEmitter()
-
-  let accounts: readonly Address.Address[] = []
-
+  let accounts: Address.Address[] = []
   const chain = chains[0]
   const chainId = Hex.fromNumber(chain.id)
   const client = createClient({ chain, transport: transports[chain.id]! })
   const delegation = delegations[chain.id]!
 
+  const emitter = Provider.createEmitter()
+
   const provider = Provider.from({
     ...emitter,
     async request({ method, params }) {
       switch (method) {
+        case 'eth_accounts':
+          return accounts
+        case 'eth_chainId':
+          return chainId
+        case 'eth_requestAccounts': {
+          if (!headless) throw new Provider.UnsupportedMethodError()
+
+          const { account } = await AccountDelegation.load(client)
+
+          accounts = [account.address]
+          emitter.emit('connect', { chainId })
+          emitter.emit('accountsChanged', accounts)
+          return accounts
+        }
         case 'odyssey_ping':
           return 'pong'
         case 'odyssey_registerAccount': {
-          if (!headless) throw Provider_internal.UnsupportedMethodError // TODO
+          if (!headless) throw new Provider.UnsupportedMethodError()
 
           const { account } = await AccountDelegation.create(client, {
             delegation,
@@ -86,23 +77,9 @@ export function create(
           emitter.emit('accountsChanged', accounts)
           return account.address
         }
-        case 'eth_requestAccounts': {
-          if (!headless) throw Provider_internal.UnsupportedMethodError // TODO
-
-          const { account } = await AccountDelegation.load(client)
-
-          accounts = [account.address]
-          emitter.emit('connect', { chainId })
-          emitter.emit('accountsChanged', accounts)
-          return accounts
-        }
-        case 'eth_accounts':
-          return accounts
-        case 'eth_chainId':
-          return chainId
         default:
           if (method.startsWith('wallet_'))
-            throw Provider_internal.UnsupportedMethodError
+            throw new Provider.UnsupportedMethodError()
           return client.request({ method, params } as any)
       }
     },
@@ -144,7 +121,10 @@ export namespace create {
     transports: transports | Record<chains[number]['id'], Transport>
   } & (
     | {
-        /** Whether to run EIP-1193 Provider in headless mode. */
+        /**
+         * Whether to run EIP-1193 Provider in headless mode.
+         * @default true
+         */
         headless: true
         /** WebAuthn configuration. */
         webauthn?:
@@ -159,7 +139,7 @@ export namespace create {
       }
   )
 
-  export const defaultParameters: create.Parameters = {
+  export const defaultParameters = {
     chains: [odysseyTestnet],
     delegations: {
       [odysseyTestnet.id]: accountDelegationAddress[odysseyTestnet.id],
@@ -167,5 +147,26 @@ export namespace create {
     transports: {
       [odysseyTestnet.id]: http(),
     },
-  }
+  } as const satisfies create.Parameters
+}
+
+type Schema = RpcSchema.From<
+  | RpcSchema.Default
+  | {
+      Request: {
+        method: 'odyssey_ping'
+      }
+      ReturnType: string
+    }
+  | {
+      Request: {
+        method: 'odyssey_registerAccount'
+      }
+      ReturnType: Address.Address
+    }
+>
+
+export type Client = {
+  announceProvider: () => Mipd.AnnounceProviderReturnType
+  provider: Provider.Provider<{ includeEvents: true; schema: Schema }>
 }
