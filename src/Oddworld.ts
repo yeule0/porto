@@ -1,13 +1,15 @@
 import * as Mipd from 'mipd'
-import { type Address, RpcResponse } from 'ox'
+import type { Address } from 'ox'
 import * as Hex from 'ox/Hex'
 import * as Provider from 'ox/Provider'
+import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 
 import { experimentalDelegationAddress } from './generated.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
+import type * as RpcSchema_internal from './internal/rpcSchema.js'
 
 /**
  * Instantiates an Oddworld instance.
@@ -75,18 +77,13 @@ export function create(
           if (accounts.length === 0) throw new Provider.DisconnectedError()
 
           const [{ data = '0x', from, to, value = '0x0' }] =
-            params as RpcSchema.ExtractParams<Schema, 'eth_sendTransaction'>
+            params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'eth_sendTransaction'
+            >
 
-          if (!to)
-            throw new RpcResponse.InvalidParamsError({
-              ...RpcResponse.InvalidParamsError,
-              message: 'Missing required parameter: to',
-            })
-          if (!from)
-            throw new RpcResponse.InvalidParamsError({
-              ...RpcResponse.InvalidParamsError,
-              message: 'Missing required parameter: from',
-            })
+          require(to, 'Missing required parameter: to')
+          require(from, 'Missing required parameter: from')
 
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
@@ -122,20 +119,19 @@ export function create(
         case 'oddworld_ping':
           return 'pong'
 
+        case 'wallet_grantPermissions':
+          throw new Provider.UnsupportedMethodError()
+
         case 'wallet_sendCalls': {
           if (!headless) throw new Provider.UnsupportedMethodError()
           if (accounts.length === 0) throw new Provider.DisconnectedError()
 
           const [{ calls, from }] = params as RpcSchema.ExtractParams<
-            Schema,
+            RpcSchema_internal.Schema,
             'wallet_sendCalls'
           >
 
-          if (!from)
-            throw new RpcResponse.InvalidParamsError({
-              ...RpcResponse.InvalidParamsError,
-              message: 'Missing required parameter: from',
-            })
+          require(from, 'Missing required parameter: from')
 
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
@@ -219,23 +215,21 @@ export namespace create {
   } as const satisfies create.Parameters
 }
 
-type Schema = RpcSchema.From<
-  | RpcSchema.Default
-  | {
-      Request: {
-        method: 'oddworld_ping'
-      }
-      ReturnType: string
-    }
-  | {
-      Request: {
-        method: 'experimental_registerAccount'
-      }
-      ReturnType: Address.Address
-    }
->
-
 export type Client = {
   announceProvider: () => Mipd.AnnounceProviderReturnType
-  provider: Provider.Provider<{ includeEvents: true; schema: Schema }>
+  provider: Provider.Provider<{
+    includeEvents: true
+    schema: RpcSchema_internal.Schema
+  }>
+}
+
+function require(
+  param: unknown,
+  message: string,
+): asserts param is NonNullable<typeof param> {
+  if (typeof param === 'undefined')
+    throw new RpcResponse.InvalidParamsError({
+      ...RpcResponse.InvalidParamsError,
+      message,
+    })
 }

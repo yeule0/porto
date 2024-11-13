@@ -8,11 +8,13 @@ import {
   Secp256k1,
   type Signature,
   WebAuthnP256,
+  WebCryptoP256,
 } from 'ox'
 import type { Chain, Client, Transport } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { readContract, writeContract } from 'viem/actions'
 import { signAuthorization } from 'viem/experimental'
+
 import { experimentalDelegationAbi } from '../generated.js'
 
 ////////////////////////////////////////////////////////////
@@ -61,6 +63,59 @@ const keyType = {
 // Actions
 ////////////////////////////////////////////////////////////
 
+export async function authorize<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: authorize.Parameters,
+) {
+  const { account, keyIndex = 0 } = parameters
+
+  const key = account.keys[keyIndex]
+  if (!key) throw new Error(`key not found at index: ${keyIndex}`)
+
+  const nonce = await readContract(client, {
+    abi: experimentalDelegationAbi,
+    address: account.address,
+    functionName: 'nonce',
+  })
+
+  const key_ = {
+    expiry: key.expiry,
+    keyType: keyType[key.type],
+    publicKey: key.publicKey,
+  }
+
+  const payload = Hash.keccak256(
+    AbiParameters.encode(
+      AbiParameters.from([
+        'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
+        'uint256 nonce',
+        'Key key',
+      ]),
+      [nonce, key_],
+    ),
+  )
+
+  const signature = await sign({ payload, key })
+
+  const hash = await writeContract(client, {
+    abi: experimentalDelegationAbi,
+    address: account.address,
+    functionName: 'authorize',
+    args: [key_, signature],
+    account: null,
+    chain: null,
+  })
+
+  return { hash }
+}
+
+export declare namespace authorize {
+  type Parameters = {
+    account: Account
+    keyIndex?: number | undefined
+  }
+}
+
 export async function create<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: create.Parameters,
@@ -93,37 +148,6 @@ export async function create<chain extends Chain | undefined>(
     },
   }).then((x) => ({ ...x, expiry: 0n, type: 'webauthn' }) as const)
 
-  const { hash } = await initialize(client, {
-    authority: address,
-    delegation,
-    key,
-    label,
-    privateKey,
-  })
-
-  const account: Account = {
-    address,
-    label,
-    keys: [key],
-  }
-
-  return { account, hash }
-}
-
-export declare namespace create {
-  type Parameters = {
-    delegation: Address.Address
-    label?: string | undefined
-    rpId?: string | undefined
-  }
-}
-
-export async function initialize<chain extends Chain | undefined>(
-  client: Client<Transport, chain>,
-  parameters: initialize.Parameters,
-) {
-  const { authority, delegation, label, key, privateKey } = parameters
-
   const key_ = {
     expiry: key.expiry,
     keyType: keyType[key.type],
@@ -154,7 +178,7 @@ export async function initialize<chain extends Chain | undefined>(
 
   const hash = await writeContract(client, {
     abi: experimentalDelegationAbi,
-    address: authority,
+    address,
     functionName: 'initialize',
     args: [label, key_, signature],
     authorizationList: [authorization],
@@ -162,16 +186,74 @@ export async function initialize<chain extends Chain | undefined>(
     chain: null,
   })
 
-  return { hash }
+  const account: Account = {
+    address,
+    label,
+    keys: [key],
+  }
+
+  return { account, hash }
 }
 
-export declare namespace initialize {
+export declare namespace create {
   type Parameters = {
-    authority: Address.Address
     delegation: Address.Address
-    key: Key
-    label: string
-    privateKey: Hex.Hex
+    label?: string | undefined
+    rpId?: string | undefined
+  }
+}
+
+export async function execute<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: execute.Parameters,
+) {
+  const { account, calls, keyIndex = 0 } = parameters
+
+  const nonce = await readContract(client, {
+    abi: experimentalDelegationAbi,
+    address: account.address,
+    functionName: 'nonce',
+  })
+
+  const encodedCalls = Hex.concat(
+    ...calls.map((call) =>
+      AbiParameters.encodePacked(
+        ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
+        [
+          0,
+          call.to,
+          call.value ?? 0n,
+          BigInt(Hex.size(call.data ?? '0x')),
+          call.data ?? '0x',
+        ],
+      ),
+    ),
+  )
+
+  const payload = Hash.keccak256(
+    AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, encodedCalls]),
+  )
+
+  const key = account.keys[keyIndex]
+  if (!key) throw new Error(`key not found at index: ${keyIndex}`)
+
+  const wrappedSignature = await sign({ payload, key })
+
+  return await writeContract(client, {
+    abi: experimentalDelegationAbi,
+    address: account.address,
+    functionName: 'execute',
+    args: [encodedCalls, wrappedSignature],
+    account: null,
+    chain: null,
+  })
+}
+
+export declare namespace execute {
+  type Parameters = {
+    account: Account
+    calls: Calls
+    keyIndex?: number | undefined
   }
 }
 
@@ -217,68 +299,42 @@ export async function load<chain extends Chain | undefined>(
   return { account }
 }
 
-export async function execute<chain extends Chain | undefined>(
-  client: Client<Transport, chain>,
-  parameters: execute.Parameters,
-) {
-  const { account, calls } = parameters
+export async function sign({ payload, key }: sign.Parameters) {
+  if (key.type === 'webauthn') {
+    const { signature, metadata } = await WebAuthnP256.sign({
+      challenge: payload,
+      credentialId: key.id,
+    })
 
-  const nonce = await readContract(client, {
-    abi: experimentalDelegationAbi,
-    address: account.address,
-    functionName: 'nonce',
-  })
-
-  const encodedCalls = Hex.concat(
-    ...calls.map((call) =>
-      AbiParameters.encodePacked(
-        ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
-        [
-          0,
-          call.to,
-          call.value ?? 0n,
-          BigInt(Hex.size(call.data ?? '0x')),
-          call.data ?? '0x',
-        ],
-      ),
-    ),
-  )
-
-  const challenge = Hash.keccak256(
-    AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, encodedCalls]),
-  )
-
-  const key = account.keys[0]!
-  if (key.type !== 'webauthn') throw new Error('key type not supported')
-
-  const { signature, metadata } = await WebAuthnP256.sign({
-    challenge,
-    credentialId: key.id,
-  })
-
-  const wrappedSignature = getWrappedSignature({
-    metadata: getWebAuthnMetadata(metadata),
-    signature,
-  })
-
-  return await writeContract(client, {
-    abi: experimentalDelegationAbi,
-    address: account.address,
-    functionName: 'execute',
-    args: [encodedCalls, wrappedSignature],
-    account: null,
-    chain: null,
-  })
-}
-
-export declare namespace execute {
-  type Parameters = {
-    account: Account
-    calls: Calls
+    return wrapSignature({
+      metadata: getWebAuthnMetadata(metadata),
+      signature,
+    })
   }
+
+  if (key.type === 'webcrypto') {
+    const signature = await WebCryptoP256.sign({
+      payload,
+      privateKey: key.privateKey,
+    })
+
+    return wrapSignature({
+      signature,
+    })
+  }
+
+  throw new Error(`type not supported: ${(key as any).type}`)
 }
 
-function getWrappedSignature(parameters: {
+export declare namespace sign {
+  export type Parameters = { payload: Hex.Hex; key: Key }
+}
+
+////////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////////
+
+function wrapSignature(parameters: {
   keyIndex?: number | undefined
   metadata?: Hex.Hex | undefined
   prehash?: boolean | undefined

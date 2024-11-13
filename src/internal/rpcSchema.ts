@@ -1,0 +1,52 @@
+import type * as Address from 'ox/Address'
+import type * as Hex from 'ox/Hex'
+import type * as RpcSchema from 'ox/RpcSchema'
+
+export type Schema = RpcSchema.From<
+  | RpcSchema.Default
+  | {
+      Request: {
+        method: 'experimental_registerAccount'
+      }
+      ReturnType: Address.Address
+    }
+  | {
+      Request: {
+        method: 'oddworld_ping'
+      }
+      ReturnType: string
+    }
+  | {
+      Request: {
+        method: 'wallet_grantPermissions'
+        params: [WalletGrantPermissionsParameters]
+      }
+      ReturnType: WalletGrantPermissionsReturnType
+    }
+>
+
+///////////////////////////////////////////////////////////////
+// Schema Types
+///////////////////////////////////////////////////////////////
+
+type WalletGrantPermissionsParameters = {
+  address?: Address.Address | undefined
+  chainId?: Hex.Hex | undefined
+  expiry: number
+  signer?:
+    | {
+        type: string
+        data: Record<string, any>
+      }
+    | undefined
+  permissions?:
+    | {
+        type: string
+        data: Record<string, any>
+      }[]
+    | undefined
+}
+
+type WalletGrantPermissionsReturnType = WalletGrantPermissionsParameters & {
+  context: Hex.Hex
+}
