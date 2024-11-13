@@ -97,8 +97,8 @@ importers:
         specifier: ^0.0.7
         version: 0.0.7(typescript@5.6.3)
       ox:
-        specifier: ^0.1.7
-        version: 0.1.7(typescript@5.6.3)(zod@3.23.8)
+        specifier: ^0.1.8
+        version: 0.1.8(typescript@5.6.3)(zod@3.23.8)
 
 packages:
 
@@ -2421,8 +2421,8 @@ packages:
       typescript:
         optional: true
 
-  ox@0.1.7:
-    resolution: {integrity: sha512-oLvTxKDACMPBaOVFnzUHQhgSHOYMe+z67kpVsF7+f1MjftT+kd9h2XStU8yCmSgrfv/lkLvmr0T/vDdcmGZyjg==}
+  ox@0.1.8:
+    resolution: {integrity: sha512-GJl6uKXxhPq/XgyvAnIokGuGU/pt9CU8reRJjzi4a02HOpLc2CEXXD4bRCITFFAzdRqHj3DQ6GDS7PlCytPM/A==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -6024,7 +6024,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.1.7(typescript@5.6.3)(zod@3.23.8):
+  ox@0.1.8(typescript@5.6.3)(zod@3.23.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/curves': 1.6.0

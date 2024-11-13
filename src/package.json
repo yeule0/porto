@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "mipd": "^0.0.7",
-    "ox": "^0.1.7"
+    "ox": "^0.1.8"
   },
   "peerDependencies": {
     "typescript": ">=5.4.0",
