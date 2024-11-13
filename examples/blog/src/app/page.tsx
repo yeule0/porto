@@ -11,7 +11,16 @@ import * as React from 'react'
 export default function Page() {
   const { isLoading, user, error } = db.useAuth()
 
-  const { data: postsData } = db.useQuery({ posts: { author: {} } })
+  const { data: postsData } = db.useQuery({
+    posts: {
+      author: {},
+      $: {
+        order: {
+          serverCreatedAt: 'desc',
+        },
+      },
+    },
+  })
 
   if (error) return <div>Uh oh! {error.message}</div>
   if (isLoading) return <div />
@@ -30,12 +39,13 @@ export default function Page() {
       {user ? (
         <form
           className="flex flex-col  max-w-[200px]"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault()
+            const form = event.currentTarget
             const formData = new FormData(event.currentTarget)
             const title = formData.get('title') as string
             const text = formData.get('text')
-            db.transact(
+            await db.transact(
               tx.posts[id()]
                 .update({
                   createdAt: Date.now(),
@@ -48,6 +58,7 @@ export default function Page() {
                 })
                 .link({ author: user.id }),
             )
+            form.reset()
           }}
         >
           <input type="text" name="title" placeholder="Title" required />
@@ -74,9 +85,12 @@ export default function Page() {
             className="flex flex-col gap-1 text-sm"
           >
             <h2 className="font-bold m-0 text-base">{post.title}</h2>
-            <time>{new Date(post.createdAt).toLocaleString()}</time>
-            <p className="m-0">{post.text}</p>
-            <button type="button" className="text-xs leading-none w-fit">
+            <div className="text-xs">
+              <time>{new Date(post.createdAt).toLocaleString()}</time>
+            </div>
+
+            <p className="m-0 whitespace-pre-line">{post.text}</p>
+            <button type="button" className="text-xs leading-none mt-1 w-fit">
               Tip 1 $EXP
             </button>
           </div>
@@ -144,6 +158,7 @@ function Auth() {
       >
         <input
           data-1p-ignore
+          autoComplete="off"
           type="email"
           placeholder="name@example.com"
           name="email"
