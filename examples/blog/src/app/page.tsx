@@ -115,7 +115,8 @@ function Auth() {
             await oddworld.provider.request({
               method: 'eth_requestAccounts',
             })
-            const email = oddworld._internal.accounts?.[0].label
+            const email =
+              oddworld._internal.store.getState().accounts?.[0].label
             setLoading('login')
             const data = await fetch('/api/auth', {
               method: 'POST',

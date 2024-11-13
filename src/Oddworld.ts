@@ -7,6 +7,8 @@ import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
+import { subscribeWithSelector } from 'zustand/middleware'
+import { type StoreApi, createStore } from 'zustand/vanilla'
 
 import { experimentalDelegationAddress } from './generated.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
@@ -40,42 +42,87 @@ export function create(
     webauthn,
   } = parameters
 
-  let accounts: AccountDelegation.Account[] = []
+  const store = createStore(
+    subscribeWithSelector<State>((_, get) => ({
+      accounts: [],
+      chain: chains[0],
 
-  const chain = chains[0]
-  const chainId = Hex.fromNumber(chain.id)
-  const client = createClient({ chain, transport: transports[chain.id]! })
-  const delegation = delegations[chain.id]!
+      // computed
+      get chainId() {
+        const { chain } = get()
+        return chain.id
+      },
+      get client() {
+        const { chain } = get()
+        return createClient({
+          chain,
+          transport: transports[chain.id]!,
+        })
+      },
+      get delegation() {
+        const { chain } = get()
+        return delegations[chain.id]!
+      },
+    })),
+  )
 
   const emitter = Provider.createEmitter()
+
+  function setupSubscriptions() {
+    const unsubscribe_accounts = store.subscribe(
+      (state) => state.accounts,
+      (accounts) => {
+        emitter.emit(
+          'accountsChanged',
+          accounts.map((account) => account.address),
+        )
+      },
+    )
+
+    const unsubscribe_chain = store.subscribe(
+      (state) => state.chain,
+      (chain) => {
+        emitter.emit('chainChanged', Hex.fromNumber(chain.id))
+      },
+    )
+
+    return () => {
+      unsubscribe_accounts()
+      unsubscribe_chain()
+    }
+  }
+  const unsubscribe = setupSubscriptions()
 
   const provider = Provider.from({
     ...emitter,
     async request({ method, params }) {
+      const state = store.getState()
+
       switch (method) {
         case 'eth_accounts':
-          if (accounts.length === 0) throw new Provider.DisconnectedError()
-          return accounts.map((account) => account.address)
+          if (state.accounts.length === 0)
+            throw new Provider.DisconnectedError()
+          return state.accounts.map((account) => account.address)
 
         case 'eth_chainId':
-          return chainId
+          return Hex.fromNumber(state.chainId)
 
         case 'eth_requestAccounts': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
-          const { account } = await AccountDelegation.load(client)
+          const { account } = await AccountDelegation.load(state.client)
 
-          accounts = [account]
+          store.setState((x) => ({ ...x, accounts: [account] }))
 
-          const addresses = accounts.map((account) => account.address)
-          emitter.emit('connect', { chainId })
-          emitter.emit('accountsChanged', addresses)
+          const addresses = state.accounts.map((account) => account.address)
+          emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
           return addresses
         }
 
         case 'eth_sendTransaction': {
           if (!headless) throw new Provider.UnsupportedMethodError()
-          if (accounts.length === 0) throw new Provider.DisconnectedError()
+          if (state.accounts.length === 0)
+            throw new Provider.DisconnectedError()
 
           const [{ data = '0x', from, to, value = '0x0' }] =
             params as RpcSchema.ExtractParams<
@@ -86,10 +133,12 @@ export function create(
           requireParameter(to, 'to')
           requireParameter(from, 'from')
 
-          const account = accounts.find((account) => account.address === from)
+          const account = state.accounts.find(
+            (account) => account.address === from,
+          )
           if (!account) throw new Provider.UnauthorizedError()
 
-          return await AccountDelegation.execute(client, {
+          return await AccountDelegation.execute(state.client, {
             account,
             calls: [
               {
@@ -110,17 +159,16 @@ export function create(
           >) ?? [{}]
 
           // TODO: wait for tx to be included?
-          const { account } = await AccountDelegation.create(client, {
-            delegation,
+          const { account } = await AccountDelegation.create(state.client, {
+            delegation: state.delegation,
             label,
             rpId: webauthn?.rpId,
           })
 
-          accounts = [account]
+          store.setState((x) => ({ ...x, accounts: [account] }))
 
-          const addresses = accounts.map((account) => account.address)
-          emitter.emit('connect', { chainId })
-          emitter.emit('accountsChanged', addresses)
+          const addresses = state.accounts.map((account) => account.address)
+          emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
           return addresses
         }
 
@@ -129,14 +177,15 @@ export function create(
 
         case 'wallet_grantPermissions': {
           if (!headless) throw new Provider.UnsupportedMethodError()
-          if (accounts.length === 0) throw new Provider.DisconnectedError()
+          if (state.accounts.length === 0)
+            throw new Provider.DisconnectedError()
 
           const [{ address, expiry }] = params as RpcSchema.ExtractParams<
             RpcSchema_internal.Schema,
             'wallet_grantPermissions'
           >
 
-          const account = accounts.find(
+          const account = state.accounts.find(
             (account) => account.address === address,
           )
           if (!account) throw new Provider.UnauthorizedError()
@@ -146,18 +195,29 @@ export function create(
           })
 
           // TODO: wait for tx to be included?
-          await AccountDelegation.authorize(client, {
+          await AccountDelegation.authorize(state.client, {
             account,
             key,
           })
 
-          accounts
-            .find((account) => account.address === address)!
-            .keys.push(key)
+          store.setState((x) => {
+            const index = x.accounts.findIndex(
+              (account) => account.address === address,
+            )
+            if (index === -1) return x
+
+            const accounts = [...x.accounts]
+            accounts[index]!.keys.push(key)
+
+            return {
+              ...x,
+              accounts,
+            }
+          })
 
           return {
             address,
-            chainId: Hex.fromNumber(0),
+            chainId: Hex.fromNumber(state.chainId),
             context: PublicKey.toHex(key.publicKey),
             expiry,
             permissions: [],
@@ -176,7 +236,8 @@ export function create(
 
         case 'wallet_sendCalls': {
           if (!headless) throw new Provider.UnsupportedMethodError()
-          if (accounts.length === 0) throw new Provider.DisconnectedError()
+          if (state.accounts.length === 0)
+            throw new Provider.DisconnectedError()
 
           const [{ calls, from, capabilities }] =
             params as RpcSchema.ExtractParams<
@@ -186,7 +247,9 @@ export function create(
 
           requireParameter(from, 'from')
 
-          const account = accounts.find((account) => account.address === from)
+          const account = state.accounts.find(
+            (account) => account.address === from,
+          )
           if (!account) throw new Provider.UnauthorizedError()
 
           const { context: publicKey } = capabilities?.permissions ?? {}
@@ -198,7 +261,7 @@ export function create(
             : 0
           if (keyIndex === -1) throw new Provider.UnauthorizedError()
 
-          return await AccountDelegation.execute(client, {
+          return await AccountDelegation.execute(state.client, {
             account,
             calls: calls as AccountDelegation.Calls,
             keyIndex,
@@ -208,7 +271,7 @@ export function create(
         default:
           if (method.startsWith('wallet_'))
             throw new Provider.UnsupportedMethodError()
-          return client.request({ method, params } as any)
+          return state.client.request({ method, params } as any)
       }
     },
   })
@@ -225,11 +288,13 @@ export function create(
         provider: provider as any,
       })
     },
+    destroy() {
+      emitter.removeAllListeners()
+      unsubscribe()
+    },
     provider,
     _internal: {
-      get accounts() {
-        return accounts
-      },
+      store,
     },
   }
 }
@@ -285,6 +350,7 @@ export namespace create {
 
 export type Client = {
   announceProvider: () => Mipd.AnnounceProviderReturnType
+  destroy: () => void
   provider: Provider.Provider<{
     includeEvents: true
     schema: RpcSchema_internal.Schema
@@ -294,8 +360,16 @@ export type Client = {
    * @internal
    */
   _internal: {
-    accounts?: AccountDelegation.Account[]
+    store: StoreApi<State>
   }
+}
+
+export type State = {
+  accounts: AccountDelegation.Account[]
+  chain: Chain
+  readonly chainId: number
+  readonly client: ReturnType<typeof createClient>
+  readonly delegation: Address.Address
 }
 
 function requireParameter(
