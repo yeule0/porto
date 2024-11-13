@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
+import { type Hex, encodeFunctionData } from 'viem'
 
+import { parseEther } from 'viem/utils'
 import { Wagmi } from './Wagmi'
 import { oddworld } from './config'
+import { ExperimentERC20 } from './contracts'
 
 export function App() {
   return (
@@ -11,6 +14,7 @@ export function App() {
       <Ping />
       <Register />
       <Login />
+      <SendTransaction />
 
       <hr />
 
@@ -60,14 +64,14 @@ function Ping() {
   const [result, setResult] = useState<string | null>(null)
   return (
     <div>
-      <h3>Ping Provider</h3>
+      <h3>oddworld_ping</h3>
       <button
         onClick={() =>
-          oddworld.provider.request({ method: 'odyssey_ping' }).then(setResult)
+          oddworld.provider.request({ method: 'oddworld_ping' }).then(setResult)
         }
         type="button"
       >
-        odyssey_ping
+        Ping
       </button>
       <pre>{result}</pre>
     </div>
@@ -78,16 +82,16 @@ function Register() {
   const [result, setResult] = useState<string | null>(null)
   return (
     <div>
-      <h3>Register</h3>
+      <h3>experimental_registerAccount</h3>
       <button
         onClick={() =>
           oddworld.provider
-            .request({ method: 'odyssey_registerAccount' })
+            .request({ method: 'experimental_registerAccount' })
             .then(setResult)
         }
         type="button"
       >
-        odyssey_registerAccount
+        Register
       </button>
       <pre>{result}</pre>
     </div>
@@ -98,7 +102,7 @@ function Login() {
   const [result, setResult] = useState<readonly string[] | null>(null)
   return (
     <div>
-      <h3>Login</h3>
+      <h3>eth_requestAccounts</h3>
       <button
         onClick={() =>
           oddworld.provider
@@ -107,7 +111,43 @@ function Login() {
         }
         type="button"
       >
-        eth_requestAccounts
+        Login
+      </button>
+      <pre>{result}</pre>
+    </div>
+  )
+}
+
+function SendTransaction() {
+  const [result, setResult] = useState<Hex | null>(null)
+  return (
+    <div>
+      <h3>eth_sendTransaction</h3>
+      <button
+        onClick={async () => {
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+          await oddworld.provider
+            .request({
+              method: 'eth_sendTransaction',
+              params: [
+                {
+                  from: account,
+                  to: ExperimentERC20.address,
+                  data: encodeFunctionData({
+                    abi: ExperimentERC20.abi,
+                    functionName: 'mint',
+                    args: [account, parseEther('100')],
+                  }),
+                },
+              ],
+            })
+            .then(setResult)
+        }}
+        type="button"
+      >
+        Mint 100 EXP
       </button>
       <pre>{result}</pre>
     </div>

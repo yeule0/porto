@@ -290,7 +290,7 @@ function getWrappedSignature(parameters: {
     AbiParameters.from([
       'struct Signature { uint256 r; uint256 s; uint8 yParity; }',
       'uint32 keyIndex',
-      'ECDSA.Signature signature',
+      'Signature signature',
       'bool prehash',
       'bytes metadata',
     ]),
@@ -306,18 +306,9 @@ function getWrappedSignature(parameters: {
 function getWebAuthnMetadata(metadata: WebAuthnP256.SignMetadata) {
   return AbiParameters.encode(
     AbiParameters.from([
-      'bytes authenticatorData',
-      'string clientDataJSON',
-      'uint16 challengeIndex',
-      'uint16 typeIndex',
-      'bool userVerificationRequired',
+      'struct Metadata { bytes authenticatorData; string clientDataJSON; uint16 challengeIndex; uint16 typeIndex; bool userVerificationRequired; }',
+      'Metadata metadata',
     ]),
-    [
-      metadata.authenticatorData,
-      metadata.clientDataJSON,
-      metadata.challengeIndex,
-      metadata.typeIndex,
-      metadata.userVerificationRequired,
-    ],
+    [metadata],
   )
 }

@@ -1,5 +1,5 @@
 import * as Mipd from 'mipd'
-import type { Address } from 'ox'
+import { type Address, RpcResponse } from 'ox'
 import * as Hex from 'ox/Hex'
 import * as Provider from 'ox/Provider'
 import type * as RpcSchema from 'ox/RpcSchema'
@@ -37,7 +37,8 @@ export function create(
     webauthn,
   } = parameters
 
-  let accounts: Address.Address[] = []
+  let accounts: readonly AccountDelegation.Account[] = []
+
   const chain = chains[0]
   const chainId = Hex.fromNumber(chain.id)
   const client = createClient({ chain, transport: transports[chain.id]! })
@@ -50,33 +51,76 @@ export function create(
     async request({ method, params }) {
       switch (method) {
         case 'eth_accounts':
-          return accounts
+          return accounts.map((account) => account.address)
+
         case 'eth_chainId':
           return chainId
+
         case 'eth_requestAccounts': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
           const { account } = await AccountDelegation.load(client)
 
-          accounts = [account.address]
+          accounts = [account]
+
+          const addresses = accounts.map((account) => account.address)
           emitter.emit('connect', { chainId })
-          emitter.emit('accountsChanged', accounts)
-          return accounts
+          emitter.emit('accountsChanged', addresses)
+          return addresses
         }
-        case 'odyssey_ping':
-          return 'pong'
-        case 'odyssey_registerAccount': {
+
+        case 'eth_sendTransaction': {
+          if (!headless) throw new Provider.UnsupportedMethodError()
+          if (accounts.length === 0) throw new Provider.DisconnectedError()
+
+          const [{ data = '0x', from, to, value = '0x0' }] =
+            params as RpcSchema.ExtractParams<Schema, 'eth_sendTransaction'>
+
+          if (!to)
+            throw new RpcResponse.InvalidParamsError({
+              ...RpcResponse.InvalidParamsError,
+              message: 'Missing required parameter: to',
+            })
+          if (!from)
+            throw new RpcResponse.InvalidParamsError({
+              ...RpcResponse.InvalidParamsError,
+              message: 'Missing required parameter: from',
+            })
+
+          const account = accounts.find((account) => account.address === from)
+          if (!account) throw new Provider.UnauthorizedError()
+
+          return await AccountDelegation.execute(client, {
+            account,
+            calls: [
+              {
+                data,
+                to,
+                value: Hex.toBigInt(value),
+              },
+            ],
+          })
+        }
+
+        case 'experimental_registerAccount': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
           const { account } = await AccountDelegation.create(client, {
             delegation,
             rpId: webauthn?.rpId,
           })
-          accounts = [account.address]
+
+          accounts = [account]
+
+          const addresses = accounts.map((account) => account.address)
           emitter.emit('connect', { chainId })
-          emitter.emit('accountsChanged', accounts)
-          return account.address
+          emitter.emit('accountsChanged', addresses)
+          return addresses
         }
+
+        case 'oddworld_ping':
+          return 'pong'
+
         default:
           if (method.startsWith('wallet_'))
             throw new Provider.UnsupportedMethodError()
@@ -154,13 +198,13 @@ type Schema = RpcSchema.From<
   | RpcSchema.Default
   | {
       Request: {
-        method: 'odyssey_ping'
+        method: 'oddworld_ping'
       }
       ReturnType: string
     }
   | {
       Request: {
-        method: 'odyssey_registerAccount'
+        method: 'experimental_registerAccount'
       }
       ReturnType: Address.Address
     }
