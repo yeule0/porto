@@ -33,3 +33,9 @@ contracts/out
 src/_dist
 src/_generated
 
+# next.js
+.next
+out
+
+# vercel
+.vercel

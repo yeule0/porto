@@ -1,13 +1,17 @@
 {
-  "name": "playground",
+  "name": "blog",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
-    "@rainbow-me/rainbowkit": "^2.2.0",
+    "@instantdb/admin": "^0.14.29",
+    "@instantdb/react": "^0.14.29",
     "@tanstack/react-query": "catalog:",
+    "next": "14.2.13",
     "oddworld": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -15,11 +19,10 @@
     "wagmi": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "^20",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "^4.3.1",
-    "globals": "^15.9.0",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
   }
 }

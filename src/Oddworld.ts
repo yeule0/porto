@@ -109,9 +109,15 @@ export function create(
         case 'experimental_registerAccount': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
+          const [{ label }] = (params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'experimental_registerAccount'
+          >) ?? [{}]
+
           // TODO: wait for tx to be included?
           const { account } = await AccountDelegation.create(client, {
             delegation,
+            label,
             rpId: webauthn?.rpId,
           })
 
@@ -232,6 +238,11 @@ export function create(
       })
     },
     provider,
+    _internal: {
+      get accounts() {
+        return accounts
+      },
+    },
   }
 }
 
@@ -290,6 +301,13 @@ export type Client = {
     includeEvents: true
     schema: RpcSchema_internal.Schema
   }>
+  /**
+   * Not part of versioned API, proceed with caution.
+   * @internal
+   */
+  _internal: {
+    accounts?: AccountDelegation.Account[]
+  }
 }
 
 function require(

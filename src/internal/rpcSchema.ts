@@ -10,6 +10,7 @@ export type Schema = RpcSchema.From<
   | {
       Request: {
         method: 'experimental_registerAccount'
+        params?: [RegisterAccountParameters] | undefined
       }
       ReturnType: Address.Address
     }
@@ -31,6 +32,10 @@ export type Schema = RpcSchema.From<
 ///////////////////////////////////////////////////////////////
 // Schema Types
 ///////////////////////////////////////////////////////////////
+
+type RegisterAccountParameters = {
+  label?: string | undefined
+}
 
 type WalletGrantPermissionsParameters = {
   address?: Address.Address | undefined

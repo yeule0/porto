@@ -28,5 +28,6 @@
   },
   "license": "MIT",
   "homepage": "https://ithaca.xyz",
-  "repository": "ithacaxyz/oddworld"
+  "repository": "ithacaxyz/oddworld",
+  "contributors": ["jxom.eth <jake@ithaca.xyz>", "awkweb.eth <tom@ithaca.xyz>"]
 }
