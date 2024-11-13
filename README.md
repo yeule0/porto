@@ -15,11 +15,11 @@ pnpm i oddworld
 The example below demonstrates usage of Oddworld's EIP-1193 Provider:
 
 ```ts twoslash
-import { Client } from 'oddworld'
+import { Oddworld } from 'oddworld'
 
-const client = Client.create()
+const oddworld = Oddworld.create()
 
-const result = await client.provider.request({ method: 'ping' })
+const account = await oddworld.provider.request({ method: 'experimental_registerAccount' })
 ```
 
 ## Development
