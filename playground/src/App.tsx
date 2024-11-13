@@ -15,6 +15,7 @@ export function App() {
       <Register />
       <Login />
       <SendTransaction />
+      <SendCalls />
 
       <hr />
 
@@ -148,6 +149,58 @@ function SendTransaction() {
         type="button"
       >
         Mint 100 EXP
+      </button>
+      <pre>{result}</pre>
+    </div>
+  )
+}
+
+function SendCalls() {
+  const [result, setResult] = useState<string | null>(null)
+  return (
+    <div>
+      <h3>wallet_sendCalls</h3>
+      <button
+        onClick={async () => {
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+          const hash = await oddworld.provider.request({
+            method: 'wallet_sendCalls',
+            params: [
+              {
+                calls: [
+                  {
+                    to: ExperimentERC20.address,
+                    data: encodeFunctionData({
+                      abi: ExperimentERC20.abi,
+                      functionName: 'approve',
+                      args: [account, parseEther('50')],
+                    }),
+                  },
+                  {
+                    to: ExperimentERC20.address,
+                    data: encodeFunctionData({
+                      abi: ExperimentERC20.abi,
+                      functionName: 'transferFrom',
+                      args: [
+                        account,
+                        '0x0000000000000000000000000000000000000000',
+                        parseEther('50'),
+                      ],
+                    }),
+                  },
+                ],
+                from: account,
+                version: '1',
+              },
+            ],
+          })
+          setResult(hash)
+        }}
+        type="button"
+      >
+        Approve + Transfer 50 EXP
       </button>
       <pre>{result}</pre>
     </div>

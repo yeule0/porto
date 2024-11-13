@@ -51,6 +51,7 @@ export function create(
     async request({ method, params }) {
       switch (method) {
         case 'eth_accounts':
+          if (accounts.length === 0) throw new Provider.DisconnectedError()
           return accounts.map((account) => account.address)
 
         case 'eth_chainId':
@@ -120,6 +121,30 @@ export function create(
 
         case 'oddworld_ping':
           return 'pong'
+
+        case 'wallet_sendCalls': {
+          if (!headless) throw new Provider.UnsupportedMethodError()
+          if (accounts.length === 0) throw new Provider.DisconnectedError()
+
+          const [{ calls, from }] = params as RpcSchema.ExtractParams<
+            Schema,
+            'wallet_sendCalls'
+          >
+
+          if (!from)
+            throw new RpcResponse.InvalidParamsError({
+              ...RpcResponse.InvalidParamsError,
+              message: 'Missing required parameter: from',
+            })
+
+          const account = accounts.find((account) => account.address === from)
+          if (!account) throw new Provider.UnauthorizedError()
+
+          return await AccountDelegation.execute(client, {
+            account,
+            calls: calls as AccountDelegation.Calls,
+          })
+        }
 
         default:
           if (method.startsWith('wallet_'))

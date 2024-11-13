@@ -25,7 +25,11 @@ export type Account = {
   keys: readonly Key[]
 }
 
-export type Calls = { to: Address.Address; value?: bigint; data?: Hex.Hex }[]
+export type Calls = readonly {
+  to: Address.Address
+  value?: bigint | undefined
+  data?: Hex.Hex | undefined
+}[]
 
 type Key_Base<type extends string, properties> = properties & {
   expiry: bigint
