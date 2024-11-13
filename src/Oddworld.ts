@@ -10,15 +10,15 @@ import { experimentalDelegationAddress } from './generated.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
 
 /**
- * Instantiates an Oddworld Client instance.
+ * Instantiates an Oddworld instance.
  *
  * @example
  * ```ts twoslash
- * import { Client } from 'oddworld'
+ * import { Oddworld } from 'oddworld'
  *
- * const client = Client.create()
+ * const oddworld = Oddworld.create()
  *
- * const blockNumber = await client.provider.request({ method: 'eth_blockNumber' })
+ * const blockNumber = await oddworld.provider.request({ method: 'eth_blockNumber' })
  * ```
  */
 export function create<

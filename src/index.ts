@@ -1,1 +1,1 @@
-export * as Client from './Client.js'
+export * as Oddworld from './Oddworld.js'

@@ -5,11 +5,11 @@ import {
   rainbowWallet,
   safeWallet,
 } from '@rainbow-me/rainbowkit/wallets'
-import { Client } from 'oddworld'
+import { Oddworld } from 'oddworld'
 import { http, createConfig } from 'wagmi'
 import { odysseyTestnet } from 'wagmi/chains'
 
-export const oddworld = Client.create()
+export const oddworld = Oddworld.create()
 
 const connectors = connectorsForWallets(
   [
