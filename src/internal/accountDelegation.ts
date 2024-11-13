@@ -1,21 +1,20 @@
-import {
-  AbiParameters,
-  Address,
-  Bytes,
-  Hash,
-  Hex,
-  type PublicKey,
-  Secp256k1,
-  type Signature,
-  WebAuthnP256,
-  WebCryptoP256,
-} from 'ox'
+import * as AbiParameters from 'ox/AbiParameters'
+import * as Address from 'ox/Address'
+import * as Bytes from 'ox/Bytes'
+import * as Hash from 'ox/Hash'
+import * as Hex from 'ox/Hex'
+import * as PublicKey from 'ox/PublicKey'
+import * as Secp256k1 from 'ox/Secp256k1'
+import type * as Signature from 'ox/Signature'
+import * as WebAuthnP256 from 'ox/WebAuthnP256'
+import * as WebCryptoP256 from 'ox/WebCryptoP256'
 import type { Chain, Client, Transport } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { readContract, writeContract } from 'viem/actions'
 import { signAuthorization } from 'viem/experimental'
 
 import { experimentalDelegationAbi } from '../generated.js'
+import type { OneOf, Undefined } from './types.js'
 
 ////////////////////////////////////////////////////////////
 // Types
@@ -33,16 +32,23 @@ export type Calls = readonly {
   data?: Hex.Hex | undefined
 }[]
 
-type Key_Base<type extends string, properties> = properties & {
+type Key_Base<type extends string, properties> = {
   expiry: bigint
   publicKey: PublicKey.PublicKey
   type: type
-}
+} & OneOf<
+  | ({
+      status: 'unlocked'
+    } & properties)
+  | ({
+      status: 'locked'
+    } & Undefined<properties>)
+>
 
 export type WebAuthnKey = Key_Base<'webauthn', WebAuthnP256.P256Credential>
 
 export type WebCryptoKey = Key_Base<
-  'webcrypto',
+  'p256',
   {
     privateKey: CryptoKey
   }
@@ -55,9 +61,14 @@ export type Key = WebAuthnKey | WebCryptoKey
 ////////////////////////////////////////////////////////////////
 
 const keyType = {
-  webcrypto: 0,
+  p256: 0,
   webauthn: 1,
-}
+} as const
+
+const keyTypeSerialized = {
+  0: 'p256',
+  1: 'webauthn',
+} as const
 
 ////////////////////////////////////////////////////////////
 // Actions
@@ -68,7 +79,7 @@ export async function authorize<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: authorize.Parameters,
 ) {
-  const { account, authorizeKey, key } = parameters
+  const { account, key, keyIndex = 0 } = parameters
 
   const nonce = await readContract(client, {
     abi: experimentalDelegationAbi,
@@ -77,9 +88,9 @@ export async function authorize<chain extends Chain | undefined>(
   })
 
   const key_ = {
-    expiry: authorizeKey.expiry,
-    keyType: keyType[authorizeKey.type],
-    publicKey: authorizeKey.publicKey,
+    expiry: key.expiry,
+    keyType: keyType[key.type],
+    publicKey: key.publicKey,
   }
 
   const payload = Hash.keccak256(
@@ -94,7 +105,7 @@ export async function authorize<chain extends Chain | undefined>(
     ),
   )
 
-  const signature = await sign(client, { account, payload, key })
+  const signature = await sign({ account, payload, keyIndex })
 
   const hash = await writeContract(client, {
     abi: experimentalDelegationAbi,
@@ -113,9 +124,9 @@ export declare namespace authorize {
     /** Account to add the key to. */
     account: Account
     /** Key to authorize. */
-    authorizeKey: Key
-    /** Key to sign with. */
     key: Key
+    /** Index of the key to sign with. */
+    keyIndex?: number | undefined
   }
 }
 
@@ -133,44 +144,33 @@ export async function create<chain extends Chain | undefined>(
   const label =
     parameters.label ?? `${address.slice(0, 8)}\u2026${address.slice(-6)}`
 
-  const key = await WebAuthnP256.createCredential({
-    authenticatorSelection: {
-      requireResidentKey: false,
-      residentKey: 'preferred',
-      userVerification: 'required',
-    },
-    rp: rpId
-      ? {
-          id: rpId,
-          name: rpId,
-        }
-      : undefined,
-    user: {
-      displayName: label,
-      name: label,
-      id: Bytes.from(address),
-    },
-  }).then((x) => ({ ...x, expiry: 0n, type: 'webauthn' }) as const)
+  const key = await createWebAuthnKey({
+    label,
+    rpId,
+    userId: Bytes.from(address),
+  })
 
-  const key_ = {
+  const serializedKey = {
     expiry: key.expiry,
     keyType: keyType[key.type],
     publicKey: key.publicKey,
   }
 
-  const signature = Secp256k1.sign({
-    payload: Hash.keccak256(
-      AbiParameters.encode(
-        AbiParameters.from([
-          'struct PublicKey { uint256 x; uint256 y; }',
-          'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
-          'uint256 nonce',
-          'string label',
-          'Key key',
-        ]),
-        [0n, label, key_],
-      ),
+  const payload = Hash.keccak256(
+    AbiParameters.encode(
+      AbiParameters.from([
+        'struct PublicKey { uint256 x; uint256 y; }',
+        'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
+        'uint256 nonce',
+        'string label',
+        'Key key',
+      ]),
+      [0n, label, serializedKey],
     ),
+  )
+
+  const signature = Secp256k1.sign({
+    payload,
     privateKey,
   })
 
@@ -184,7 +184,7 @@ export async function create<chain extends Chain | undefined>(
     abi: experimentalDelegationAbi,
     address,
     functionName: 'initialize',
-    args: [label, key_, signature],
+    args: [label, serializedKey, signature],
     authorizationList: [authorization],
     account: null,
     chain: null,
@@ -210,12 +210,77 @@ export declare namespace create {
   }
 }
 
+/** Creates a new WebAuthn-P256 Account key. */
+export async function createWebAuthnKey(
+  parameters: createWebAuthnKey.Parameters,
+): Promise<WebAuthnKey> {
+  const { expiry = 0n, rpId, label, userId } = parameters
+  const key = await WebAuthnP256.createCredential({
+    authenticatorSelection: {
+      requireResidentKey: false,
+      residentKey: 'preferred',
+      userVerification: 'required',
+    },
+    rp: rpId
+      ? {
+          id: rpId,
+          name: rpId,
+        }
+      : undefined,
+    user: {
+      displayName: label,
+      name: label,
+      id: userId,
+    },
+  })
+  return {
+    ...key,
+    expiry,
+    status: 'unlocked',
+    type: 'webauthn',
+  }
+}
+
+export declare namespace createWebAuthnKey {
+  type Parameters = {
+    /** Expiry for the key. */
+    expiry?: bigint | undefined
+    /** Relying Party ID. */
+    rpId?: string | undefined
+    /** Label for the key. */
+    label: string
+    /** User ID. */
+    userId: Bytes.Bytes
+  }
+}
+
+/** Creates a new WebCrypto-P256 Account key. */
+export async function createWebCryptoKey(
+  parameters: createWebCryptoKey.Parameters,
+): Promise<WebCryptoKey> {
+  const { expiry } = parameters
+  const keyPair = await WebCryptoP256.createKeyPair()
+  return {
+    ...keyPair,
+    expiry,
+    status: 'unlocked',
+    type: 'p256',
+  }
+}
+
+export declare namespace createWebCryptoKey {
+  type Parameters = {
+    /** Expiry for the key. */
+    expiry: bigint
+  }
+}
+
 /** Executes calls on an Account. */
 export async function execute<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: execute.Parameters,
 ) {
-  const { account, calls, key } = parameters
+  const { account, calls, keyIndex = 0 } = parameters
 
   const nonce = await readContract(client, {
     abi: experimentalDelegationAbi,
@@ -242,7 +307,7 @@ export async function execute<chain extends Chain | undefined>(
     AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, encodedCalls]),
   )
 
-  const wrappedSignature = await sign(client, { account, payload, key })
+  const wrappedSignature = await sign({ account, payload, keyIndex })
 
   return await writeContract(client, {
     abi: experimentalDelegationAbi,
@@ -260,8 +325,8 @@ export declare namespace execute {
     account: Account
     /** Calls to execute. */
     calls: Calls
-    /** Key to sign with. */
-    key: Key
+    /** Index of the key to sign with. */
+    keyIndex?: number | undefined
   }
 }
 
@@ -293,27 +358,38 @@ export async function load<chain extends Chain | undefined>(
   const account: Account = {
     address,
     label,
-    keys: keys.map((x) => ({
-      ...x,
-      publicKey: {
-        prefix: 4,
-        ...x.publicKey,
-      },
-      id: raw.id,
-      raw,
-      type: 'webauthn',
-    })),
+    keys: keys.map((key, index) => {
+      // Assume that the first key is the "master" WebAuthn key.
+      if (index === 0)
+        return {
+          expiry: 0n,
+          id: raw.id,
+          publicKey: PublicKey.from(key.publicKey),
+          raw,
+          status: 'unlocked',
+          type: 'webauthn',
+        } satisfies WebAuthnKey
+
+      return {
+        expiry: key.expiry,
+        publicKey: PublicKey.from(key.publicKey),
+        status: 'locked',
+        type: (keyTypeSerialized as any)[key.keyType],
+      } satisfies Key
+    }),
   }
 
   return { account }
 }
 
 /** Signs a payload with a key on the Account. */
-export async function sign<chain extends Chain | undefined>(
-  client: Client<Transport, chain>,
-  parameters: sign.Parameters,
-) {
-  const { account, payload, key } = parameters
+export async function sign(parameters: sign.Parameters) {
+  const { account, payload, keyIndex } = parameters
+
+  const key = account.keys[keyIndex]
+
+  if (!key) throw new Error('key not found')
+  if (key.status === 'locked') throw new Error('key is locked')
 
   if (key.type === 'webauthn') {
     const { signature, metadata } = await WebAuthnP256.sign({
@@ -327,21 +403,11 @@ export async function sign<chain extends Chain | undefined>(
     })
   }
 
-  if (key.type === 'webcrypto') {
-    const [signature, keys] = await Promise.all([
-      WebCryptoP256.sign({
-        payload,
-        privateKey: key.privateKey,
-      }),
-      readContract(client, {
-        abi: experimentalDelegationAbi,
-        address: account.address,
-        functionName: 'getKeys',
-      }),
-    ])
-
-    const keyIndex = keys.findIndex((x) => x.publicKey.x === key.publicKey.x)
-    if (keyIndex === -1) throw new Error('key not found')
+  if (key.type === 'p256') {
+    const signature = await WebCryptoP256.sign({
+      payload,
+      privateKey: key.privateKey,
+    })
 
     return wrapSignature({
       signature,
@@ -359,8 +425,8 @@ export declare namespace sign {
     account: Account
     /** Payload to sign. */
     payload: Hex.Hex
-    /** Key to sign with. */
-    key: Key
+    /** Index of the key to sign with. */
+    keyIndex: number
   }
 }
 

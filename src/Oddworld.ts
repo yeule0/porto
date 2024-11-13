@@ -5,7 +5,6 @@ import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
-import * as WebCryptoP256 from 'ox/WebCryptoP256'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 
@@ -84,14 +83,11 @@ export function create(
               'eth_sendTransaction'
             >
 
-          require(to, 'Missing required parameter: to')
-          require(from, 'Missing required parameter: from')
+          requireParameter(to, 'to')
+          requireParameter(from, 'from')
 
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
-
-          const key = account.keys[0]
-          if (!key) throw new Provider.UnauthorizedError()
 
           return await AccountDelegation.execute(client, {
             account,
@@ -102,7 +98,6 @@ export function create(
                 value: Hex.toBigInt(value),
               },
             ],
-            key,
           })
         }
 
@@ -140,38 +135,31 @@ export function create(
           )
           if (!account) throw new Provider.UnauthorizedError()
 
-          const key = account.keys[0]
-          if (!key) throw new Provider.UnauthorizedError()
-
-          const keyPair = await WebCryptoP256.createKeyPair()
-          const authorizeKey = {
-            ...keyPair,
+          const key = await AccountDelegation.createWebCryptoKey({
             expiry: BigInt(expiry),
-            type: 'webcrypto',
-          } satisfies AccountDelegation.WebCryptoKey
+          })
 
           // TODO: wait for tx to be included?
           await AccountDelegation.authorize(client, {
             account,
-            authorizeKey,
             key,
           })
 
           accounts
             .find((account) => account.address === address)!
-            .keys.push(authorizeKey)
+            .keys.push(key)
 
           return {
             address,
             chainId: Hex.fromNumber(0),
-            context: PublicKey.toHex(authorizeKey.publicKey),
+            context: PublicKey.toHex(key.publicKey),
             expiry,
             permissions: [],
             signer: {
               type: 'key',
               data: {
                 type: 'secp256r1',
-                publicKey: PublicKey.toHex(authorizeKey.publicKey),
+                publicKey: PublicKey.toHex(key.publicKey),
               },
             },
           } satisfies RpcSchema.ExtractReturnType<
@@ -190,24 +178,24 @@ export function create(
               'wallet_sendCalls'
             >
 
-          require(from, 'Missing required parameter: from')
+          requireParameter(from, 'from')
 
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
 
           const { context: publicKey } = capabilities?.permissions ?? {}
 
-          const key = publicKey
-            ? account.keys.find(
+          const keyIndex = publicKey
+            ? account.keys.findIndex(
                 (key) => PublicKey.toHex(key.publicKey) === publicKey,
               )
-            : account.keys[0]
-          if (!key) throw new Provider.UnauthorizedError()
+            : 0
+          if (keyIndex === -1) throw new Provider.UnauthorizedError()
 
           return await AccountDelegation.execute(client, {
             account,
             calls: calls as AccountDelegation.Calls,
-            key,
+            keyIndex,
           })
         }
 
@@ -292,13 +280,13 @@ export type Client = {
   }>
 }
 
-function require(
+function requireParameter(
   param: unknown,
-  message: string,
+  details: string,
 ): asserts param is NonNullable<typeof param> {
   if (typeof param === 'undefined')
     throw new RpcResponse.InvalidParamsError({
       ...RpcResponse.InvalidParamsError,
-      message,
+      message: `Missing required parameter: ${details}`,
     })
 }
