@@ -6,7 +6,7 @@ import type * as RpcSchema from 'ox/RpcSchema'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 
-import { accountDelegationAddress } from './generated.js'
+import { experimentalDelegationAddress } from './generated.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
 
 /**
@@ -142,7 +142,7 @@ export namespace create {
   export const defaultParameters = {
     chains: [odysseyTestnet],
     delegations: {
-      [odysseyTestnet.id]: accountDelegationAddress[odysseyTestnet.id],
+      [odysseyTestnet.id]: experimentalDelegationAddress[odysseyTestnet.id],
     },
     transports: {
       [odysseyTestnet.id]: http(),

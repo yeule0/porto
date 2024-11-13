@@ -8,8 +8,8 @@ export default defineConfig({
   plugins: [
     foundry({
       deployments: {
-        AccountDelegation: {
-          [odysseyTestnet.id]: '0x00d2C28AB9DB357f52706E86277B2Ed3541322C2',
+        ExperimentalDelegation: {
+          [odysseyTestnet.id]: '0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc',
         },
         ExperimentERC20: {
           [odysseyTestnet.id]: '0x238c8CD93ee9F8c7Edf395548eF60c0d2e46665E',

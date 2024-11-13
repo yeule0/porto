@@ -6,13 +6,14 @@ import {
   Hex,
   type PublicKey,
   Secp256k1,
+  type Signature,
   WebAuthnP256,
 } from 'ox'
 import type { Chain, Client, Transport } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { readContract, writeContract } from 'viem/actions'
 import { signAuthorization } from 'viem/experimental'
-import { accountDelegationAbi } from '../generated.js'
+import { experimentalDelegationAbi } from '../generated.js'
 
 ////////////////////////////////////////////////////////////
 // Types
@@ -148,7 +149,7 @@ export async function initialize<chain extends Chain | undefined>(
   })
 
   const hash = await writeContract(client, {
-    abi: accountDelegationAbi,
+    abi: experimentalDelegationAbi,
     address: authority,
     functionName: 'initialize',
     args: [label, key_, signature],
@@ -183,12 +184,12 @@ export async function load<chain extends Chain | undefined>(
 
   const [keys, label] = await Promise.all([
     readContract(client, {
-      abi: accountDelegationAbi,
+      abi: experimentalDelegationAbi,
       address,
       functionName: 'getKeys',
     }),
     readContract(client, {
-      abi: accountDelegationAbi,
+      abi: experimentalDelegationAbi,
       address,
       functionName: 'label',
     }),
@@ -219,12 +220,12 @@ export async function execute<chain extends Chain | undefined>(
   const { account, calls } = parameters
 
   const nonce = await readContract(client, {
-    abi: accountDelegationAbi,
+    abi: experimentalDelegationAbi,
     address: account.address,
     functionName: 'nonce',
   })
 
-  const calls_encoded = Hex.concat(
+  const encodedCalls = Hex.concat(
     ...calls.map((call) =>
       AbiParameters.encodePacked(
         ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
@@ -240,7 +241,7 @@ export async function execute<chain extends Chain | undefined>(
   )
 
   const challenge = Hash.keccak256(
-    AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, calls_encoded]),
+    AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, encodedCalls]),
   )
 
   const key = account.keys[0]!
@@ -251,11 +252,16 @@ export async function execute<chain extends Chain | undefined>(
     credentialId: key.id,
   })
 
+  const wrappedSignature = getWrappedSignature({
+    metadata: getWebAuthnMetadata(metadata),
+    signature,
+  })
+
   return await writeContract(client, {
-    abi: accountDelegationAbi,
+    abi: experimentalDelegationAbi,
     address: account.address,
     functionName: 'execute',
-    args: [calls_encoded, { r: signature.r, s: signature.s }, metadata, 0],
+    args: [encodedCalls, wrappedSignature],
     account: null,
     chain: null,
   })
@@ -266,4 +272,52 @@ export declare namespace execute {
     account: Account
     calls: Calls
   }
+}
+
+function getWrappedSignature(parameters: {
+  keyIndex?: number | undefined
+  metadata?: Hex.Hex | undefined
+  prehash?: boolean | undefined
+  signature: Signature.Signature<boolean>
+}) {
+  const {
+    keyIndex = 0,
+    metadata = '0x',
+    prehash = false,
+    signature,
+  } = parameters
+  return AbiParameters.encode(
+    AbiParameters.from([
+      'struct Signature { uint256 r; uint256 s; uint8 yParity; }',
+      'uint32 keyIndex',
+      'ECDSA.Signature signature',
+      'bool prehash',
+      'bytes metadata',
+    ]),
+    [
+      keyIndex,
+      { r: signature.r, s: signature.s, yParity: 0 },
+      prehash,
+      metadata,
+    ],
+  )
+}
+
+function getWebAuthnMetadata(metadata: WebAuthnP256.SignMetadata) {
+  return AbiParameters.encode(
+    AbiParameters.from([
+      'bytes authenticatorData',
+      'string clientDataJSON',
+      'uint16 challengeIndex',
+      'uint16 typeIndex',
+      'bool userVerificationRequired',
+    ]),
+    [
+      metadata.authenticatorData,
+      metadata.clientDataJSON,
+      metadata.challengeIndex,
+      metadata.typeIndex,
+      metadata.userVerificationRequired,
+    ],
+  )
 }

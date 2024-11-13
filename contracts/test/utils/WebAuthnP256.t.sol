@@ -26,7 +26,8 @@ contract WebAuthnP256Test is Test {
     function test_verify() public view {
         ECDSA.Signature memory signature = ECDSA.Signature(
             10330677067519063752777069525326520293658884904426299601620960859195372963151,
-            47017859265388077754498411591757867926785106410894171160067329762716841868244
+            47017859265388077754498411591757867926785106410894171160067329762716841868244,
+            0
         );
         bool res = WebAuthnP256.verify(challenge, metadata, signature, publicKey);
         assertEq(res, true);

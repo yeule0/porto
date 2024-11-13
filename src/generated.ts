@@ -2,9 +2,6 @@
 // AccountDelegation
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x4c40985d65D01f941981187E7c191D3B4A764dC2)
- */
 export const accountDelegationAbi = [
   { type: 'fallback', stateMutability: 'payable' },
   { type: 'receive', stateMutability: 'payable' },
@@ -33,6 +30,7 @@ export const accountDelegationAbi = [
           },
         ],
       },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'authorize',
     outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
@@ -63,16 +61,6 @@ export const accountDelegationAbi = [
           },
         ],
       },
-      {
-        name: 'signature',
-        internalType: 'struct ECDSA.RecoveredSignature',
-        type: 'tuple',
-        components: [
-          { name: 'r', internalType: 'uint256', type: 'uint256' },
-          { name: 's', internalType: 'uint256', type: 'uint256' },
-          { name: 'yParity', internalType: 'uint8', type: 'uint8' },
-        ],
-      },
     ],
     name: 'authorize',
     outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
@@ -89,52 +77,7 @@ export const accountDelegationAbi = [
     type: 'function',
     inputs: [
       { name: 'calls', internalType: 'bytes', type: 'bytes' },
-      {
-        name: 'signature',
-        internalType: 'struct ECDSA.Signature',
-        type: 'tuple',
-        components: [
-          { name: 'r', internalType: 'uint256', type: 'uint256' },
-          { name: 's', internalType: 'uint256', type: 'uint256' },
-        ],
-      },
-      {
-        name: 'metadata',
-        internalType: 'struct WebAuthnP256.Metadata',
-        type: 'tuple',
-        components: [
-          { name: 'authenticatorData', internalType: 'bytes', type: 'bytes' },
-          { name: 'clientDataJSON', internalType: 'string', type: 'string' },
-          { name: 'challengeIndex', internalType: 'uint16', type: 'uint16' },
-          { name: 'typeIndex', internalType: 'uint16', type: 'uint16' },
-          {
-            name: 'userVerificationRequired',
-            internalType: 'bool',
-            type: 'bool',
-          },
-        ],
-      },
-      { name: 'keyIndex', internalType: 'uint32', type: 'uint32' },
-    ],
-    name: 'execute',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'calls', internalType: 'bytes', type: 'bytes' },
-      {
-        name: 'signature',
-        internalType: 'struct ECDSA.Signature',
-        type: 'tuple',
-        components: [
-          { name: 'r', internalType: 'uint256', type: 'uint256' },
-          { name: 's', internalType: 'uint256', type: 'uint256' },
-        ],
-      },
-      { name: 'keyIndex', internalType: 'uint32', type: 'uint32' },
-      { name: 'prehash', internalType: 'bool', type: 'bool' },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'execute',
     outputs: [],
@@ -229,7 +172,7 @@ export const accountDelegationAbi = [
       },
       {
         name: 'signature',
-        internalType: 'struct ECDSA.RecoveredSignature',
+        internalType: 'struct ECDSA.Signature',
         type: 'tuple',
         components: [
           { name: 'r', internalType: 'uint256', type: 'uint256' },
@@ -241,6 +184,16 @@ export const accountDelegationAbi = [
     name: 'initialize',
     outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'digest', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'isValidSignature',
+    outputs: [{ name: 'magicValue', internalType: 'bytes4', type: 'bytes4' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -274,13 +227,6 @@ export const accountDelegationAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'transactions', internalType: 'bytes', type: 'bytes' }],
-    name: 'multiSend',
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
     inputs: [],
     name: 'nonce',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
@@ -297,16 +243,7 @@ export const accountDelegationAbi = [
     type: 'function',
     inputs: [
       { name: 'keyIndex', internalType: 'uint32', type: 'uint32' },
-      {
-        name: 'signature',
-        internalType: 'struct ECDSA.RecoveredSignature',
-        type: 'tuple',
-        components: [
-          { name: 'r', internalType: 'uint256', type: 'uint256' },
-          { name: 's', internalType: 'uint256', type: 'uint256' },
-          { name: 'yParity', internalType: 'uint8', type: 'uint8' },
-        ],
-      },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'revoke',
     outputs: [],
@@ -317,21 +254,6 @@ export const accountDelegationAbi = [
   { type: 'error', inputs: [], name: 'InvalidSignature' },
   { type: 'error', inputs: [], name: 'KeyExpiredOrUnauthorized' },
 ] as const
-
-/**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x4c40985d65D01f941981187E7c191D3B4A764dC2)
- */
-export const accountDelegationAddress = {
-  911867: '0x4c40985d65D01f941981187E7c191D3B4A764dC2',
-} as const
-
-/**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x4c40985d65D01f941981187E7c191D3B4A764dC2)
- */
-export const accountDelegationConfig = {
-  address: accountDelegationAddress,
-  abi: accountDelegationAbi,
-} as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ERC20
@@ -710,6 +632,288 @@ export const experimentErc20Config = {
 } as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ExperimentalDelegation
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ */
+export const experimentalDelegationAbi = [
+  { type: 'fallback', stateMutability: 'payable' },
+  { type: 'receive', stateMutability: 'payable' },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'OWNER_METADATA',
+    outputs: [{ name: '', internalType: 'bytes', type: 'bytes' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'key',
+        internalType: 'struct ExperimentalDelegation.Key',
+        type: 'tuple',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'authorize',
+    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'key',
+        internalType: 'struct ExperimentalDelegation.Key',
+        type: 'tuple',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+    ],
+    name: 'authorize',
+    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'calls', internalType: 'bytes', type: 'bytes' }],
+    name: 'execute',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'calls', internalType: 'bytes', type: 'bytes' },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'execute',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getKeys',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct ExperimentalDelegation.Key[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'label_', internalType: 'string', type: 'string' },
+      {
+        name: 'key',
+        internalType: 'struct ExperimentalDelegation.Key',
+        type: 'tuple',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+    ],
+    name: 'initialize',
+    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'label_', internalType: 'string', type: 'string' },
+      {
+        name: 'key',
+        internalType: 'struct ExperimentalDelegation.Key',
+        type: 'tuple',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'signature',
+        internalType: 'struct ECDSA.Signature',
+        type: 'tuple',
+        components: [
+          { name: 'r', internalType: 'uint256', type: 'uint256' },
+          { name: 's', internalType: 'uint256', type: 'uint256' },
+          { name: 'yParity', internalType: 'uint8', type: 'uint8' },
+        ],
+      },
+    ],
+    name: 'initialize',
+    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'digest', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'isValidSignature',
+    outputs: [{ name: 'magicValue', internalType: 'bytes4', type: 'bytes4' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    name: 'keys',
+    outputs: [
+      { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'keyType',
+        internalType: 'enum ExperimentalDelegation.KeyType',
+        type: 'uint8',
+      },
+      {
+        name: 'publicKey',
+        internalType: 'struct ECDSA.PublicKey',
+        type: 'tuple',
+        components: [
+          { name: 'x', internalType: 'uint256', type: 'uint256' },
+          { name: 'y', internalType: 'uint256', type: 'uint256' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'label',
+    outputs: [{ name: '', internalType: 'string', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'nonce',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    name: 'revoke',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'keyIndex', internalType: 'uint32', type: 'uint32' },
+      { name: 'signature', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'revoke',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  { type: 'error', inputs: [], name: 'AlreadyInitialized' },
+  { type: 'error', inputs: [], name: 'InvalidAuthority' },
+  { type: 'error', inputs: [], name: 'InvalidSignature' },
+  { type: 'error', inputs: [], name: 'KeyExpiredOrUnauthorized' },
+] as const
+
+/**
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ */
+export const experimentalDelegationAddress = {
+  911867: '0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc',
+} as const
+
+/**
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ */
+export const experimentalDelegationConfig = {
+  address: experimentalDelegationAddress,
+  abi: experimentalDelegationAbi,
+} as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IMulticall3
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -948,20 +1152,6 @@ export const iMulticall3Abi = [
         ],
       },
     ],
-    stateMutability: 'payable',
-  },
-] as const
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// MultiSendCallOnly
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const multiSendCallOnlyAbi = [
-  {
-    type: 'function',
-    inputs: [{ name: 'transactions', internalType: 'bytes', type: 'bytes' }],
-    name: 'multiSend',
-    outputs: [],
     stateMutability: 'payable',
   },
 ] as const

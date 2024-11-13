@@ -10,11 +10,6 @@ library ECDSA {
     struct Signature {
         uint256 r;
         uint256 s;
-    }
-
-    struct RecoveredSignature {
-        uint256 r;
-        uint256 s;
         uint8 yParity;
     }
 }

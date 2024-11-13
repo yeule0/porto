@@ -4,9 +4,10 @@ pragma solidity ^0.8.23;
 import {Test, console2} from "forge-std/Test.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {VmSafe} from "forge-std/Vm.sol";
-import {AccountDelegation} from "../../src/account/AccountDelegation.sol";
+import {ExperimentalDelegation} from "../../src/account/ExperimentalDelegation.sol";
 import {P256} from "../../src/utils/P256.sol";
 import {ECDSA} from "../../src/utils/ECDSA.sol";
+import {WebAuthnP256} from "../../src/utils/WebAuthnP256.sol";
 
 contract Callee {
     error UnexpectedSender(address expected, address actual);
@@ -26,14 +27,14 @@ contract Callee {
     }
 }
 
-contract AccountDelegationTest is Test {
-    AccountDelegation public delegation;
+contract ExperimentalDelegationTest is Test {
+    ExperimentalDelegation public delegation;
     uint256 public p256PrivateKey;
     Callee public callee;
 
     function setUp() public {
         callee = new Callee();
-        delegation = new AccountDelegation();
+        delegation = new ExperimentalDelegation();
         p256PrivateKey = 100366595829038452957523597440756290436854445761208339940577349703440345778405;
         vm.deal(address(delegation), 1.5 ether);
         vm.warp(69420);
@@ -44,8 +45,8 @@ contract AccountDelegationTest is Test {
 
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
 
         vm.expectRevert();
         delegation.keys(0);
@@ -57,7 +58,7 @@ contract AccountDelegationTest is Test {
 
         assertEq(delegation.label(), "wallet");
 
-        (uint256 expiry, AccountDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
+        (uint256 expiry, ExperimentalDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
             delegation.keys(0);
         assertEq(authorizedPublicKey.x, x);
         assertEq(authorizedPublicKey.y, y);
@@ -69,8 +70,8 @@ contract AccountDelegationTest is Test {
 
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
 
         vm.expectRevert();
         delegation.keys(0);
@@ -80,25 +81,57 @@ contract AccountDelegationTest is Test {
         delegation.authorize(key);
         vm.pauseGasMetering();
 
-        (uint256 expiry, AccountDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
+        (uint256 expiry, ExperimentalDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
             delegation.keys(0);
         assertEq(authorizedPublicKey.x, x);
         assertEq(authorizedPublicKey.y, y);
         assertEq(expiry, 0);
     }
 
+    function test_authorize_withAuthorizedKey() public {
+        vm.pauseGasMetering();
+
+        (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
+
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        vm.expectRevert();
+        delegation.keys(0);
+
+        vm.prank(address(delegation));
+        delegation.authorize(key);
+
+        ExperimentalDelegation.Key memory nextKey =
+            ExperimentalDelegation.Key(69420, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        bytes32 hash = keccak256(abi.encode(delegation.nonce(), nextKey));
+        (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
+
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), 0), false, "0x");
+
+        delegation.authorize(nextKey, abi.encode(wrappedSignature));
+
+        (uint256 expiry, ExperimentalDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
+            delegation.keys(1);
+        assertEq(authorizedPublicKey.x, x);
+        assertEq(authorizedPublicKey.y, y);
+        assertEq(expiry, 69420);
+    }
+
     function test_authorize_revertInvalidAuthority() public {
         vm.pauseGasMetering();
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
 
         vm.expectRevert();
         delegation.keys(0);
 
         vm.resumeGasMetering();
-        vm.expectRevert(AccountDelegation.InvalidAuthority.selector);
+        vm.expectRevert(ExperimentalDelegation.InvalidAuthority.selector);
         delegation.authorize(key);
     }
 
@@ -107,8 +140,8 @@ contract AccountDelegationTest is Test {
 
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
 
         vm.prank(address(delegation));
         delegation.authorize(key);
@@ -120,7 +153,7 @@ contract AccountDelegationTest is Test {
         delegation.revoke(0);
         vm.pauseGasMetering();
 
-        (uint256 expiry, AccountDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
+        (uint256 expiry, ExperimentalDelegation.KeyType keyType, ECDSA.PublicKey memory authorizedPublicKey) =
             delegation.keys(0);
         assertEq(expiry, 1);
     }
@@ -141,14 +174,21 @@ contract AccountDelegationTest is Test {
         (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature = ExperimentalDelegation.WrappedSignature(
+            0,
+            ECDSA.Signature(uint256(r), uint256(s), uint8(0)),
+            false,
+            abi.encode(WebAuthnP256.Metadata("0x", "aa", 0, 0, false))
+        );
 
         vm.prank(address(delegation));
         delegation.authorize(key);
 
         vm.resumeGasMetering();
-        delegation.execute(calls, ECDSA.Signature(uint256(r), uint256(s)), 0, false);
+        delegation.execute(calls, abi.encode(wrappedSignature));
         vm.pauseGasMetering();
 
         assertEq(callee.counter(address(delegation)), 3);
@@ -170,8 +210,11 @@ contract AccountDelegationTest is Test {
         (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), uint8(0)), false, "0x");
 
         vm.prank(address(delegation));
         delegation.authorize(key);
@@ -181,8 +224,8 @@ contract AccountDelegationTest is Test {
         delegation.revoke(0);
         vm.pauseGasMetering();
 
-        vm.expectRevert(AccountDelegation.KeyExpiredOrUnauthorized.selector);
-        delegation.execute(calls, ECDSA.Signature(uint256(r), uint256(s)), 0, false);
+        vm.expectRevert(ExperimentalDelegation.KeyExpiredOrUnauthorized.selector);
+        delegation.execute(calls, abi.encode(wrappedSignature));
     }
 
     function test_execute_revertExpired() public {
@@ -198,16 +241,19 @@ contract AccountDelegationTest is Test {
         (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(block.timestamp, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(block.timestamp, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), uint8(0)), false, "0x");
 
         vm.prank(address(delegation));
         delegation.authorize(key);
 
         vm.warp(block.timestamp + 1);
 
-        vm.expectRevert(AccountDelegation.KeyExpiredOrUnauthorized.selector);
-        delegation.execute(calls, ECDSA.Signature(uint256(r), uint256(s)), 0, false);
+        vm.expectRevert(ExperimentalDelegation.KeyExpiredOrUnauthorized.selector);
+        delegation.execute(calls, abi.encode(wrappedSignature));
     }
 
     function test_revertReplay() public {
@@ -223,17 +269,60 @@ contract AccountDelegationTest is Test {
         (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
         (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
 
-        AccountDelegation.Key memory key =
-            AccountDelegation.Key(0, AccountDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), uint8(0)), false, "0x");
 
         vm.prank(address(delegation));
         delegation.authorize(key);
 
         vm.resumeGasMetering();
-        delegation.execute(calls, ECDSA.Signature(uint256(r), uint256(s)), 0, false);
+        delegation.execute(calls, abi.encode(wrappedSignature));
         vm.pauseGasMetering();
 
-        vm.expectRevert(AccountDelegation.InvalidSignature.selector);
-        delegation.execute(calls, ECDSA.Signature(uint256(r), uint256(s)), 0, false);
+        vm.expectRevert(ExperimentalDelegation.InvalidSignature.selector);
+        delegation.execute(calls, abi.encode(wrappedSignature));
+    }
+
+    function test_isValidSignature_forOwner() public {
+        VmSafe.Wallet memory alice = vm.createWallet("alice");
+        vm.etch(alice.addr, bytes.concat(hex"ef0100", abi.encodePacked(delegation)));
+        ExperimentalDelegation delegation = ExperimentalDelegation(payable(alice.addr));
+
+        (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        vm.prank(alice.addr);
+        delegation.authorize(key);
+
+        bytes32 hash = keccak256(abi.encodePacked(delegation.nonce(), keccak256("0xdeadbeef")));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alice, hash);
+
+        bytes memory signature = abi.encodePacked(uint256(r), uint256(s), uint8(v == 27 ? 0 : 1));
+
+        assertEq(delegation.isValidSignature(hash, signature), bytes4(keccak256("isValidSignature(bytes32,bytes)")));
+    }
+
+    function test_isValidSignature_forAuthorizingP256Key() public {
+        bytes32 hash = keccak256(abi.encodePacked(delegation.nonce(), keccak256("0xdeadbeef")));
+        (uint256 x, uint256 y) = vm.publicKeyP256(p256PrivateKey);
+
+        ExperimentalDelegation.Key memory key =
+            ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
+
+        vm.prank(address(delegation));
+        delegation.authorize(key);
+
+        (bytes32 r, bytes32 s) = vm.signP256(p256PrivateKey, hash);
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), uint8(0)), false, "0x");
+
+        assertEq(
+            delegation.isValidSignature(hash, abi.encode(wrappedSignature)),
+            bytes4(keccak256("isValidSignature(bytes32,bytes)"))
+        );
     }
 }
