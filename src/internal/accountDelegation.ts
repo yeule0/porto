@@ -24,7 +24,7 @@ import { experimentalDelegationAbi } from '../generated.js'
 export type Account = {
   address: Address.Address
   label: string
-  keys: readonly Key[]
+  keys: Key[]
 }
 
 export type Calls = readonly {
@@ -63,14 +63,12 @@ const keyType = {
 // Actions
 ////////////////////////////////////////////////////////////
 
+/** Authorizes a key onto an Account. */
 export async function authorize<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: authorize.Parameters,
 ) {
-  const { account, keyIndex = 0 } = parameters
-
-  const key = account.keys[keyIndex]
-  if (!key) throw new Error(`key not found at index: ${keyIndex}`)
+  const { account, authorizeKey, key } = parameters
 
   const nonce = await readContract(client, {
     abi: experimentalDelegationAbi,
@@ -79,14 +77,15 @@ export async function authorize<chain extends Chain | undefined>(
   })
 
   const key_ = {
-    expiry: key.expiry,
-    keyType: keyType[key.type],
-    publicKey: key.publicKey,
+    expiry: authorizeKey.expiry,
+    keyType: keyType[authorizeKey.type],
+    publicKey: authorizeKey.publicKey,
   }
 
   const payload = Hash.keccak256(
     AbiParameters.encode(
       AbiParameters.from([
+        'struct PublicKey { uint256 x; uint256 y; }',
         'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
         'uint256 nonce',
         'Key key',
@@ -95,7 +94,7 @@ export async function authorize<chain extends Chain | undefined>(
     ),
   )
 
-  const signature = await sign({ payload, key })
+  const signature = await sign(client, { account, payload, key })
 
   const hash = await writeContract(client, {
     abi: experimentalDelegationAbi,
@@ -111,11 +110,16 @@ export async function authorize<chain extends Chain | undefined>(
 
 export declare namespace authorize {
   type Parameters = {
+    /** Account to add the key to. */
     account: Account
-    keyIndex?: number | undefined
+    /** Key to authorize. */
+    authorizeKey: Key
+    /** Key to sign with. */
+    key: Key
   }
 }
 
+/** Creates a new Account. */
 export async function create<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: create.Parameters,
@@ -197,17 +201,21 @@ export async function create<chain extends Chain | undefined>(
 
 export declare namespace create {
   type Parameters = {
+    /** Contract address to delegate to. */
     delegation: Address.Address
+    /** Label for the account. */
     label?: string | undefined
+    /** Relying Party ID. */
     rpId?: string | undefined
   }
 }
 
+/** Executes calls on an Account. */
 export async function execute<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: execute.Parameters,
 ) {
-  const { account, calls, keyIndex = 0 } = parameters
+  const { account, calls, key } = parameters
 
   const nonce = await readContract(client, {
     abi: experimentalDelegationAbi,
@@ -234,10 +242,7 @@ export async function execute<chain extends Chain | undefined>(
     AbiParameters.encodePacked(['uint256', 'bytes'], [nonce, encodedCalls]),
   )
 
-  const key = account.keys[keyIndex]
-  if (!key) throw new Error(`key not found at index: ${keyIndex}`)
-
-  const wrappedSignature = await sign({ payload, key })
+  const wrappedSignature = await sign(client, { account, payload, key })
 
   return await writeContract(client, {
     abi: experimentalDelegationAbi,
@@ -251,12 +256,16 @@ export async function execute<chain extends Chain | undefined>(
 
 export declare namespace execute {
   type Parameters = {
+    /** Account to execute the calls on. */
     account: Account
+    /** Calls to execute. */
     calls: Calls
-    keyIndex?: number | undefined
+    /** Key to sign with. */
+    key: Key
   }
 }
 
+/** Loads an existing Account. */
 export async function load<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
 ) {
@@ -299,7 +308,13 @@ export async function load<chain extends Chain | undefined>(
   return { account }
 }
 
-export async function sign({ payload, key }: sign.Parameters) {
+/** Signs a payload with a key on the Account. */
+export async function sign<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: sign.Parameters,
+) {
+  const { account, payload, key } = parameters
+
   if (key.type === 'webauthn') {
     const { signature, metadata } = await WebAuthnP256.sign({
       challenge: payload,
@@ -313,13 +328,25 @@ export async function sign({ payload, key }: sign.Parameters) {
   }
 
   if (key.type === 'webcrypto') {
-    const signature = await WebCryptoP256.sign({
-      payload,
-      privateKey: key.privateKey,
-    })
+    const [signature, keys] = await Promise.all([
+      WebCryptoP256.sign({
+        payload,
+        privateKey: key.privateKey,
+      }),
+      readContract(client, {
+        abi: experimentalDelegationAbi,
+        address: account.address,
+        functionName: 'getKeys',
+      }),
+    ])
+
+    const keyIndex = keys.findIndex((x) => x.publicKey.x === key.publicKey.x)
+    if (keyIndex === -1) throw new Error('key not found')
 
     return wrapSignature({
       signature,
+      keyIndex,
+      prehash: true,
     })
   }
 
@@ -327,7 +354,14 @@ export async function sign({ payload, key }: sign.Parameters) {
 }
 
 export declare namespace sign {
-  export type Parameters = { payload: Hex.Hex; key: Key }
+  export type Parameters = {
+    /** Account to sign with. */
+    account: Account
+    /** Payload to sign. */
+    payload: Hex.Hex
+    /** Key to sign with. */
+    key: Key
+  }
 }
 
 ////////////////////////////////////////////////////////////////
@@ -349,16 +383,16 @@ function wrapSignature(parameters: {
   return AbiParameters.encode(
     AbiParameters.from([
       'struct Signature { uint256 r; uint256 s; uint8 yParity; }',
-      'uint32 keyIndex',
-      'Signature signature',
-      'bool prehash',
-      'bytes metadata',
+      'struct WrappedSignature { uint32 keyIndex; Signature signature; bool prehash; bytes metadata; }',
+      'WrappedSignature wrappedSignature',
     ]),
     [
-      keyIndex,
-      { r: signature.r, s: signature.s, yParity: 0 },
-      prehash,
-      metadata,
+      {
+        keyIndex,
+        signature: { r: signature.r, s: signature.s, yParity: 0 },
+        prehash,
+        metadata,
+      },
     ],
   )
 }

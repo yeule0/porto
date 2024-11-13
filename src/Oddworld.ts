@@ -2,8 +2,10 @@ import * as Mipd from 'mipd'
 import type { Address } from 'ox'
 import * as Hex from 'ox/Hex'
 import * as Provider from 'ox/Provider'
+import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
+import * as WebCryptoP256 from 'ox/WebCryptoP256'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 
@@ -39,7 +41,7 @@ export function create(
     webauthn,
   } = parameters
 
-  let accounts: readonly AccountDelegation.Account[] = []
+  let accounts: AccountDelegation.Account[] = []
 
   const chain = chains[0]
   const chainId = Hex.fromNumber(chain.id)
@@ -88,6 +90,9 @@ export function create(
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
 
+          const key = account.keys[0]
+          if (!key) throw new Provider.UnauthorizedError()
+
           return await AccountDelegation.execute(client, {
             account,
             calls: [
@@ -97,12 +102,14 @@ export function create(
                 value: Hex.toBigInt(value),
               },
             ],
+            key,
           })
         }
 
         case 'experimental_registerAccount': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
+          // TODO: wait for tx to be included?
           const { account } = await AccountDelegation.create(client, {
             delegation,
             rpId: webauthn?.rpId,
@@ -119,26 +126,88 @@ export function create(
         case 'oddworld_ping':
           return 'pong'
 
-        case 'wallet_grantPermissions':
-          throw new Provider.UnsupportedMethodError()
+        case 'wallet_grantPermissions': {
+          if (!headless) throw new Provider.UnsupportedMethodError()
+          if (accounts.length === 0) throw new Provider.DisconnectedError()
+
+          const [{ address, expiry }] = params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'wallet_grantPermissions'
+          >
+
+          const account = accounts.find(
+            (account) => account.address === address,
+          )
+          if (!account) throw new Provider.UnauthorizedError()
+
+          const key = account.keys[0]
+          if (!key) throw new Provider.UnauthorizedError()
+
+          const keyPair = await WebCryptoP256.createKeyPair()
+          const authorizeKey = {
+            ...keyPair,
+            expiry: BigInt(expiry),
+            type: 'webcrypto',
+          } satisfies AccountDelegation.WebCryptoKey
+
+          // TODO: wait for tx to be included?
+          await AccountDelegation.authorize(client, {
+            account,
+            authorizeKey,
+            key,
+          })
+
+          accounts
+            .find((account) => account.address === address)!
+            .keys.push(authorizeKey)
+
+          return {
+            address,
+            chainId: Hex.fromNumber(0),
+            context: PublicKey.toHex(authorizeKey.publicKey),
+            expiry,
+            permissions: [],
+            signer: {
+              type: 'key',
+              data: {
+                type: 'secp256r1',
+                publicKey: PublicKey.toHex(authorizeKey.publicKey),
+              },
+            },
+          } satisfies RpcSchema.ExtractReturnType<
+            RpcSchema_internal.Schema,
+            'wallet_grantPermissions'
+          >
+        }
 
         case 'wallet_sendCalls': {
           if (!headless) throw new Provider.UnsupportedMethodError()
           if (accounts.length === 0) throw new Provider.DisconnectedError()
 
-          const [{ calls, from }] = params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
-            'wallet_sendCalls'
-          >
+          const [{ calls, from, capabilities }] =
+            params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'wallet_sendCalls'
+            >
 
           require(from, 'Missing required parameter: from')
 
           const account = accounts.find((account) => account.address === from)
           if (!account) throw new Provider.UnauthorizedError()
 
+          const { context: publicKey } = capabilities?.permissions ?? {}
+
+          const key = publicKey
+            ? account.keys.find(
+                (key) => PublicKey.toHex(key.publicKey) === publicKey,
+              )
+            : account.keys[0]
+          if (!key) throw new Provider.UnauthorizedError()
+
           return await AccountDelegation.execute(client, {
             account,
             calls: calls as AccountDelegation.Calls,
+            key,
           })
         }
 

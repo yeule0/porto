@@ -3,7 +3,10 @@ import type * as Hex from 'ox/Hex'
 import type * as RpcSchema from 'ox/RpcSchema'
 
 export type Schema = RpcSchema.From<
-  | RpcSchema.Default
+  | Exclude<
+      RpcSchema.Default,
+      { Request: { method: 'wallet_grantPermissions' } }
+    >
   | {
       Request: {
         method: 'experimental_registerAccount'

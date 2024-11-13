@@ -177,12 +177,8 @@ contract ExperimentalDelegationTest is Test {
         ExperimentalDelegation.Key memory key =
             ExperimentalDelegation.Key(0, ExperimentalDelegation.KeyType.P256, ECDSA.PublicKey(x, y));
 
-        ExperimentalDelegation.WrappedSignature memory wrappedSignature = ExperimentalDelegation.WrappedSignature(
-            0,
-            ECDSA.Signature(uint256(r), uint256(s), uint8(0)),
-            false,
-            abi.encode(WebAuthnP256.Metadata("0x", "aa", 0, 0, false))
-        );
+        ExperimentalDelegation.WrappedSignature memory wrappedSignature =
+            ExperimentalDelegation.WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), uint8(0)), false, "0x");
 
         vm.prank(address(delegation));
         delegation.authorize(key);
