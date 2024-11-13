@@ -32,7 +32,7 @@ export type Calls = readonly {
   data?: Hex.Hex | undefined
 }[]
 
-type Key_Base<type extends string, properties> = {
+type BaseKey<type extends string, properties> = {
   expiry: bigint
   publicKey: PublicKey.PublicKey
   type: type
@@ -45,9 +45,8 @@ type Key_Base<type extends string, properties> = {
     } & Undefined<properties>)
 >
 
-export type WebAuthnKey = Key_Base<'webauthn', WebAuthnP256.P256Credential>
-
-export type WebCryptoKey = Key_Base<
+export type WebAuthnKey = BaseKey<'webauthn', WebAuthnP256.P256Credential>
+export type WebCryptoKey = BaseKey<
   'p256',
   {
     privateKey: CryptoKey
