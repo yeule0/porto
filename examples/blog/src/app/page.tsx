@@ -143,7 +143,7 @@ function Auth() {
             const formData = new FormData(event.currentTarget)
             const email = formData.get('email') as string
             await oddworld.provider.request({
-              method: 'experimental_registerAccount',
+              method: 'wallet_createAccount',
               params: [{ label: email }],
             })
             setLoading('register')

@@ -19,7 +19,7 @@ import { Oddworld } from 'oddworld'
 
 const oddworld = Oddworld.create()
 
-const account = await oddworld.provider.request({ method: 'experimental_registerAccount' })
+const account = await oddworld.provider.request({ method: 'wallet_createAccount' })
 ```
 
 ## Development

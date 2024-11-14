@@ -9,16 +9,16 @@ export type Schema = RpcSchema.From<
     >
   | {
       Request: {
-        method: 'experimental_registerAccount'
-        params?: [RegisterAccountParameters] | undefined
-      }
-      ReturnType: Address.Address
-    }
-  | {
-      Request: {
         method: 'oddworld_ping'
       }
       ReturnType: string
+    }
+  | {
+      Request: {
+        method: 'wallet_createAccount'
+        params?: [CreateAccountParameters] | undefined
+      }
+      ReturnType: Address.Address
     }
   | {
       Request: {
@@ -33,7 +33,7 @@ export type Schema = RpcSchema.From<
 // Schema Types
 ///////////////////////////////////////////////////////////////
 
-type RegisterAccountParameters = {
+type CreateAccountParameters = {
   label?: string | undefined
 }
 

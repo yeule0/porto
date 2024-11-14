@@ -1,13 +1,12 @@
 import * as Mipd from 'mipd'
-import type { Address } from 'ox'
+import type * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
 import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
-import { http, type Chain, type Transport, createClient } from 'viem'
-import { odysseyTestnet } from 'viem/chains'
+import { http, type Client, type Transport, createClient } from 'viem'
 import {
   type PersistStorage,
   persist,
@@ -15,7 +14,7 @@ import {
 } from 'zustand/middleware'
 import { type StoreApi, createStore } from 'zustand/vanilla'
 
-import { experimentalDelegationAddress } from './generated.js'
+import * as Chains from './Chains.js'
 import * as AccountDelegation from './internal/accountDelegation.js'
 import type * as RpcSchema_internal from './internal/rpcSchema.js'
 
@@ -32,20 +31,15 @@ import type * as RpcSchema_internal from './internal/rpcSchema.js'
  * ```
  */
 export function create<
-  const chains extends readonly [Chain, ...Chain[]],
-  delegations extends Record<chains[number]['id'], Address.Address>,
-  transports extends Record<chains[number]['id'], Transport>,
->(parameters?: create.Parameters<chains, delegations, transports>): Client
+  chains extends readonly [
+    Chains.Chain,
+    ...Chains.Chain[],
+  ] = typeof create.defaultParameters.chains,
+>(parameters?: create.Parameters<chains>): Oddworld<chains>
 export function create(
   parameters: create.Parameters = create.defaultParameters,
-): Client {
-  const {
-    chains,
-    delegations,
-    headless = true,
-    transports,
-    webauthn,
-  } = parameters
+): Oddworld {
+  const { chains, headless = true, transports, webauthn } = parameters
 
   const store = createStore(
     subscribeWithSelector(
@@ -68,7 +62,7 @@ export function create(
           },
           get delegation() {
             const { chain } = get()
-            return delegations[chain.id]!
+            return chain.contracts.accountDelegation.address
           },
         }),
         {
@@ -170,12 +164,12 @@ export function create(
           })
         }
 
-        case 'experimental_registerAccount': {
+        case 'wallet_createAccount': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
           const [{ label }] = (params as RpcSchema.ExtractParams<
             RpcSchema_internal.Schema,
-            'experimental_registerAccount'
+            'wallet_createAccount'
           >) ?? [{}]
 
           // TODO: wait for tx to be included?
@@ -321,22 +315,15 @@ export function create(
 
 export namespace create {
   export type Parameters<
-    chains extends readonly [Chain, ...Chain[]] = readonly [Chain, ...Chain[]],
-    delegations extends Record<chains[number]['id'], Address.Address> = Record<
-      chains[number]['id'],
-      Address.Address
-    >,
-    transports extends Record<chains[number]['id'], Transport> = Record<
-      chains[number]['id'],
-      Transport
-    >,
+    chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
+      Chains.Chain,
+      ...Chains.Chain[],
+    ],
   > = {
     /** List of supported chains. */
-    chains: chains | readonly [Chain, ...Chain[]]
-    /** Delegation to use for each chain. */
-    delegations: delegations | Record<chains[number]['id'], Address.Address>
+    chains: chains | readonly [Chains.Chain, ...Chains.Chain[]]
     /** Transport to use for each chain. */
-    transports: transports | Record<chains[number]['id'], Transport>
+    transports: Record<chains[number]['id'], Transport>
   } & (
     | {
         /**
@@ -358,17 +345,19 @@ export namespace create {
   )
 
   export const defaultParameters = {
-    chains: [odysseyTestnet],
-    delegations: {
-      [odysseyTestnet.id]: experimentalDelegationAddress[odysseyTestnet.id],
-    },
+    chains: [Chains.odysseyTestnet],
     transports: {
-      [odysseyTestnet.id]: http(),
+      [Chains.odysseyTestnet.id]: http(),
     },
-  } as const satisfies create.Parameters
+  } as const
 }
 
-export type Client = {
+export type Oddworld<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
+    Chains.Chain,
+    ...Chains.Chain[],
+  ],
+> = {
   announceProvider: () => Mipd.AnnounceProviderReturnType
   destroy: () => void
   provider: Provider.Provider<{
@@ -380,15 +369,23 @@ export type Client = {
    * @internal
    */
   _internal: {
-    store: StoreApi<State>
+    store: StoreApi<State<chains>>
   }
 }
 
-export type State = {
+export type State<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
+    Chains.Chain,
+    ...Chains.Chain[],
+  ],
+> = {
   accounts: AccountDelegation.Account[]
-  chain: Chain
-  readonly chainId: number
-  readonly client: ReturnType<typeof createClient>
+  chain: chains[number]
+  readonly chainId: chains[number]['id']
+  readonly client: Client<
+    Transport,
+    Extract<chains[number], { id: chains[number]['id'] }>
+  >
   readonly delegation: Address.Address
 }
 

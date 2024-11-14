@@ -103,11 +103,11 @@ function Register() {
   const [result, setResult] = useState<string | null>(null)
   return (
     <div>
-      <h3>experimental_registerAccount</h3>
+      <h3>wallet_createAccount</h3>
       <button
         onClick={() =>
           oddworld.provider
-            .request({ method: 'experimental_registerAccount' })
+            .request({ method: 'wallet_createAccount' })
             .then(setResult)
         }
         type="button"
