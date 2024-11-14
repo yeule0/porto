@@ -433,7 +433,7 @@ function setupWebAuthnOrigin(parameters: {
     .then((x) => x.json())
     .then((x) => {
       if (x.origins.includes(origin)) return
-      fetch(`https://${rpId}/.well-known/webauthn`, {
+      fetch(url, {
         method: 'PATCH',
         body: JSON.stringify({
           origin: `${window.location.protocol}//${window.location.hostname}`,
