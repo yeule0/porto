@@ -1,13 +1,18 @@
 import * as Mipd from 'mipd'
 import type { Address } from 'ox'
 import * as Hex from 'ox/Hex'
+import * as Json from 'ox/Json'
 import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
 import { http, type Chain, type Transport, createClient } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
-import { subscribeWithSelector } from 'zustand/middleware'
+import {
+  type PersistStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware'
 import { type StoreApi, createStore } from 'zustand/vanilla'
 
 import { experimentalDelegationAddress } from './generated.js'
@@ -43,28 +48,43 @@ export function create(
   } = parameters
 
   const store = createStore(
-    subscribeWithSelector<State>((_, get) => ({
-      accounts: [],
-      chain: chains[0],
+    subscribeWithSelector(
+      persist<State>(
+        (_, get) => ({
+          accounts: [],
+          chain: chains[0],
 
-      // computed
-      get chainId() {
-        const { chain } = get()
-        return chain.id
-      },
-      get client() {
-        const { chain } = get()
-        return createClient({
-          chain,
-          transport: transports[chain.id]!,
-        })
-      },
-      get delegation() {
-        const { chain } = get()
-        return delegations[chain.id]!
-      },
-    })),
+          // computed
+          get chainId() {
+            const { chain } = get()
+            return chain.id
+          },
+          get client() {
+            const { chain } = get()
+            return createClient({
+              chain,
+              transport: transports[chain.id]!,
+            })
+          },
+          get delegation() {
+            const { chain } = get()
+            return delegations[chain.id]!
+          },
+        }),
+        {
+          name: 'odd.store',
+          partialize(state) {
+            return {
+              accounts: state.accounts,
+              chain: state.chain,
+            } as State
+          },
+          storage,
+        },
+      ),
+    ),
   )
+  store.persist.rehydrate()
 
   const emitter = Provider.createEmitter()
 
@@ -382,3 +402,17 @@ function requireParameter(
       message: `Missing required parameter: ${details}`,
     })
 }
+
+const storage = {
+  getItem(name) {
+    const value = localStorage.getItem(name)
+    if (value === null) return null
+    return Json.parse(value)
+  },
+  removeItem(name) {
+    localStorage.removeItem(name)
+  },
+  setItem(name, value) {
+    localStorage.setItem(name, Json.stringify(value))
+  },
+} satisfies PersistStorage<State>

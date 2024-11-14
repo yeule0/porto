@@ -12,6 +12,7 @@ export function App() {
       <h2>Vanilla</h2>
       <Events />
       <Ping />
+      <Accounts />
       <Register />
       <Login />
       <GrantPermissions />
@@ -74,6 +75,24 @@ function Ping() {
         type="button"
       >
         Ping
+      </button>
+      <pre>{result}</pre>
+    </div>
+  )
+}
+
+function Accounts() {
+  const [result, setResult] = useState<readonly string[] | null>(null)
+  return (
+    <div>
+      <h3>eth_accounts</h3>
+      <button
+        onClick={() =>
+          oddworld.provider.request({ method: 'eth_accounts' }).then(setResult)
+        }
+        type="button"
+      >
+        Get Accounts
       </button>
       <pre>{result}</pre>
     </div>

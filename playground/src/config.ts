@@ -6,7 +6,7 @@ import {
   safeWallet,
 } from '@rainbow-me/rainbowkit/wallets'
 import { Oddworld } from 'oddworld'
-import { http, createConfig } from 'wagmi'
+import { http, createConfig, createStorage } from 'wagmi'
 import { odysseyTestnet } from 'wagmi/chains'
 
 export const oddworld = Oddworld.create()
@@ -24,6 +24,7 @@ const connectors = connectorsForWallets(
 export const wagmiConfig = createConfig({
   connectors,
   chains: [odysseyTestnet],
+  storage: createStorage({ storage: localStorage }),
   transports: {
     [odysseyTestnet.id]: http(),
   },
