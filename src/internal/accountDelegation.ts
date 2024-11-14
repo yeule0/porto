@@ -232,6 +232,7 @@ export async function createWebAuthnKey(
   parameters: createWebAuthnKey.Parameters,
 ): Promise<WebAuthnKey> {
   const { expiry = 0n, rpId, label, userId } = parameters
+
   const key = await WebAuthnP256.createCredential({
     authenticatorSelection: {
       requireResidentKey: false,
@@ -250,6 +251,7 @@ export async function createWebAuthnKey(
       id: userId,
     },
   })
+
   return {
     ...key,
     expiry,
@@ -356,11 +358,15 @@ export declare namespace execute {
 /** Loads an existing Account. */
 export async function load<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
+  parameters: load.Parameters = {},
 ) {
+  const { rpId } = parameters
+
   // We will sign a random challenge. We need to do this to extract the
   // user id (ie. the address) to query for the Account's keys.
   const { raw } = await WebAuthnP256.sign({
     challenge: '0x',
+    rpId,
   })
 
   const response = raw.response as AuthenticatorAssertionResponse
@@ -405,6 +411,13 @@ export async function load<chain extends Chain | undefined>(
         } satisfies Key
       }),
     },
+  }
+}
+
+export declare namespace load {
+  type Parameters = {
+    /** Relying Party ID. */
+    rpId?: string | undefined
   }
 }
 

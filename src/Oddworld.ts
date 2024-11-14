@@ -36,10 +36,22 @@ export function create<
     ...Chains.Chain[],
   ] = typeof create.defaultParameters.chains,
 >(parameters?: create.Parameters<chains>): Oddworld<chains>
-export function create(
-  parameters: create.Parameters = create.defaultParameters,
-): Oddworld {
-  const { chains, headless = true, transports, webauthn } = parameters
+export function create(parameters?: create.Parameters | undefined): Oddworld {
+  const {
+    chains = create.defaultParameters.chains,
+    headless = create.defaultParameters.headless,
+    transports = create.defaultParameters.transports,
+  } = parameters ?? {}
+
+  const keystoreHost = (() => {
+    if (parameters?.keystoreHost) return parameters.keystoreHost
+    if (
+      typeof window !== 'undefined' &&
+      window.location.hostname === 'localhost'
+    )
+      return undefined
+    return create.defaultParameters.keystoreHost
+  })()
 
   const store = createStore(
     subscribeWithSelector(
@@ -57,7 +69,7 @@ export function create(
             const { chain } = get()
             return createClient({
               chain,
-              transport: transports[chain.id]!,
+              transport: (transports as Record<number, Transport>)[chain.id]!,
             })
           },
           get delegation() {
@@ -82,7 +94,7 @@ export function create(
 
   const emitter = Provider.createEmitter()
 
-  function setupSubscriptions() {
+  function setup() {
     const unsubscribe_accounts = store.subscribe(
       (state) => state.accounts,
       (accounts) => {
@@ -100,12 +112,14 @@ export function create(
       },
     )
 
+    if (keystoreHost) setupWebAuthnOrigin({ rpId: keystoreHost })
+
     return () => {
       unsubscribe_accounts()
       unsubscribe_chain()
     }
   }
-  const unsubscribe = setupSubscriptions()
+  const destroy = setup()
 
   const provider = Provider.from({
     ...emitter,
@@ -124,7 +138,9 @@ export function create(
         case 'eth_requestAccounts': {
           if (!headless) throw new Provider.UnsupportedMethodError()
 
-          const { account } = await AccountDelegation.load(state.client)
+          const { account } = await AccountDelegation.load(state.client, {
+            rpId: keystoreHost,
+          })
 
           store.setState((x) => ({ ...x, accounts: [account] }))
 
@@ -176,7 +192,7 @@ export function create(
           const { account } = await AccountDelegation.create(state.client, {
             delegation: state.delegation,
             label,
-            rpId: webauthn?.rpId,
+            rpId: keystoreHost,
           })
 
           store.setState((x) => ({ ...x, accounts: [account] }))
@@ -304,7 +320,7 @@ export function create(
     },
     destroy() {
       emitter.removeAllListeners()
-      unsubscribe()
+      destroy()
     },
     provider,
     _internal: {
@@ -321,31 +337,29 @@ export namespace create {
     ],
   > = {
     /** List of supported chains. */
-    chains: chains | readonly [Chains.Chain, ...Chains.Chain[]]
+    chains?: chains | readonly [Chains.Chain, ...Chains.Chain[]]
     /** Transport to use for each chain. */
-    transports: Record<chains[number]['id'], Transport>
+    transports?: Record<chains[number]['id'], Transport>
   } & (
     | {
         /**
          * Whether to run EIP-1193 Provider in headless mode.
          * @default true
          */
-        headless: true
+        headless?: true | undefined
         /** WebAuthn configuration. */
-        webauthn?:
-          | {
-              rpId?: string | undefined
-            }
-          | undefined
+        keystoreHost?: string | undefined
       }
     | {
         headless?: false | undefined
-        webauthn?: undefined
+        keystoreHost?: undefined
       }
   )
 
   export const defaultParameters = {
     chains: [Chains.odysseyTestnet],
+    headless: true,
+    keystoreHost: 'oddworld-tau.vercel.app',
     transports: {
       [Chains.odysseyTestnet.id]: http(),
     },
@@ -397,6 +411,30 @@ function requireParameter(
     throw new RpcResponse.InvalidParamsError({
       ...RpcResponse.InvalidParamsError,
       message: `Missing required parameter: ${details}`,
+    })
+}
+
+function setupWebAuthnOrigin(parameters: {
+  rpId: string
+}) {
+  if (typeof window === 'undefined') return
+
+  const { rpId } = parameters
+  const origin = `${window.location.protocol}//${window.location.hostname}`
+  const url = `https://${rpId}/.well-known/webauthn`
+  fetch(url)
+    .then((x) => x.json())
+    .then((x) => {
+      if (x.origins.includes(origin)) return
+      fetch(`https://${rpId}/.well-known/webauthn`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          origin: `${window.location.protocol}//${window.location.hostname}`,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
     })
 }
 
