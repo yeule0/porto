@@ -178,6 +178,7 @@ export function create(parameters?: create.Parameters | undefined): Oddworld {
                 value: Hex.toBigInt(value),
               },
             ],
+            rpId: keystoreHost,
           })
         }
 
@@ -229,6 +230,7 @@ export function create(parameters?: create.Parameters | undefined): Oddworld {
           await AccountDelegation.authorize(state.client, {
             account,
             key,
+            rpId: keystoreHost,
           })
 
           store.setState((x) => {
@@ -296,6 +298,7 @@ export function create(parameters?: create.Parameters | undefined): Oddworld {
             account,
             calls: calls as AccountDelegation.Calls,
             keyIndex,
+            rpId: keystoreHost,
           })
         }
 

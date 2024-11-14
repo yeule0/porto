@@ -78,7 +78,7 @@ export async function authorize<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: authorize.Parameters,
 ) {
-  const { account, key, keyIndex = 0 } = parameters
+  const { account, key, keyIndex = 0, rpId } = parameters
 
   // Fetch the latest nonce. We will need to sign over it for replay protection.
   const nonce = await readContract(client, {
@@ -108,7 +108,7 @@ export async function authorize<chain extends Chain | undefined>(
   )
 
   // Sign the payload.
-  const signature = await sign({ account, payload, keyIndex })
+  const signature = await sign({ account, payload, keyIndex, rpId })
 
   // Authorize the key onto the Account.
   const hash = await writeContract(client, {
@@ -131,6 +131,8 @@ export declare namespace authorize {
     key: Key
     /** Index of the key to sign with. */
     keyIndex?: number | undefined
+    /** Relying Party ID. */
+    rpId?: string | undefined
   }
 }
 
@@ -299,7 +301,7 @@ export async function execute<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: execute.Parameters,
 ) {
-  const { account, calls, keyIndex = 0 } = parameters
+  const { account, calls, keyIndex = 0, rpId } = parameters
 
   // Fetch the latest nonce. We will need to sign over it for replay protection.
   const nonce = await readContract(client, {
@@ -331,7 +333,7 @@ export async function execute<chain extends Chain | undefined>(
 
   // Sign the payload with a provided key index (we will use the key at the
   // provided index to sign).
-  const signature = await sign({ account, payload, keyIndex })
+  const signature = await sign({ account, payload, keyIndex, rpId })
 
   // Execute the calls.
   return await writeContract(client, {
@@ -352,6 +354,8 @@ export declare namespace execute {
     calls: Calls
     /** Index of the key to sign with. */
     keyIndex?: number | undefined
+    /** Relying Party ID. */
+    rpId?: string | undefined
   }
 }
 
@@ -423,7 +427,7 @@ export declare namespace load {
 
 /** Signs a payload with a key on the Account. */
 export async function sign(parameters: sign.Parameters) {
-  const { account, payload, keyIndex } = parameters
+  const { account, payload, keyIndex, rpId } = parameters
 
   const key = account.keys[keyIndex]
 
@@ -435,6 +439,7 @@ export async function sign(parameters: sign.Parameters) {
     const { signature, metadata } = await WebAuthnP256.sign({
       challenge: payload,
       credentialId: key.id,
+      rpId,
     })
 
     return wrapSignature({
@@ -467,6 +472,8 @@ export declare namespace sign {
     payload: Hex.Hex
     /** Index of the key to sign with. */
     keyIndex: number
+    /** Relying Party ID. */
+    rpId?: string | undefined
   }
 }
 
