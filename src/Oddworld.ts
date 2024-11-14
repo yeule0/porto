@@ -44,6 +44,7 @@ export function create(parameters?: create.Parameters | undefined): Oddworld {
   } = parameters ?? {}
 
   const keystoreHost = (() => {
+    if (parameters?.keystoreHost === 'self') return undefined
     if (parameters?.keystoreHost) return parameters.keystoreHost
     if (
       typeof window !== 'undefined' &&
@@ -347,8 +348,11 @@ export namespace create {
          * @default true
          */
         headless?: true | undefined
-        /** WebAuthn configuration. */
-        keystoreHost?: string | undefined
+        /**
+         * Keystore host (WebAuthn relying party).
+         * @default 'oddworld-tau.vercel.app'
+         */
+        keystoreHost?: 'self' | string | undefined
       }
     | {
         headless?: false | undefined
