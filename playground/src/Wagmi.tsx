@@ -1,10 +1,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useEffect } from 'react'
 import { useAccount, useChainId, useConnect, useDisconnect } from 'wagmi'
-import { oddworld } from './config'
 
 export function Wagmi() {
-  useEffect(() => oddworld.announceProvider(), [])
   return (
     <>
       <Account />
