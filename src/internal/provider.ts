@@ -1,10 +1,12 @@
 import * as Mipd from 'mipd'
 import * as Hex from 'ox/Hex'
+import * as Json from 'ox/Json'
 import * as PersonalMessage from 'ox/PersonalMessage'
 import * as Provider_ox from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import type * as RpcSchema from 'ox/RpcSchema'
+import * as TypedData from 'ox/TypedData'
 
 import type * as Chains from '../Chains.js'
 import type { Config, Store } from '../Oddworld.js'
@@ -101,6 +103,30 @@ export function from<
             ],
             rpId: keystoreHost,
           })
+        }
+
+        case 'eth_signTypedData_v4': {
+          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (state.accounts.length === 0)
+            throw new Provider_ox.DisconnectedError()
+
+          const [address, data] = params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'eth_signTypedData_v4'
+          >
+
+          const account = state.accounts.find(
+            (account) => account.address === address,
+          )
+          if (!account) throw new Provider_ox.UnauthorizedError()
+
+          const signature = await AccountDelegation.sign({
+            account,
+            payload: TypedData.getSignPayload(Json.parse(data)),
+            rpId: keystoreHost,
+          })
+
+          return signature
         }
 
         case 'wallet_createAccount': {

@@ -1,8 +1,7 @@
+import { AbiFunction, Hex, TypedData, Value } from 'ox'
 import { useEffect, useState } from 'react'
-import { type Hex, encodeFunctionData, stringToHex } from 'viem'
-import { verifyMessage } from 'viem/actions'
+import { verifyMessage, verifyTypedData } from 'viem/actions'
 
-import { parseEther } from 'viem/utils'
 import { Wagmi } from './Wagmi'
 import { oddworld, wagmiConfig } from './config'
 import { ExperimentERC20 } from './contracts'
@@ -19,7 +18,8 @@ export function App() {
       <GrantPermissions />
       <SendTransaction />
       <SendCalls />
-      <PersonalSign />
+      <SignMessage />
+      <SignTypedData />
 
       <hr />
 
@@ -142,7 +142,7 @@ function Login() {
 }
 
 function SendTransaction() {
-  const [hash, setHash] = useState<Hex | null>(null)
+  const [hash, setHash] = useState<Hex.Hex | null>(null)
   return (
     <form
       onSubmit={async (e) => {
@@ -161,11 +161,10 @@ function SendTransaction() {
               {
                 from: account,
                 to: ExperimentERC20.address,
-                data: encodeFunctionData({
-                  abi: ExperimentERC20.abi,
-                  functionName: 'mint',
-                  args: [account, parseEther('100')],
-                }),
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  [account, Value.fromEther('100')],
+                ),
               },
             ] as const
 
@@ -226,11 +225,10 @@ function SendCalls() {
             return [
               {
                 to: ExperimentERC20.address,
-                data: encodeFunctionData({
-                  abi: ExperimentERC20.abi,
-                  functionName: 'mint',
-                  args: [account, parseEther('100')],
-                }),
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  [account, Value.fromEther('100')],
+                ),
               },
             ]
 
@@ -238,23 +236,21 @@ function SendCalls() {
             return [
               {
                 to: ExperimentERC20.address,
-                data: encodeFunctionData({
-                  abi: ExperimentERC20.abi,
-                  functionName: 'approve',
-                  args: [account, parseEther('50')],
-                }),
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  [account, Value.fromEther('50')],
+                ),
               },
               {
                 to: ExperimentERC20.address,
-                data: encodeFunctionData({
-                  abi: ExperimentERC20.abi,
-                  functionName: 'transferFrom',
-                  args: [
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  [
                     account,
                     '0x0000000000000000000000000000000000000000',
-                    parseEther('50'),
+                    Value.fromEther('50'),
                   ],
-                }),
+                ),
               },
             ] as const
 
@@ -348,7 +344,7 @@ function GrantPermissions() {
   )
 }
 
-function PersonalSign() {
+function SignMessage() {
   const [signature, setSignature] = useState<string | null>(null)
   const [valid, setValid] = useState<boolean | null>(null)
 
@@ -366,7 +362,7 @@ function PersonalSign() {
           })
           const result = await oddworld.provider.request({
             method: 'personal_sign',
-            params: [stringToHex(message), account],
+            params: [Hex.fromString(message), account],
           })
           setSignature(result)
         }}
@@ -420,3 +416,127 @@ function PersonalSign() {
     </>
   )
 }
+
+function SignTypedData() {
+  const [signature, setSignature] = useState<string | null>(null)
+  const [valid, setValid] = useState<boolean | null>(null)
+
+  return (
+    <>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+          const result = await oddworld.provider.request({
+            method: 'eth_signTypedData_v4',
+            params: [account, TypedData.serialize(typedData)],
+          })
+          setSignature(result)
+        }}
+      >
+        <h3>eth_signTypedData_v4</h3>
+        <button type="submit">Sign</button>
+        <pre
+          style={{
+            maxWidth: '500px',
+            overflowWrap: 'anywhere',
+            // @ts-expect-error
+            textWrapMode: 'wrap',
+          }}
+        >
+          {signature}
+        </pre>
+      </form>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.target as HTMLFormElement)
+          const signature = formData.get('signature') as `0x${string}`
+
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+
+          const client = wagmiConfig.getClient()
+
+          const valid = await verifyTypedData(client, {
+            ...typedData,
+            address: account,
+            signature,
+          })
+          setValid(valid)
+        }}
+      >
+        <div>
+          <textarea name="signature" placeholder="signature" />
+        </div>
+        <button type="submit">Verify</button>
+        {valid !== null && <pre>{valid ? 'valid' : 'invalid'}</pre>}
+      </form>
+    </>
+  )
+}
+
+export const typedData = {
+  domain: {
+    name: 'Ether Mail 🥵',
+    version: '1.1.1',
+    chainId: 1n,
+    verifyingContract: '0x0000000000000000000000000000000000000000',
+  },
+  types: {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
+    Name: [
+      { name: 'first', type: 'string' },
+      { name: 'last', type: 'string' },
+    ],
+    Person: [
+      { name: 'name', type: 'Name' },
+      { name: 'wallet', type: 'address' },
+      { name: 'favoriteColors', type: 'string[3]' },
+      { name: 'foo', type: 'uint256' },
+      { name: 'age', type: 'uint8' },
+      { name: 'isCool', type: 'bool' },
+    ],
+    Mail: [
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'from', type: 'Person' },
+      { name: 'to', type: 'Person' },
+      { name: 'contents', type: 'string' },
+      { name: 'hash', type: 'bytes' },
+    ],
+  },
+  primaryType: 'Mail',
+  message: {
+    timestamp: 1234567890n,
+    contents: 'Hello, Bob! 🖤',
+    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    from: {
+      name: {
+        first: 'Cow',
+        last: 'Burns',
+      },
+      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+      age: 69,
+      foo: 123123123123123123n,
+      favoriteColors: ['red', 'green', 'blue'],
+      isCool: false,
+    },
+    to: {
+      name: { first: 'Bob', last: 'Builder' },
+      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+      age: 70,
+      foo: 123123123123123123n,
+      favoriteColors: ['orange', 'yellow', 'green'],
+      isCool: true,
+    },
+  },
+} as const
