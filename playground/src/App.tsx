@@ -376,7 +376,16 @@ function PersonalSign() {
           <input defaultValue="hello world" name="message" />
           <button type="submit">Sign</button>
         </div>
-        <pre>{signature}</pre>
+        <pre
+          style={{
+            maxWidth: '500px',
+            overflowWrap: 'anywhere',
+            // @ts-expect-error
+            textWrapMode: 'wrap',
+          }}
+        >
+          {signature}
+        </pre>
       </form>
       <form
         onSubmit={async (e) => {
@@ -406,7 +415,7 @@ function PersonalSign() {
           <textarea name="signature" placeholder="signature" />
         </div>
         <button type="submit">Verify</button>
-        <pre>{valid ? 'valid' : 'invalid'}</pre>
+        {valid !== null && <pre>{valid ? 'valid' : 'invalid'}</pre>}
       </form>
     </>
   )
