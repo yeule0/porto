@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { type Hex, encodeFunctionData } from 'viem'
+import { type Hex, encodeFunctionData, stringToHex } from 'viem'
+import { verifyMessage } from 'viem/actions'
 
 import { parseEther } from 'viem/utils'
 import { Wagmi } from './Wagmi'
-import { oddworld } from './config'
+import { oddworld, wagmiConfig } from './config'
 import { ExperimentERC20 } from './contracts'
 
 export function App() {
@@ -18,6 +19,7 @@ export function App() {
       <GrantPermissions />
       <SendTransaction />
       <SendCalls />
+      <PersonalSign />
 
       <hr />
 
@@ -343,5 +345,69 @@ function GrantPermissions() {
       </button>
       <pre>{result}</pre>
     </div>
+  )
+}
+
+function PersonalSign() {
+  const [signature, setSignature] = useState<string | null>(null)
+  const [valid, setValid] = useState<boolean | null>(null)
+
+  return (
+    <>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+
+          const formData = new FormData(e.target as HTMLFormElement)
+          const message = formData.get('message') as string
+
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+          const result = await oddworld.provider.request({
+            method: 'personal_sign',
+            params: [stringToHex(message), account],
+          })
+          setSignature(result)
+        }}
+      >
+        <h3>personal_sign</h3>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input defaultValue="hello world" name="message" />
+          <button type="submit">Sign</button>
+        </div>
+        <pre>{signature}</pre>
+      </form>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.target as HTMLFormElement)
+          const message = formData.get('message') as string
+          const signature = formData.get('signature') as `0x${string}`
+
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+
+          const client = wagmiConfig.getClient()
+
+          const valid = await verifyMessage(client, {
+            address: account,
+            message,
+            signature,
+          })
+          setValid(valid)
+        }}
+      >
+        <div>
+          <input name="message" placeholder="message" />
+        </div>
+        <div>
+          <textarea name="signature" placeholder="signature" />
+        </div>
+        <button type="submit">Verify</button>
+        <pre>{valid ? 'valid' : 'invalid'}</pre>
+      </form>
+    </>
   )
 }

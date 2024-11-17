@@ -427,7 +427,7 @@ export declare namespace load {
 
 /** Signs a payload with a key on the Account. */
 export async function sign(parameters: sign.Parameters) {
-  const { account, payload, keyIndex, rpId } = parameters
+  const { account, payload, keyIndex = 0, rpId } = parameters
 
   const key = account.keys[keyIndex]
 
@@ -471,7 +471,7 @@ export declare namespace sign {
     /** Payload to sign. */
     payload: Hex.Hex
     /** Index of the key to sign with. */
-    keyIndex: number
+    keyIndex?: number | undefined
     /** Relying Party ID. */
     rpId?: string | undefined
   }

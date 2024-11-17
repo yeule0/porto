@@ -2,6 +2,7 @@ import * as Mipd from 'mipd'
 import type * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
+import * as PersonalMessage from 'ox/PersonalMessage'
 import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
@@ -206,6 +207,30 @@ export function create(parameters?: create.Parameters | undefined): Oddworld {
 
         case 'oddworld_ping':
           return 'pong'
+
+        case 'personal_sign': {
+          if (!headless) throw new Provider.UnsupportedMethodError()
+          if (state.accounts.length === 0)
+            throw new Provider.DisconnectedError()
+
+          const [data, address] = params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'personal_sign'
+          >
+
+          const account = state.accounts.find(
+            (account) => account.address === address,
+          )
+          if (!account) throw new Provider.UnauthorizedError()
+
+          const signature = await AccountDelegation.sign({
+            account,
+            payload: PersonalMessage.getSignPayload(data),
+            rpId: keystoreHost,
+          })
+
+          return signature
+        }
 
         case 'wallet_grantPermissions': {
           if (!headless) throw new Provider.UnsupportedMethodError()
