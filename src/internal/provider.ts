@@ -1,4 +1,5 @@
 import * as Mipd from 'mipd'
+import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
 import * as PersonalMessage from 'ox/PersonalMessage'
@@ -68,9 +69,8 @@ export function from<
 
           store.setState((x) => ({ ...x, accounts: [account] }))
 
-          const addresses = state.accounts.map((account) => account.address)
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
-          return addresses
+          return [account.address]
         }
 
         case 'eth_sendTransaction': {
@@ -87,8 +87,8 @@ export function from<
           requireParameter(to, 'to')
           requireParameter(from, 'from')
 
-          const account = state.accounts.find(
-            (account) => account.address === from,
+          const account = state.accounts.find((account) =>
+            Address.isEqual(account.address, from),
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
@@ -115,8 +115,8 @@ export function from<
             'eth_signTypedData_v4'
           >
 
-          const account = state.accounts.find(
-            (account) => account.address === address,
+          const account = state.accounts.find((account) =>
+            Address.isEqual(account.address, address),
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
@@ -164,8 +164,8 @@ export function from<
             'personal_sign'
           >
 
-          const account = state.accounts.find(
-            (account) => account.address === address,
+          const account = state.accounts.find((account) =>
+            Address.isEqual(account.address, address),
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
@@ -193,8 +193,8 @@ export function from<
             'wallet_grantPermissions'
           >
 
-          const account = state.accounts.find(
-            (account) => account.address === address,
+          const account = state.accounts.find((account) =>
+            address ? Address.isEqual(account.address, address) : false,
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
@@ -210,8 +210,8 @@ export function from<
           })
 
           store.setState((x) => {
-            const index = x.accounts.findIndex(
-              (account) => account.address === address,
+            const index = x.accounts.findIndex((account) =>
+              address ? Address.isEqual(account.address, address) : false,
             )
             if (index === -1) return x
 
@@ -256,8 +256,8 @@ export function from<
 
           requireParameter(from, 'from')
 
-          const account = state.accounts.find(
-            (account) => account.address === from,
+          const account = state.accounts.find((account) =>
+            Address.isEqual(account.address, from),
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
