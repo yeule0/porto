@@ -137,7 +137,7 @@ export function from<
             'wallet_createAccount'
           >) ?? [{}]
 
-          // TODO: wait for tx to be included?
+          // TODO: wait for tx to be included/make counterfactual?
           const { account } = await AccountDelegation.create(state.client, {
             delegation: state.delegation,
             label,
