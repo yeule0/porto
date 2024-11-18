@@ -1,10 +1,15 @@
 import { AbiFunction, Hex, TypedData, Value } from 'ox'
 import { useEffect, useState } from 'react'
+import { createClient, custom } from 'viem'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { Wagmi } from './Wagmi'
-import { oddworld, wagmiConfig } from './config'
+import { oddworld } from './config'
 import { ExperimentERC20 } from './contracts'
+
+const client = createClient({
+  transport: custom(oddworld.provider),
+})
 
 export function App() {
   return (
@@ -394,8 +399,6 @@ function SignMessage() {
             method: 'eth_accounts',
           })
 
-          const client = wagmiConfig.getClient()
-
           const valid = await verifyMessage(client, {
             address: account,
             message,
@@ -460,8 +463,6 @@ function SignTypedData() {
             method: 'eth_accounts',
           })
 
-          const client = wagmiConfig.getClient()
-
           const valid = await verifyTypedData(client, {
             ...typedData,
             address: account,
@@ -484,16 +485,10 @@ export const typedData = {
   domain: {
     name: 'Ether Mail 🥵',
     version: '1.1.1',
-    chainId: 1n,
+    chainId: 1,
     verifyingContract: '0x0000000000000000000000000000000000000000',
   },
   types: {
-    EIP712Domain: [
-      { name: 'name', type: 'string' },
-      { name: 'version', type: 'string' },
-      { name: 'chainId', type: 'uint256' },
-      { name: 'verifyingContract', type: 'address' },
-    ],
     Name: [
       { name: 'first', type: 'string' },
       { name: 'last', type: 'string' },

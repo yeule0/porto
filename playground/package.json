@@ -9,7 +9,7 @@
     "@rainbow-me/rainbowkit": "^2.2.0",
     "@tanstack/react-query": "catalog:",
     "oddworld": "workspace:*",
-    "ox": "^0.2.0",
+    "ox": "^0.2.1",
     "react": "catalog:",
     "react-dom": "catalog:",
     "viem": "catalog:",
