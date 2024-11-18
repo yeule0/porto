@@ -60,7 +60,7 @@ export function create(config?: Config | undefined): Oddworld {
     return defaultConfig.keystoreHost
   })()
 
-  if (keystoreHost) WebAuthn.touchWellknown({ rpId: keystoreHost })
+  if (headless && keystoreHost) WebAuthn.touchWellknown({ rpId: keystoreHost })
 
   const store = createStore(
     subscribeWithSelector(
@@ -146,30 +146,30 @@ export type Config<
     ...Chains.Chain[],
   ],
 > = {
-  /** Whether to announce the provider via EIP-6963. */
+  /**
+   * Whether to announce the provider via EIP-6963.
+   * @default true
+   */
   announceProvider?: boolean | undefined
-  /** List of supported chains. */
+  /**
+   * List of supported chains.
+   */
   chains?: chains | readonly [Chains.Chain, ...Chains.Chain[]]
-  /** Transport to use for each chain. */
+  /**
+   * Whether to run EIP-1193 Provider in headless mode.
+   * @default true
+   */
+  headless?: boolean | undefined
+  /**
+   * Keystore host (WebAuthn relying party).
+   * @default 'self'
+   */
+  keystoreHost?: 'self' | string | undefined
+  /**
+   * Transport to use for each chain.
+   */
   transports?: Record<chains[number]['id'], Transport>
-} & (
-  | {
-      /**
-       * Whether to run EIP-1193 Provider in headless mode.
-       * @default true
-       */
-      headless?: true | undefined
-      /**
-       * Keystore host (WebAuthn relying party).
-       * @default 'oddworld-tau.vercel.app'
-       */
-      keystoreHost?: 'self' | string | undefined
-    }
-  | {
-      headless?: false | undefined
-      keystoreHost?: undefined
-    }
-)
+}
 
 export type State<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
