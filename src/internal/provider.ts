@@ -52,13 +52,15 @@ export function from<
       const state = store.getState()
 
       switch (method) {
-        case 'eth_accounts':
+        case 'eth_accounts': {
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
           return state.accounts.map((account) => account.address)
+        }
 
-        case 'eth_chainId':
+        case 'eth_chainId': {
           return Hex.fromNumber(state.chainId)
+        }
 
         case 'eth_requestAccounts': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
@@ -151,8 +153,9 @@ export function from<
           return addresses
         }
 
-        case 'oddworld_ping':
+        case 'oddworld_ping': {
           return 'pong'
+        }
 
         case 'personal_sign': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
@@ -297,10 +300,11 @@ export function from<
           })
         }
 
-        default:
+        default: {
           if (method.startsWith('wallet_'))
             throw new Provider_ox.UnsupportedMethodError()
           return state.client.request({ method, params } as any)
+        }
       }
     },
   })
