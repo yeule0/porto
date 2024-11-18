@@ -1,5 +1,5 @@
-import { AbiFunction, Hex, TypedData, Value } from 'ox'
-import { useEffect, useState } from 'react'
+import { AbiFunction, Hex, Json, PublicKey, TypedData, Value } from 'ox'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
@@ -15,11 +15,11 @@ export function App() {
   return (
     <div>
       <h2>Vanilla</h2>
+      <State />
       <Events />
-      <Ping />
-      <Accounts />
       <Register />
       <Login />
+      <Accounts />
       <GrantPermissions />
       <SendTransaction />
       <SendCalls />
@@ -30,6 +30,42 @@ export function App() {
 
       <h2>Wagmi</h2>
       <Wagmi />
+    </div>
+  )
+}
+
+function State() {
+  const state = useSyncExternalStore(
+    oddworld._internal.store.subscribe,
+    () => oddworld._internal.store.getState(),
+    () => oddworld._internal.store.getState(),
+  )
+  return (
+    <div>
+      <h3>State</h3>
+      {state.accounts.length === 0 ? (
+        <p>Disconnected</p>
+      ) : (
+        <>
+          <p>Address: {state.accounts[0].address}</p>
+          <p>Chain ID: {state.chain.id}</p>
+          <p>
+            Keys:{' '}
+            <pre>
+              {Json.stringify(
+                state.accounts?.[0]?.keys.map((x) => ({
+                  expiry: x.expiry,
+                  publicKey: PublicKey.toHex(x.publicKey),
+                  status: x.status,
+                  type: x.type,
+                })),
+                null,
+                2,
+              )}
+            </pre>
+          </p>
+        </>
+      )}
     </div>
   )
 }
@@ -66,24 +102,6 @@ function Events() {
     <div>
       <h3>Events</h3>
       <pre>{JSON.stringify(responses, null, 2)}</pre>
-    </div>
-  )
-}
-
-function Ping() {
-  const [result, setResult] = useState<string | null>(null)
-  return (
-    <div>
-      <h3>oddworld_ping</h3>
-      <button
-        onClick={() =>
-          oddworld.provider.request({ method: 'oddworld_ping' }).then(setResult)
-        }
-        type="button"
-      >
-        Ping
-      </button>
-      <pre>{result}</pre>
     </div>
   )
 }

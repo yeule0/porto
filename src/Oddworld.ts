@@ -90,7 +90,17 @@ export function create(config?: Config | undefined): Oddworld {
           name: 'odd.store',
           partialize(state) {
             return {
-              accounts: state.accounts,
+              accounts: state.accounts.map((account) => ({
+                ...account,
+                keys: account.keys.map((key) => ({
+                  ...key,
+                  ...('privateKey' in key && !key.privateKey?.extractable
+                    ? {
+                        status: 'locked',
+                      }
+                    : {}),
+                })),
+              })),
               chain: state.chain,
             } as State
           },
