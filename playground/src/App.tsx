@@ -1,11 +1,12 @@
+import { Oddworld } from 'oddworld'
 import { AbiFunction, Hex, Json, PublicKey, TypedData, Value } from 'ox'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
-import { Wagmi } from './Wagmi'
-import { oddworld } from './config'
 import { ExperimentERC20 } from './contracts'
+
+export const oddworld = Oddworld.create()
 
 const client = createClient({
   transport: custom(oddworld.provider),
@@ -14,22 +15,17 @@ const client = createClient({
 export function App() {
   return (
     <div>
-      <h2>Vanilla</h2>
       <State />
       <Events />
       <Register />
       <Login />
+      <Disconnect />
       <Accounts />
       <GrantPermissions />
       <SendTransaction />
       <SendCalls />
       <SignMessage />
       <SignTypedData />
-
-      <hr />
-
-      <h2>Wagmi</h2>
-      <Wagmi />
     </div>
   )
 }
@@ -160,6 +156,22 @@ function Login() {
         Login
       </button>
       <pre>{result}</pre>
+    </div>
+  )
+}
+
+function Disconnect() {
+  return (
+    <div>
+      <h3>wallet_disconnect</h3>
+      <button
+        onClick={() =>
+          oddworld.provider.request({ method: 'wallet_disconnect' })
+        }
+        type="button"
+      >
+        Disconnect
+      </button>
     </div>
   )
 }

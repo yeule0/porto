@@ -22,6 +22,12 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
+        method: 'wallet_disconnect'
+      }
+      ReturnType: undefined
+    }
+  | {
+      Request: {
         method: 'wallet_grantPermissions'
         params: [WalletGrantPermissionsParameters]
       }

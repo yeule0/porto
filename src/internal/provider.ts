@@ -178,6 +178,11 @@ export function from<
           return signature
         }
 
+        case 'wallet_disconnect': {
+          store.setState((x) => ({ ...x, accounts: [] }))
+          return
+        }
+
         case 'wallet_grantPermissions': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
