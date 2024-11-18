@@ -210,10 +210,17 @@ export function from<
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
 
-          const [{ address, expiry }] = params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
-            'wallet_grantPermissions'
-          >
+          const [{ address, expiry, permissions }] =
+            params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'wallet_grantPermissions'
+            >
+
+          if (permissions?.length)
+            throw new RpcResponse.InvalidParamsError({
+              ...RpcResponse.InvalidParamsError,
+              message: 'Permissions are not supported yet.',
+            })
 
           const account = state.accounts.find((account) =>
             address ? Address.isEqual(account.address, address) : false,
