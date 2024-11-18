@@ -1,6 +1,6 @@
 # Oddworld
 
-Next-gen Account for Ethereum.
+Experimental Next-gen Account for Ethereum.
 
 ## Getting Started
 
