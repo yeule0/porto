@@ -221,9 +221,11 @@ export function from<
               message: 'Permissions are not supported yet.',
             })
 
-          const account = state.accounts.find((account) =>
-            address ? Address.isEqual(account.address, address) : false,
-          )
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
           if (!account) throw new Provider_ox.UnauthorizedError()
 
           const key = await AccountDelegation.createWebCryptoKey({
@@ -238,8 +240,8 @@ export function from<
           })
 
           store.setState((x) => {
-            const index = x.accounts.findIndex((account) =>
-              address ? Address.isEqual(account.address, address) : false,
+            const index = x.accounts.findIndex((x) =>
+              account ? Address.isEqual(x.address, account.address) : false,
             )
             if (index === -1) return x
 
