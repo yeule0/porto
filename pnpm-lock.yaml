@@ -204,8 +204,8 @@ importers:
         specifier: workspace:*
         version: link:../src
       ox:
-        specifier: ^0.2.1
-        version: 0.2.1(typescript@5.6.3)(zod@3.23.8)
+        specifier: ^0.2.2
+        version: 0.2.2(typescript@5.6.3)(zod@3.23.8)
       react:
         specifier: 'catalog:'
         version: 18.3.1
@@ -241,8 +241,8 @@ importers:
         specifier: ^0.0.7
         version: 0.0.7(typescript@5.6.3)
       ox:
-        specifier: ^0.2.1
-        version: 0.2.1(typescript@5.6.3)(zod@3.23.8)
+        specifier: ^0.2.2
+        version: 0.2.2(typescript@5.6.3)(zod@3.23.8)
       zustand:
         specifier: ^5.0.1
         version: 5.0.1(@types/react@18.3.12)(react@18.3.1)(use-sync-external-store@1.2.0(react@18.3.1))
@@ -2888,8 +2888,8 @@ packages:
       typescript:
         optional: true
 
-  ox@0.2.1:
-    resolution: {integrity: sha512-BmB0+yDHi/OELuP6zPTtHk0A7sGtUVZ31TUMVlqnnf0Mu834LZegw7RliMsCFSHrL1j62yxdSPIkSLmBM0rD4Q==}
+  ox@0.2.2:
+    resolution: {integrity: sha512-QWCyFfVk5hFOhg13SGqRKih5B7EBucrf+Z1dfmN9jJQ8MZdrRx9mbD78JQL5ogSzDT7fcHgyMCaXd/3AWn6xHQ==}
     peerDependencies:
       typescript: '>=5.4.0'
     peerDependenciesMeta:
@@ -6898,7 +6898,7 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  ox@0.2.1(typescript@5.6.3)(zod@3.23.8):
+  ox@0.2.2(typescript@5.6.3)(zod@3.23.8):
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/curves': 1.6.0

@@ -218,7 +218,6 @@ export function from<
 
           if (permissions?.length)
             throw new RpcResponse.InvalidParamsError({
-              ...RpcResponse.InvalidParamsError,
               message: 'Permissions are not supported yet.',
             })
 
@@ -369,7 +368,6 @@ function requireParameter(
 ): asserts param is NonNullable<typeof param> {
   if (typeof param === 'undefined')
     throw new RpcResponse.InvalidParamsError({
-      ...RpcResponse.InvalidParamsError,
       message: `Missing required parameter: ${details}`,
     })
 }

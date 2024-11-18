@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query'
 import type { EIP1193Provider } from 'viem'
 import {
   type Connector,
@@ -5,7 +6,6 @@ import {
   useAccount,
   useDisconnect as useDisconnect_wagmi,
 } from 'wagmi'
-import { useMutation } from '@tanstack/react-query'
 
 export function useCreateAccount() {
   return useMutation({

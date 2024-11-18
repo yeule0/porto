@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "oddworld": "workspace:*",
-    "ox": "^0.2.1",
+    "ox": "^0.2.2",
     "react": "catalog:",
     "react-dom": "catalog:",
     "viem": "catalog:"
