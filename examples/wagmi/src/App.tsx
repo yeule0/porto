@@ -104,7 +104,7 @@ function Mint() {
       enabled: !!id,
       refetchInterval({ state }) {
         if (state.data?.status === 'CONFIRMED') return false
-        return 2_000
+        return 1_000
       },
     },
   })

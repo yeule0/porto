@@ -183,6 +183,25 @@ export function from<
           return
         }
 
+        case 'wallet_getCallsStatus': {
+          const [id] =
+            (params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'wallet_getCallsStatus'
+            >) ?? []
+
+          const receipt = await state.client.request({
+            method: 'eth_getTransactionReceipt',
+            params: [id! as Hex.Hex],
+          })
+
+          if (!receipt) return { receipts: [], status: 'PENDING' }
+          return {
+            receipts: [receipt],
+            status: 'CONFIRMED',
+          }
+        }
+
         case 'wallet_grantPermissions': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
