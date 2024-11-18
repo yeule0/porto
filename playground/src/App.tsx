@@ -329,7 +329,7 @@ function GrantPermissions() {
             params: [
               {
                 address: account,
-                expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1h
+                expiry: Math.floor(Date.now() / 1000) + 60 * 15, // 15 min
               },
             ],
           })
@@ -337,7 +337,7 @@ function GrantPermissions() {
         }}
         type="button"
       >
-        Grant Session Key (1 hour)
+        Grant Session Key (15 min)
       </button>
       <pre>{result}</pre>
     </div>
