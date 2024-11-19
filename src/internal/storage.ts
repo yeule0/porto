@@ -1,4 +1,4 @@
-import { del, get, set } from 'idb-keyval' // can use anything: IndexedDB, Ionic Storage, etc.
+import { del, get, set } from 'idb-keyval'
 import type { PersistStorage } from 'zustand/middleware'
 import type { State } from '../Oddworld.js'
 
