@@ -237,6 +237,9 @@ importers:
 
   src:
     dependencies:
+      idb-keyval:
+        specifier: ^6.2.1
+        version: 6.2.1
       mipd:
         specifier: ^0.0.7
         version: 0.0.7(typescript@5.6.3)

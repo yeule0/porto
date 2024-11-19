@@ -1,16 +1,12 @@
 import type * as Address from 'ox/Address'
-import * as Json from 'ox/Json'
 import { http, type Client, type Transport, createClient } from 'viem'
-import {
-  type PersistStorage,
-  persist,
-  subscribeWithSelector,
-} from 'zustand/middleware'
+import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
 
 import * as Chains from './Chains.js'
 import type * as AccountDelegation from './internal/accountDelegation.js'
 import * as Provider from './internal/provider.js'
+import * as Storage from './internal/storage.js'
 import * as WebAuthn from './internal/webauthn.js'
 
 export const defaultConfig = {
@@ -94,9 +90,9 @@ export function create(config?: Config | undefined): Oddworld {
                 ...account,
                 keys: account.keys.map((key) => ({
                   ...key,
-                  ...('privateKey' in key && !key.privateKey?.extractable
+                  ...('raw' in key
                     ? {
-                        status: 'locked',
+                        raw: undefined,
                       }
                     : {}),
                 })),
@@ -104,7 +100,7 @@ export function create(config?: Config | undefined): Oddworld {
               chain: state.chain,
             } as State
           },
-          storage,
+          storage: Storage.idb,
         },
       ),
     ),
@@ -206,17 +202,3 @@ export type Store<
   StoreApi<State<chains>>,
   [['zustand/subscribeWithSelector', never], ['zustand/persist', any]]
 >
-
-const storage = {
-  getItem(name) {
-    const value = localStorage.getItem(name)
-    if (value === null) return null
-    return Json.parse(value)
-  },
-  removeItem(name) {
-    localStorage.removeItem(name)
-  },
-  setItem(name, value) {
-    localStorage.setItem(name, Json.stringify(value))
-  },
-} satisfies PersistStorage<State>
