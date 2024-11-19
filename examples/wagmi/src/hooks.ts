@@ -15,11 +15,11 @@ export function useCreateAccount() {
     }: { connector: Connector; label?: string | undefined }) => {
       const provider = (await connector.getProvider()) as EIP1193Provider
       return provider.request<{
-        Method: 'wallet_createAccount'
+        Method: 'experimental_createAccount'
         Parameters?: [{ label?: string | undefined }]
         ReturnType: never
       }>({
-        method: 'wallet_createAccount',
+        method: 'experimental_createAccount',
         params: [{ label }],
       })
     },
@@ -35,11 +35,11 @@ export function useDisconnect() {
       await disconnectAsync()
       const provider = (await connector.getProvider()) as EIP1193Provider
       return provider.request<{
-        Method: 'wallet_disconnect'
+        Method: 'experimental_disconnect'
         Parameters?: undefined
         ReturnType: never
       }>({
-        method: 'wallet_disconnect',
+        method: 'experimental_disconnect',
       })
     },
   })

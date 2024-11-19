@@ -3,10 +3,7 @@ import type * as Hex from 'ox/Hex'
 import type * as RpcSchema from 'ox/RpcSchema'
 
 export type Schema = RpcSchema.From<
-  | Exclude<
-      RpcSchema.Default,
-      { Request: { method: 'wallet_grantPermissions' } }
-    >
+  | RpcSchema.Default
   | {
       Request: {
         method: 'oddworld_ping'
@@ -15,52 +12,36 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
-        method: 'wallet_createAccount'
-        params?: [CreateAccountParameters] | undefined
+        method: 'experimental_createAccount'
+        params?:
+          | [
+              {
+                label?: string | undefined
+              },
+            ]
+          | undefined
       }
       ReturnType: Address.Address
     }
   | {
       Request: {
-        method: 'wallet_disconnect'
+        method: 'experimental_createScopedKey'
+        params: [
+          {
+            address?: Address.Address | undefined
+            expiry?: number | undefined
+          },
+        ]
       }
-      ReturnType: undefined
+      ReturnType: {
+        expiry: number
+        id: Hex.Hex
+      }
     }
   | {
       Request: {
-        method: 'wallet_grantPermissions'
-        params: [WalletGrantPermissionsParameters]
+        method: 'experimental_disconnect'
       }
-      ReturnType: WalletGrantPermissionsReturnType
+      ReturnType: undefined
     }
 >
-
-///////////////////////////////////////////////////////////////
-// Schema Types
-///////////////////////////////////////////////////////////////
-
-type CreateAccountParameters = {
-  label?: string | undefined
-}
-
-type WalletGrantPermissionsParameters = {
-  address?: Address.Address | undefined
-  chainId?: Hex.Hex | undefined
-  expiry: number
-  signer?:
-    | {
-        type: string
-        data: Record<string, any>
-      }
-    | undefined
-  permissions?:
-    | {
-        type: string
-        data: Record<string, any>
-      }[]
-    | undefined
-}
-
-type WalletGrantPermissionsReturnType = WalletGrantPermissionsParameters & {
-  context: Hex.Hex
-}

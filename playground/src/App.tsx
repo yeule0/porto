@@ -21,9 +21,10 @@ export function App() {
       <Login />
       <Disconnect />
       <Accounts />
-      <GrantPermissions />
-      <SendTransaction />
+      <GetCapabilities />
+      <CreateScopedKey />
       <SendCalls />
+      <SendTransaction />
       <SignMessage />
       <SignTypedData />
     </div>
@@ -49,12 +50,14 @@ function State() {
             Keys:{' '}
             <pre>
               {Json.stringify(
-                state.accounts?.[0]?.keys.map((x) => ({
-                  expiry: x.expiry,
-                  publicKey: PublicKey.toHex(x.publicKey),
-                  status: x.status,
-                  type: x.type,
-                })),
+                state.accounts?.[0]?.keys
+                  .filter((x) => x.status === 'unlocked')
+                  .map((x) => ({
+                    expiry: x.expiry,
+                    publicKey: PublicKey.toHex(x.publicKey),
+                    status: x.status,
+                    type: x.type,
+                  })),
                 null,
                 2,
               )}
@@ -124,11 +127,11 @@ function Register() {
   const [result, setResult] = useState<string | null>(null)
   return (
     <div>
-      <h3>wallet_createAccount</h3>
+      <h3>experimental_createAccount</h3>
       <button
         onClick={() =>
           oddworld.provider
-            .request({ method: 'wallet_createAccount' })
+            .request({ method: 'experimental_createAccount' })
             .then(setResult)
         }
         type="button"
@@ -163,16 +166,182 @@ function Login() {
 function Disconnect() {
   return (
     <div>
-      <h3>wallet_disconnect</h3>
+      <h3>experimental_disconnect</h3>
       <button
         onClick={() =>
-          oddworld.provider.request({ method: 'wallet_disconnect' })
+          oddworld.provider.request({ method: 'experimental_disconnect' })
         }
         type="button"
       >
         Disconnect
       </button>
     </div>
+  )
+}
+
+function GetCapabilities() {
+  const [result, setResult] = useState<Record<string, unknown> | null>(null)
+  return (
+    <div>
+      <h3>wallet_getCapabilities</h3>
+      <button
+        onClick={() =>
+          oddworld.provider
+            .request({ method: 'wallet_getCapabilities' })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Get Capabilities
+      </button>
+      <pre>{JSON.stringify(result, null, 2)}</pre>
+    </div>
+  )
+}
+
+function CreateScopedKey() {
+  const [result, setResult] = useState<Hex.Hex | null>(null)
+  return (
+    <div>
+      <h3>experimental_createScopedKey</h3>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const formData = new FormData(e.target as HTMLFormElement)
+          const expiry = Number(formData.get('expiry'))
+
+          const [account] = await oddworld.provider.request({
+            method: 'eth_accounts',
+          })
+          const { id } = await oddworld.provider.request({
+            method: 'experimental_createScopedKey',
+            params: [
+              {
+                address: account,
+                expiry: Math.floor(Date.now() / 1000) + expiry,
+              },
+            ],
+          })
+          setResult(id)
+        }}
+      >
+        <input
+          required
+          placeholder="expiry (seconds)"
+          name="expiry"
+          type="number"
+        />
+        <button type="submit">Create Session Key</button>
+      </form>
+      <pre>{result}</pre>
+    </div>
+  )
+}
+
+function SendCalls() {
+  const [hash, setHash] = useState<string | null>(null)
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault()
+        const formData = new FormData(e.target as HTMLFormElement)
+        const action = formData.get('action') as string | null
+        const useKey = formData.get('useKey') as boolean | null
+
+        const [account] = await oddworld.provider.request({
+          method: 'eth_accounts',
+        })
+
+        const calls = (() => {
+          if (action === 'mint')
+            return [
+              {
+                to: ExperimentERC20.address,
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  [account, Value.fromEther('100')],
+                ),
+              },
+            ]
+
+          if (action === 'approve-transfer')
+            return [
+              {
+                to: ExperimentERC20.address,
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  [account, Value.fromEther('50')],
+                ),
+              },
+              {
+                to: ExperimentERC20.address,
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  [
+                    account,
+                    '0x0000000000000000000000000000000000000000',
+                    Value.fromEther('50'),
+                  ],
+                ),
+              },
+            ] as const
+
+          return [
+            {
+              data: '0xdeadbeef',
+              to: '0x0000000000000000000000000000000000000000',
+            },
+            {
+              data: '0xcafebabe',
+              to: '0x0000000000000000000000000000000000000000',
+            },
+          ] as const
+        })()
+
+        const hash = await oddworld.provider.request({
+          method: 'wallet_sendCalls',
+          params: [
+            {
+              calls,
+              from: account,
+              version: '1',
+              capabilities: {
+                scopedKey: {
+                  enabled: useKey,
+                },
+              },
+            },
+          ],
+        })
+        setHash(hash)
+      }}
+    >
+      <h3>wallet_sendCalls</h3>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <select name="action">
+          <option value="mint">Mint 100 EXP</option>
+          <option value="approve-transfer">Approve + Transfer 50 EXP</option>
+          <option value="noop">Noop Calls</option>
+        </select>
+        <label>
+          <input name="useKey" type="checkbox" />
+          Use Session Key
+        </label>
+        <button type="submit">Send</button>
+      </div>
+      {hash && (
+        <>
+          <pre>{hash}</pre>
+          <a
+            href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Explorer
+          </a>
+        </>
+      )}
+    </form>
   )
 }
 
@@ -238,144 +407,6 @@ function SendTransaction() {
         </>
       )}
     </form>
-  )
-}
-
-function SendCalls() {
-  const [hash, setHash] = useState<string | null>(null)
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault()
-        const formData = new FormData(e.target as HTMLFormElement)
-        const action = formData.get('action') as string | null
-        const key = formData.get('key') as string | null
-
-        const [account] = await oddworld.provider.request({
-          method: 'eth_accounts',
-        })
-
-        const calls = (() => {
-          if (action === 'mint')
-            return [
-              {
-                to: ExperimentERC20.address,
-                data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
-                  [account, Value.fromEther('100')],
-                ),
-              },
-            ]
-
-          if (action === 'approve-transfer')
-            return [
-              {
-                to: ExperimentERC20.address,
-                data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
-                  [account, Value.fromEther('50')],
-                ),
-              },
-              {
-                to: ExperimentERC20.address,
-                data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
-                  [
-                    account,
-                    '0x0000000000000000000000000000000000000000',
-                    Value.fromEther('50'),
-                  ],
-                ),
-              },
-            ] as const
-
-          return [
-            {
-              data: '0xdeadbeef',
-              to: '0x0000000000000000000000000000000000000000',
-            },
-            {
-              data: '0xcafebabe',
-              to: '0x0000000000000000000000000000000000000000',
-            },
-          ] as const
-        })()
-
-        const hash = await oddworld.provider.request({
-          method: 'wallet_sendCalls',
-          params: [
-            {
-              calls,
-              from: account,
-              version: '1',
-              capabilities: {
-                permissions: {
-                  context: key ?? undefined,
-                },
-              },
-            },
-          ],
-        })
-        setHash(hash)
-      }}
-    >
-      <h3>wallet_sendCalls</h3>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <select name="action">
-          <option value="mint">Mint 100 EXP</option>
-          <option value="approve-transfer">Approve + Transfer 50 EXP</option>
-          <option value="noop">Noop Calls</option>
-        </select>
-        <input
-          name="key"
-          placeholder="session key (optional)"
-          style={{ width: '300px' }}
-        />
-        <button type="submit">Send</button>
-      </div>
-      {hash && (
-        <>
-          <pre>{hash}</pre>
-          <a
-            href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Explorer
-          </a>
-        </>
-      )}
-    </form>
-  )
-}
-
-function GrantPermissions() {
-  const [result, setResult] = useState<string | null>(null)
-  return (
-    <div>
-      <h3>wallet_grantPermissions</h3>
-      <button
-        onClick={async () => {
-          const [account] = await oddworld.provider.request({
-            method: 'eth_accounts',
-          })
-          const { context } = await oddworld.provider.request({
-            method: 'wallet_grantPermissions',
-            params: [
-              {
-                address: account,
-                expiry: Math.floor(Date.now() / 1000) + 60 * 15, // 15 min
-              },
-            ],
-          })
-          setResult(context)
-        }}
-        type="button"
-      >
-        Grant Session Key (15 min)
-      </button>
-      <pre>{result}</pre>
-    </div>
   )
 }
 

@@ -131,12 +131,12 @@ export function from<
           return signature
         }
 
-        case 'wallet_createAccount': {
+        case 'experimental_createAccount': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
 
           const [{ label }] = (params as RpcSchema.ExtractParams<
             RpcSchema_internal.Schema,
-            'wallet_createAccount'
+            'experimental_createAccount'
           >) ?? [{}]
 
           // TODO: wait for tx to be included/make counterfactual?
@@ -153,73 +153,20 @@ export function from<
           return addresses
         }
 
-        case 'oddworld_ping': {
-          return 'pong'
-        }
-
-        case 'personal_sign': {
+        case 'experimental_createScopedKey': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
 
-          const [data, address] = params as RpcSchema.ExtractParams<
+          const [
+            {
+              address,
+              expiry = Math.floor(Date.now() / 1000) + 60 * 15, // 15 minutes
+            },
+          ] = params as RpcSchema.ExtractParams<
             RpcSchema_internal.Schema,
-            'personal_sign'
+            'experimental_createScopedKey'
           >
-
-          const account = state.accounts.find((account) =>
-            Address.isEqual(account.address, address),
-          )
-          if (!account) throw new Provider_ox.UnauthorizedError()
-
-          const signature = await AccountDelegation.sign({
-            account,
-            payload: PersonalMessage.getSignPayload(data),
-            rpId: keystoreHost,
-          })
-
-          return signature
-        }
-
-        case 'wallet_disconnect': {
-          store.setState((x) => ({ ...x, accounts: [] }))
-          return
-        }
-
-        case 'wallet_getCallsStatus': {
-          const [id] =
-            (params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
-              'wallet_getCallsStatus'
-            >) ?? []
-
-          const receipt = await state.client.request({
-            method: 'eth_getTransactionReceipt',
-            params: [id! as Hex.Hex],
-          })
-
-          if (!receipt) return { receipts: [], status: 'PENDING' }
-          return {
-            receipts: [receipt],
-            status: 'CONFIRMED',
-          }
-        }
-
-        case 'wallet_grantPermissions': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
-          if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
-
-          const [{ address, expiry, permissions }] =
-            params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
-              'wallet_grantPermissions'
-            >
-
-          if (permissions?.length)
-            throw new RpcResponse.InvalidParamsError({
-              message: 'Permissions are not supported yet.',
-            })
 
           const account = address
             ? state.accounts.find((account) =>
@@ -255,22 +202,74 @@ export function from<
           })
 
           return {
-            address,
-            chainId: Hex.fromNumber(state.chainId),
-            context: PublicKey.toHex(key.publicKey),
             expiry,
-            permissions: [],
-            signer: {
-              type: 'key',
-              data: {
-                type: 'secp256r1',
-                publicKey: PublicKey.toHex(key.publicKey),
+            id: PublicKey.toHex(key.publicKey),
+          }
+        }
+
+        case 'experimental_disconnect': {
+          store.setState((x) => ({ ...x, accounts: [] }))
+          return
+        }
+
+        case 'oddworld_ping': {
+          return 'pong'
+        }
+
+        case 'personal_sign': {
+          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (state.accounts.length === 0)
+            throw new Provider_ox.DisconnectedError()
+
+          const [data, address] = params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'personal_sign'
+          >
+
+          const account = state.accounts.find((account) =>
+            Address.isEqual(account.address, address),
+          )
+          if (!account) throw new Provider_ox.UnauthorizedError()
+
+          const signature = await AccountDelegation.sign({
+            account,
+            payload: PersonalMessage.getSignPayload(data),
+            rpId: keystoreHost,
+          })
+
+          return signature
+        }
+
+        case 'wallet_getCallsStatus': {
+          const [id] =
+            (params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'wallet_getCallsStatus'
+            >) ?? []
+
+          const receipt = await state.client.request({
+            method: 'eth_getTransactionReceipt',
+            params: [id! as Hex.Hex],
+          })
+
+          if (!receipt) return { receipts: [], status: 'PENDING' }
+          return {
+            receipts: [receipt],
+            status: 'CONFIRMED',
+          }
+        }
+
+        case 'wallet_getCapabilities': {
+          return {
+            [Hex.fromNumber(state.chainId)]: {
+              atomicBatch: {
+                supported: true,
+              },
+              scopedKey: {
+                supported: true,
               },
             },
-          } satisfies RpcSchema.ExtractReturnType<
-            RpcSchema_internal.Schema,
-            'wallet_grantPermissions'
-          >
+          }
         }
 
         case 'wallet_sendCalls': {
@@ -291,13 +290,21 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
-          const { context: publicKey } = capabilities?.permissions ?? {}
+          const { enabled, id } = capabilities?.scopedKey ?? {}
 
-          const keyIndex = publicKey
-            ? account.keys.findIndex(
-                (key) => PublicKey.toHex(key.publicKey) === publicKey,
+          const keyIndex = (() => {
+            if (id)
+              return account.keys.findIndex(
+                (key) => PublicKey.toHex(key.publicKey) === id,
               )
-            : 0
+            if (enabled)
+              return account.keys.findIndex(
+                (key) =>
+                  key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
+                  key.status === 'unlocked',
+              )
+            return 0
+          })()
           if (keyIndex === -1) throw new Provider_ox.UnauthorizedError()
 
           return await AccountDelegation.execute(state.client, {
