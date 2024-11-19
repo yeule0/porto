@@ -1,1 +1,6 @@
-export { useCreateAccount } from './wagmi/react.js'
+export {
+  useCreateAccount,
+  useDisconnect,
+  useGrantSession,
+  useSessions,
+} from './wagmi/react.js'

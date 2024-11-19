@@ -1,10 +1,14 @@
-import { useCreateAccount } from 'oddworld/react'
+import {
+  useCreateAccount,
+  useDisconnect,
+  useGrantSession,
+  useSessions,
+} from 'oddworld/react'
 import { formatEther, parseEther } from 'viem'
 import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
 
 import { ExperimentERC20 } from './contracts'
-import { useDisconnect, useGrantSession, useSessions } from './hooks'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -26,7 +30,7 @@ export function App() {
 function Account() {
   const account = useAccount()
   const { data: sessions } = useSessions()
-  const { mutate: disconnect } = useDisconnect()
+  const disconnect = useDisconnect()
 
   return (
     <div>
@@ -43,7 +47,7 @@ function Account() {
       </div>
 
       {account.status !== 'disconnected' && (
-        <button type="button" onClick={() => disconnect()}>
+        <button type="button" onClick={() => disconnect.mutate({})}>
           Log Out
         </button>
       )}
@@ -104,17 +108,19 @@ function Balance() {
 }
 
 function GrantSession() {
-  const { data, error, mutate: grantSession } = useGrantSession()
+  const grantSession = useGrantSession()
 
   return (
     <div>
       <h2>Grant Session</h2>
-      <button onClick={() => grantSession()} type="button">
+      <button onClick={() => grantSession.mutate({})} type="button">
         Grant Session
       </button>
-      {data && <div>Session granted.</div>}
-      {error && (
-        <div>Error: {(error as BaseError).shortMessage || error.message}</div>
+      {grantSession.data && <div>Session granted.</div>}
+      {grantSession.error && (
+        <div>
+          Error: {grantSession.error.shortMessage || grantSession.error.message}
+        </div>
       )}
     </div>
   )
