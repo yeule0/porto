@@ -19,10 +19,10 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
-        method: 'experimental_createSessionKey'
-        params?: [CreateSessionKeyParameters] | undefined
+        method: 'experimental_grantSession'
+        params?: [GrantSessionParameters] | undefined
       }
-      ReturnType: CreateSessionKeyReturnType
+      ReturnType: GrantSessionReturnType
     }
   | {
       Request: {
@@ -36,12 +36,12 @@ type CreateAccountParameters = {
   label?: string | undefined
 }
 
-type CreateSessionKeyParameters = {
+type GrantSessionParameters = {
   address?: Address.Address | undefined
   expiry?: number | undefined
 }
 
-type CreateSessionKeyReturnType = {
+type GrantSessionReturnType = {
   expiry: number
   id: Hex.Hex
 }

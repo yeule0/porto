@@ -152,7 +152,7 @@ export function from<
           return [account.address]
         }
 
-        case 'experimental_createSessionKey': {
+        case 'experimental_grantSession': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
@@ -165,7 +165,7 @@ export function from<
           ] =
             (params as RpcSchema.ExtractParams<
               RpcSchema_internal.Schema,
-              'experimental_createSessionKey'
+              'experimental_grantSession'
             >) ?? []
 
           const account = address
@@ -265,7 +265,7 @@ export function from<
               atomicBatch: {
                 supported: true,
               },
-              sessionKey: {
+              session: {
                 supported: true,
               },
             },
@@ -290,7 +290,7 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
-          const { enabled, id } = capabilities?.sessionKey ?? {}
+          const { enabled = true, id } = capabilities?.session ?? {}
 
           const keyIndex = (() => {
             if (id)

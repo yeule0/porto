@@ -2,7 +2,7 @@ import { formatEther, parseEther } from 'viem'
 import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
 import { ExperimentERC20 } from './contracts'
-import { useCreateAccount, useCreateSessionKey, useDisconnect } from './hooks'
+import { useCreateAccount, useDisconnect, useGrantSession } from './hooks'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -13,7 +13,7 @@ export function App() {
       {isConnected && (
         <>
           <Balance />
-          <CreateSessionKey />
+          <GrantSession />
           <Mint />
         </>
       )}
@@ -95,16 +95,16 @@ function Balance() {
   )
 }
 
-function CreateSessionKey() {
-  const { data, error, mutate: createSessionKey } = useCreateSessionKey()
+function GrantSession() {
+  const { data, error, mutate: grantSession } = useGrantSession()
 
   return (
     <div>
-      <h2>Create Session Key</h2>
-      <button onClick={() => createSessionKey()} type="button">
-        Create Session Key
+      <h2>Grant Session</h2>
+      <button onClick={() => grantSession()} type="button">
+        Grant Session
       </button>
-      {data && <div>Session Key created.</div>}
+      {data && <div>Session granted.</div>}
       {error && (
         <div>Error: {(error as BaseError).shortMessage || error.message}</div>
       )}
@@ -133,10 +133,6 @@ function Mint() {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-
-          const formData = new FormData(e.target as HTMLFormElement)
-          const sessionKeyEnabled = Boolean(formData.get('sessionKeyEnabled'))
-
           sendCalls({
             calls: [
               {
@@ -146,21 +142,12 @@ function Mint() {
                 args: [address!, parseEther('100')],
               },
             ],
-            capabilities: {
-              sessionKey: {
-                enabled: sessionKeyEnabled,
-              },
-            },
           })
         }}
       >
         <button disabled={isPending} type="submit">
           {isPending ? 'Confirming...' : 'Mint 100 EXP'}
         </button>
-        <label>
-          <input name="sessionKeyEnabled" type="checkbox" />
-          Use Session Key
-        </label>
       </form>
       {id && <div>Transaction Hash: {id}</div>}
       {isConfirming && 'Waiting for confirmation...'}

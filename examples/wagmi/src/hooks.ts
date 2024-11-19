@@ -26,14 +26,14 @@ export function useCreateAccount() {
   })
 }
 
-export function useCreateSessionKey() {
+export function useGrantSession() {
   const { connector } = useAccount()
   return useMutation({
     mutationFn: async () => {
       if (!connector) throw new ConnectorNotFoundError()
       const provider = (await connector.getProvider()) as EIP1193Provider
       return provider.request<{
-        Method: 'experimental_createSessionKey'
+        Method: 'experimental_grantSession'
         Parameters:
           | [
               {
@@ -47,7 +47,7 @@ export function useCreateSessionKey() {
           id: Hex
         }
       }>({
-        method: 'experimental_createSessionKey',
+        method: 'experimental_grantSession',
         params: [],
       })
     },
