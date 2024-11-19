@@ -90,7 +90,7 @@ function Balance() {
   return (
     <div>
       <h2>Balance</h2>
-      {balance ? <div>Balance: {formatEther(balance)} EXP</div> : null}
+      <div>Balance: {formatEther(balance ?? 0n)} EXP</div>
     </div>
   )
 }
