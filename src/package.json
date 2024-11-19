@@ -5,13 +5,31 @@
   "type": "module",
   "main": "./_dist/index.js",
   "types": "./_dist/index.d.ts",
+  "typings": "./_dist/index.d.ts",
   "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./_dist/index.d.ts",
+      "default": "./_dist/index.js"
+    },
+    "./react": {
+      "types": "./_dist/react.d.ts",
+      "default": "./_dist/react.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "query": ["./dist/types/exports/query.d.ts"]
+    }
+  },
   "files": [
     "*",
     "!**/_test/**",
     "!**/*.tsbuildinfo",
     "!tsconfig.build.json",
-    "!jsr.json"
+    "!jsr.json",
+    "/react"
   ],
   "dependencies": {
     "idb-keyval": "^6.2.1",
@@ -20,11 +38,23 @@
     "zustand": "^5.0.1"
   },
   "peerDependencies": {
+    "@tanstack/react-query": ">=5.60.0",
+    "react": ">=18",
     "typescript": ">=5.4.0",
-    "viem": ">=2.0.0"
+    "viem": ">=2.0.0",
+    "wagmi": ">=2.0.0"
   },
   "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
     "typescript": {
+      "optional": true
+    },
+    "wagmi": {
       "optional": true
     }
   },

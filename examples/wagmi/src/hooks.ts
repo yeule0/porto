@@ -2,36 +2,16 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 import type { Address, EIP1193Provider, Hex } from 'viem'
 import {
-  type Connector,
   ConnectorNotFoundError,
   useAccount,
   useDisconnect as useDisconnect_wagmi,
 } from 'wagmi'
 
-export function useCreateAccount() {
-  return useMutation({
-    mutationFn: async ({
-      connector,
-      label,
-    }: { connector: Connector; label?: string | undefined }) => {
-      const provider = (await connector.getProvider()) as EIP1193Provider
-      return provider.request<{
-        Method: 'experimental_createAccount'
-        Parameters?: [{ label?: string | undefined }]
-        ReturnType: never
-      }>({
-        method: 'experimental_createAccount',
-        params: [{ label }],
-      })
-    },
-  })
-}
-
 export function useDisconnect() {
   const { connector } = useAccount()
   const { disconnectAsync } = useDisconnect_wagmi()
   return useMutation({
-    mutationFn: async () => {
+    async mutationFn() {
       if (!connector) throw new ConnectorNotFoundError()
       await disconnectAsync()
       const provider = (await connector.getProvider()) as EIP1193Provider
@@ -49,7 +29,7 @@ export function useDisconnect() {
 export function useGrantSession() {
   const { connector } = useAccount()
   return useMutation({
-    mutationFn: async () => {
+    async mutationFn() {
       if (!connector) throw new ConnectorNotFoundError()
       const provider = (await connector.getProvider()) as EIP1193Provider
       return provider.request<{
@@ -95,7 +75,7 @@ export function useSessions() {
 
   return useQuery({
     queryKey: ['sessions', address, connector?.uid],
-    queryFn: async () => {
+    async queryFn() {
       if (!connector) throw new ConnectorNotFoundError()
       provider.current ??= (await connector.getProvider?.()) as EIP1193Provider
       return provider.current?.request<{

@@ -1,13 +1,10 @@
+import { useCreateAccount } from 'oddworld/react'
 import { formatEther, parseEther } from 'viem'
 import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
+
 import { ExperimentERC20 } from './contracts'
-import {
-  useCreateAccount,
-  useDisconnect,
-  useGrantSession,
-  useSessions,
-} from './hooks'
+import { useDisconnect, useGrantSession, useSessions } from './hooks'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -55,30 +52,33 @@ function Account() {
 }
 
 function Connect() {
-  const { connectors, connect, status, error } = useConnect()
-  const { mutate: createAccount } = useCreateAccount()
+  const connect = useConnect()
+  const createAccount = useCreateAccount()
 
   return (
     <div>
       <h2>Connect</h2>
-      {connectors
+      {connect.connectors
         .filter((x) => x.id === 'xyz.ithaca.oddworld')
         ?.map((connector) => (
           <div key={connector.uid}>
             <button
               key={connector.uid}
-              onClick={() => connect({ connector })}
+              onClick={() => connect.connect({ connector })}
               type="button"
             >
               Login
             </button>
-            <button onClick={() => createAccount({ connector })} type="button">
+            <button
+              onClick={() => createAccount.mutate({ connector })}
+              type="button"
+            >
               Register
             </button>
           </div>
         ))}
-      <div>{status}</div>
-      <div>{error?.message}</div>
+      <div>{connect.status ?? createAccount.status}</div>
+      <div>{connect.error?.message ?? createAccount.error?.message}</div>
     </div>
   )
 }
