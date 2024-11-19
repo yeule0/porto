@@ -2,7 +2,12 @@ import { formatEther, parseEther } from 'viem'
 import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
 import { ExperimentERC20 } from './contracts'
-import { useCreateAccount, useDisconnect, useGrantSession } from './hooks'
+import {
+  useCreateAccount,
+  useDisconnect,
+  useGrantSession,
+  useSessions,
+} from './hooks'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -23,6 +28,7 @@ export function App() {
 
 function Account() {
   const account = useAccount()
+  const { data: sessions } = useSessions()
   const { mutate: disconnect } = useDisconnect()
 
   return (
@@ -35,6 +41,8 @@ function Account() {
         chainId: {account.chainId}
         <br />
         status: {account.status}
+        <br />
+        sessions: {JSON.stringify(sessions)}
       </div>
 
       {account.status !== 'disconnected' && (

@@ -152,6 +152,11 @@ export function from<
           return [account.address]
         }
 
+        case 'experimental_disconnect': {
+          store.setState((x) => ({ ...x, accounts: [] }))
+          return
+        }
+
         case 'experimental_grantSession': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
@@ -201,15 +206,45 @@ export function from<
             }
           })
 
+          emitter.emit('message', {
+            data: {
+              expiry,
+              id: PublicKey.toHex(key.publicKey),
+            },
+            type: 'sessionsChanged',
+          })
+
           return {
             expiry,
             id: PublicKey.toHex(key.publicKey),
           }
         }
 
-        case 'experimental_disconnect': {
-          store.setState((x) => ({ ...x, accounts: [] }))
-          return
+        case 'experimental_sessions': {
+          if (state.accounts.length === 0)
+            throw new Provider_ox.DisconnectedError()
+
+          const [{ address }] = (params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'experimental_sessions'
+          >) ?? [{}]
+
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
+
+          return account?.keys
+            .map((key) => {
+              if (key.expiry < BigInt(Math.floor(Date.now() / 1000))) return
+              if (key.status === 'locked') return
+              return {
+                expiry: Number(key.expiry),
+                id: PublicKey.toHex(key.publicKey),
+              }
+            })
+            .filter(Boolean)
         }
 
         case 'oddworld_ping': {
@@ -293,17 +328,18 @@ export function from<
           const { enabled = true, id } = capabilities?.session ?? {}
 
           const keyIndex = (() => {
+            if (!enabled) return -1
             if (id)
               return account.keys.findIndex(
                 (key) => PublicKey.toHex(key.publicKey) === id,
               )
-            if (enabled)
-              return account.keys.findIndex(
-                (key) =>
-                  key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
-                  key.status === 'unlocked',
-              )
-            return 0
+            const index = account.keys.findIndex(
+              (key) =>
+                key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
+                key.status === 'unlocked',
+            )
+            if (index === -1) return 0
+            return index
           })()
           if (keyIndex === -1) throw new Provider_ox.UnauthorizedError()
 

@@ -23,6 +23,7 @@ export function App() {
       <Accounts />
       <GetCapabilities />
       <GrantSession />
+      <GetSessions />
       <SendCalls />
       <SendTransaction />
       <SignMessage />
@@ -234,6 +235,27 @@ function GrantSession() {
         <button type="submit">Grant Session</button>
       </form>
       {result && <pre>session id: {result}</pre>}
+    </div>
+  )
+}
+
+function GetSessions() {
+  const [result, setResult] = useState<unknown>(null)
+
+  return (
+    <div>
+      <h3>experimental_sessions</h3>
+      <button
+        onClick={() =>
+          oddworld.provider
+            .request({ method: 'experimental_sessions' })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Get Sessions
+      </button>
+      {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
     </div>
   )
 }

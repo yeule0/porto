@@ -26,6 +26,13 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
+        method: 'experimental_sessions'
+        params?: [GetSessionsParameters] | undefined
+      }
+      ReturnType: GetSessionsReturnType
+    }
+  | {
+      Request: {
         method: 'experimental_disconnect'
       }
       ReturnType: undefined
@@ -40,6 +47,12 @@ type GrantSessionParameters = {
   address?: Address.Address | undefined
   expiry?: number | undefined
 }
+
+type GetSessionsParameters = {
+  address?: Address.Address | undefined
+}
+
+type GetSessionsReturnType = readonly GrantSessionReturnType[]
 
 type GrantSessionReturnType = {
   expiry: number
