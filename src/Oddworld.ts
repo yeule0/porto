@@ -143,7 +143,7 @@ export type Oddworld<
   provider: Provider.Provider
   /**
    * Not part of versioned API, proceed with caution.
-   * @internal
+   * @deprecated
    */
   _internal: {
     store: StoreApi<State<chains>>

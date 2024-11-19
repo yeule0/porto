@@ -18,6 +18,10 @@ export type Provider = Provider_ox.Provider<{
   includeEvents: true
   schema: RpcSchema_internal.Schema
 }> & {
+  /**
+   * Not part of versioned API, proceed with caution.
+   * @deprecated
+   */
   _internal: {
     destroy: () => void
   }
@@ -300,7 +304,7 @@ export function from<
             if (enabled)
               return account.keys.findIndex(
                 (key) =>
-                  key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
+                  key.expiry > BigInt(Math.floor(Date.now() / 1_000)) &&
                   key.status === 'unlocked',
               )
             return 0
