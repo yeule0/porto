@@ -148,12 +148,11 @@ export function from<
 
           store.setState((x) => ({ ...x, accounts: [account] }))
 
-          const addresses = state.accounts.map((account) => account.address)
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
-          return addresses
+          return [account.address]
         }
 
-        case 'experimental_createScopedKey': {
+        case 'experimental_createSessionKey': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
@@ -165,7 +164,7 @@ export function from<
             },
           ] = params as RpcSchema.ExtractParams<
             RpcSchema_internal.Schema,
-            'experimental_createScopedKey'
+            'experimental_createSessionKey'
           >
 
           const account = address
@@ -265,7 +264,7 @@ export function from<
               atomicBatch: {
                 supported: true,
               },
-              scopedKey: {
+              sessionKey: {
                 supported: true,
               },
             },
@@ -290,7 +289,7 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
-          const { enabled, id } = capabilities?.scopedKey ?? {}
+          const { enabled, id } = capabilities?.sessionKey ?? {}
 
           const keyIndex = (() => {
             if (id)

@@ -13,30 +13,16 @@ export type Schema = RpcSchema.From<
   | {
       Request: {
         method: 'experimental_createAccount'
-        params?:
-          | [
-              {
-                label?: string | undefined
-              },
-            ]
-          | undefined
+        params?: [CreateAccountParameters] | undefined
       }
       ReturnType: Address.Address
     }
   | {
       Request: {
-        method: 'experimental_createScopedKey'
-        params: [
-          {
-            address?: Address.Address | undefined
-            expiry?: number | undefined
-          },
-        ]
+        method: 'experimental_createSessionKey'
+        params: [CreateSessionKeyParameters]
       }
-      ReturnType: {
-        expiry: number
-        id: Hex.Hex
-      }
+      ReturnType: CreateSessionKeyReturnType
     }
   | {
       Request: {
@@ -45,3 +31,17 @@ export type Schema = RpcSchema.From<
       ReturnType: undefined
     }
 >
+
+type CreateAccountParameters = {
+  label?: string | undefined
+}
+
+type CreateSessionKeyParameters = {
+  address?: Address.Address | undefined
+  expiry?: number | undefined
+}
+
+type CreateSessionKeyReturnType = {
+  expiry: number
+  id: Hex.Hex
+}

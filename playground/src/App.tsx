@@ -22,7 +22,7 @@ export function App() {
       <Disconnect />
       <Accounts />
       <GetCapabilities />
-      <CreateScopedKey />
+      <CreateSessionKey />
       <SendCalls />
       <SendTransaction />
       <SignMessage />
@@ -199,11 +199,11 @@ function GetCapabilities() {
   )
 }
 
-function CreateScopedKey() {
+function CreateSessionKey() {
   const [result, setResult] = useState<Hex.Hex | null>(null)
   return (
     <div>
-      <h3>experimental_createScopedKey</h3>
+      <h3>experimental_createSessionKey</h3>
       <form
         onSubmit={async (e) => {
           e.preventDefault()
@@ -214,7 +214,7 @@ function CreateScopedKey() {
             method: 'eth_accounts',
           })
           const { id } = await oddworld.provider.request({
-            method: 'experimental_createScopedKey',
+            method: 'experimental_createSessionKey',
             params: [
               {
                 address: account,
@@ -306,7 +306,7 @@ function SendCalls() {
               from: account,
               version: '1',
               capabilities: {
-                scopedKey: {
+                sessionKey: {
                   enabled: useKey,
                 },
               },
