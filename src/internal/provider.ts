@@ -161,11 +161,12 @@ export function from<
             {
               address,
               expiry = Math.floor(Date.now() / 1000) + 60 * 15, // 15 minutes
-            },
-          ] = params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
-            'experimental_createSessionKey'
-          >
+            } = {},
+          ] =
+            (params as RpcSchema.ExtractParams<
+              RpcSchema_internal.Schema,
+              'experimental_createSessionKey'
+            >) ?? []
 
           const account = address
             ? state.accounts.find((account) =>

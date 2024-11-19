@@ -20,7 +20,7 @@ export type Schema = RpcSchema.From<
   | {
       Request: {
         method: 'experimental_createSessionKey'
-        params: [CreateSessionKeyParameters]
+        params?: [CreateSessionKeyParameters] | undefined
       }
       ReturnType: CreateSessionKeyReturnType
     }
