@@ -2,7 +2,10 @@ import { createStore, del, get, set } from 'idb-keyval'
 import type { PersistStorage } from 'zustand/middleware'
 import type { State } from '../Oddworld.js'
 
-const store = createStore('oddworld', 'store')
+const store =
+  typeof indexedDB !== 'undefined'
+    ? createStore('oddworld', 'store')
+    : undefined
 
 export const idb = {
   async getItem(name) {
