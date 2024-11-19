@@ -22,7 +22,8 @@ export function App() {
       <Disconnect />
       <Accounts />
       <GetCapabilities />
-      <CreateSessionKey />
+      <GrantSession />
+      <GetSessions />
       <SendCalls />
       <SendTransaction />
       <SignMessage />
@@ -199,11 +200,11 @@ function GetCapabilities() {
   )
 }
 
-function CreateSessionKey() {
+function GrantSession() {
   const [result, setResult] = useState<Hex.Hex | null>(null)
   return (
     <div>
-      <h3>experimental_createSessionKey</h3>
+      <h3>experimental_grantSession</h3>
       <form
         onSubmit={async (e) => {
           e.preventDefault()
@@ -214,7 +215,7 @@ function CreateSessionKey() {
             method: 'eth_accounts',
           })
           const { id } = await oddworld.provider.request({
-            method: 'experimental_createSessionKey',
+            method: 'experimental_grantSession',
             params: [
               {
                 address: account,
@@ -231,9 +232,30 @@ function CreateSessionKey() {
           name="expiry"
           type="number"
         />
-        <button type="submit">Create Session Key</button>
+        <button type="submit">Grant Session</button>
       </form>
-      <pre>{result}</pre>
+      {result && <pre>session id: {result}</pre>}
+    </div>
+  )
+}
+
+function GetSessions() {
+  const [result, setResult] = useState<unknown>(null)
+
+  return (
+    <div>
+      <h3>experimental_sessions</h3>
+      <button
+        onClick={() =>
+          oddworld.provider
+            .request({ method: 'experimental_sessions' })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Get Sessions
+      </button>
+      {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
     </div>
   )
 }
@@ -246,7 +268,6 @@ function SendCalls() {
         e.preventDefault()
         const formData = new FormData(e.target as HTMLFormElement)
         const action = formData.get('action') as string | null
-        const useKey = formData.get('useKey') as boolean | null
 
         const [account] = await oddworld.provider.request({
           method: 'eth_accounts',
@@ -305,11 +326,6 @@ function SendCalls() {
               calls,
               from: account,
               version: '1',
-              capabilities: {
-                sessionKey: {
-                  enabled: useKey,
-                },
-              },
             },
           ],
         })
@@ -323,10 +339,6 @@ function SendCalls() {
           <option value="approve-transfer">Approve + Transfer 50 EXP</option>
           <option value="noop">Noop Calls</option>
         </select>
-        <label>
-          <input name="useKey" type="checkbox" />
-          Use Session Key
-        </label>
         <button type="submit">Send</button>
       </div>
       {hash && (
