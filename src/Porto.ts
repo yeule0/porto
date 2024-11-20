@@ -13,22 +13,22 @@ export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
   headless: true,
-  keystoreHost: 'oddworld-tau.vercel.app',
+  keystoreHost: 'porto-tau.vercel.app',
   transports: {
     [Chains.odysseyTestnet.id]: http(),
   },
 } as const satisfies Config
 
 /**
- * Instantiates an Oddworld instance.
+ * Instantiates an Porto instance.
  *
  * @example
  * ```ts twoslash
- * import { Oddworld } from 'oddworld'
+ * import { Porto } from 'porto'
  *
- * const oddworld = Oddworld.create()
+ * const porto = Porto.create()
  *
- * const blockNumber = await oddworld.provider.request({ method: 'eth_blockNumber' })
+ * const blockNumber = await porto.provider.request({ method: 'eth_blockNumber' })
  * ```
  */
 export function create<
@@ -36,8 +36,8 @@ export function create<
     Chains.Chain,
     ...Chains.Chain[],
   ] = typeof defaultConfig.chains,
->(config?: Config<chains>): Oddworld<chains>
-export function create(config?: Config | undefined): Oddworld {
+>(config?: Config<chains>): Porto<chains>
+export function create(config?: Config | undefined): Porto {
   const {
     announceProvider = defaultConfig.announceProvider,
     chains = defaultConfig.chains,
@@ -83,7 +83,7 @@ export function create(config?: Config | undefined): Oddworld {
           },
         }),
         {
-          name: 'odd.store',
+          name: 'porto.store',
           merge,
           partialize(state) {
             return {
@@ -130,7 +130,7 @@ export function create(config?: Config | undefined): Oddworld {
   }
 }
 
-export type Oddworld<
+export type Porto<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
     Chains.Chain,
     ...Chains.Chain[],

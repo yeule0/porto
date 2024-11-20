@@ -1,5 +1,5 @@
 {
-  "name": "oddworld",
+  "name": "porto",
   "description": "Next-gen Account for Ethereum",
   "version": "0.0.0",
   "type": "module",
@@ -12,15 +12,25 @@
       "types": "./_dist/index.d.ts",
       "default": "./_dist/index.js"
     },
-    "./react": {
-      "types": "./_dist/react.d.ts",
-      "default": "./_dist/react.js"
+    "./Chains": {
+      "types": "./_dist/Chains.d.ts",
+      "default": "./_dist/Chains.js"
+    },
+    "./Porto": {
+      "types": "./_dist/Porto.d.ts",
+      "default": "./_dist/Porto.js"
+    },
+    "./wagmi": {
+      "types": "./_dist/wagmi.d.ts",
+      "default": "./_dist/wagmi.js"
     },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
-      "query": ["./dist/types/exports/query.d.ts"]
+      "Chains": ["./_dist/Chains.d.ts"],
+      "Porto": ["./_dist/Porto.d.ts"],
+      "wagmi": ["./_dist/wagmi.d.ts"]
     }
   },
   "files": [
@@ -29,7 +39,9 @@
     "!**/*.tsbuildinfo",
     "!tsconfig.build.json",
     "!jsr.json",
-    "/react"
+    "/Chains",
+    "/Porto",
+    "/wagmi"
   ],
   "dependencies": {
     "idb-keyval": "^6.2.1",
@@ -60,6 +72,6 @@
   },
   "license": "MIT",
   "homepage": "https://ithaca.xyz",
-  "repository": "ithacaxyz/oddworld",
+  "repository": "ithacaxyz/porto",
   "contributors": ["jxom.eth <jake@ithaca.xyz>", "awkweb.eth <tom@ithaca.xyz>"]
 }

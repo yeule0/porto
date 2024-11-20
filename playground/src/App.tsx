@@ -1,15 +1,15 @@
-import { Oddworld } from 'oddworld'
 import { AbiFunction, Hex, Json, PublicKey, TypedData, Value } from 'ox'
+import { Porto } from 'porto'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { ExperimentERC20 } from './contracts'
 
-export const oddworld = Oddworld.create()
+export const porto = Porto.create()
 
 const client = createClient({
-  transport: custom(oddworld.provider),
+  transport: custom(porto.provider),
 })
 
 export function App() {
@@ -34,9 +34,9 @@ export function App() {
 
 function State() {
   const state = useSyncExternalStore(
-    oddworld._internal.store.subscribe,
-    () => oddworld._internal.store.getState(),
-    () => oddworld._internal.store.getState(),
+    porto._internal.store.subscribe,
+    () => porto._internal.store.getState(),
+    () => porto._internal.store.getState(),
   )
   return (
     <div>
@@ -85,17 +85,17 @@ function Events() {
     const handleDisconnect = handleResponse('disconnect')
     const handleMessage = handleResponse('message')
 
-    oddworld.provider.on('accountsChanged', handleAccountsChanged)
-    oddworld.provider.on('chainChanged', handleChainChanged)
-    oddworld.provider.on('connect', handleConnect)
-    oddworld.provider.on('disconnect', handleDisconnect)
-    oddworld.provider.on('message', handleMessage)
+    porto.provider.on('accountsChanged', handleAccountsChanged)
+    porto.provider.on('chainChanged', handleChainChanged)
+    porto.provider.on('connect', handleConnect)
+    porto.provider.on('disconnect', handleDisconnect)
+    porto.provider.on('message', handleMessage)
     return () => {
-      oddworld.provider.removeListener('accountsChanged', handleAccountsChanged)
-      oddworld.provider.removeListener('chainChanged', handleChainChanged)
-      oddworld.provider.removeListener('connect', handleConnect)
-      oddworld.provider.removeListener('disconnect', handleDisconnect)
-      oddworld.provider.removeListener('message', handleMessage)
+      porto.provider.removeListener('accountsChanged', handleAccountsChanged)
+      porto.provider.removeListener('chainChanged', handleChainChanged)
+      porto.provider.removeListener('connect', handleConnect)
+      porto.provider.removeListener('disconnect', handleDisconnect)
+      porto.provider.removeListener('message', handleMessage)
     }
   }, [])
   return (
@@ -113,7 +113,7 @@ function Accounts() {
       <h3>eth_accounts</h3>
       <button
         onClick={() =>
-          oddworld.provider.request({ method: 'eth_accounts' }).then(setResult)
+          porto.provider.request({ method: 'eth_accounts' }).then(setResult)
         }
         type="button"
       >
@@ -131,7 +131,7 @@ function Register() {
       <h3>experimental_createAccount</h3>
       <button
         onClick={() =>
-          oddworld.provider
+          porto.provider
             .request({ method: 'experimental_createAccount' })
             .then(setResult)
         }
@@ -151,7 +151,7 @@ function Login() {
       <h3>eth_requestAccounts</h3>
       <button
         onClick={() =>
-          oddworld.provider
+          porto.provider
             .request({ method: 'eth_requestAccounts' })
             .then(setResult)
         }
@@ -170,7 +170,7 @@ function Disconnect() {
       <h3>experimental_disconnect</h3>
       <button
         onClick={() =>
-          oddworld.provider.request({ method: 'experimental_disconnect' })
+          porto.provider.request({ method: 'experimental_disconnect' })
         }
         type="button"
       >
@@ -187,7 +187,7 @@ function GetCapabilities() {
       <h3>wallet_getCapabilities</h3>
       <button
         onClick={() =>
-          oddworld.provider
+          porto.provider
             .request({ method: 'wallet_getCapabilities' })
             .then(setResult)
         }
@@ -211,10 +211,10 @@ function GrantSession() {
           const formData = new FormData(e.target as HTMLFormElement)
           const expiry = Number(formData.get('expiry'))
 
-          const [account] = await oddworld.provider.request({
+          const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
-          const { id } = await oddworld.provider.request({
+          const { id } = await porto.provider.request({
             method: 'experimental_grantSession',
             params: [
               {
@@ -247,7 +247,7 @@ function GetSessions() {
       <h3>experimental_sessions</h3>
       <button
         onClick={() =>
-          oddworld.provider
+          porto.provider
             .request({ method: 'experimental_sessions' })
             .then(setResult)
         }
@@ -269,7 +269,7 @@ function SendCalls() {
         const formData = new FormData(e.target as HTMLFormElement)
         const action = formData.get('action') as string | null
 
-        const [account] = await oddworld.provider.request({
+        const [account] = await porto.provider.request({
           method: 'eth_accounts',
         })
 
@@ -319,7 +319,7 @@ function SendCalls() {
           ] as const
         })()
 
-        const hash = await oddworld.provider.request({
+        const hash = await porto.provider.request({
           method: 'wallet_sendCalls',
           params: [
             {
@@ -367,7 +367,7 @@ function SendTransaction() {
         const formData = new FormData(e.target as HTMLFormElement)
         const action = formData.get('action') as string | null
 
-        const [account] = await oddworld.provider.request({
+        const [account] = await porto.provider.request({
           method: 'eth_accounts',
         })
 
@@ -393,7 +393,7 @@ function SendTransaction() {
           ] as const
         })() as any
 
-        const hash = await oddworld.provider.request({
+        const hash = await porto.provider.request({
           method: 'eth_sendTransaction',
           params,
         })
@@ -435,10 +435,10 @@ function SignMessage() {
           const formData = new FormData(e.target as HTMLFormElement)
           const message = formData.get('message') as string
 
-          const [account] = await oddworld.provider.request({
+          const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
-          const result = await oddworld.provider.request({
+          const result = await porto.provider.request({
             method: 'personal_sign',
             params: [Hex.fromString(message), account],
           })
@@ -468,7 +468,7 @@ function SignMessage() {
           const message = formData.get('message') as string
           const signature = formData.get('signature') as `0x${string}`
 
-          const [account] = await oddworld.provider.request({
+          const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
 
@@ -503,10 +503,10 @@ function SignTypedData() {
         onSubmit={async (e) => {
           e.preventDefault()
 
-          const [account] = await oddworld.provider.request({
+          const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
-          const result = await oddworld.provider.request({
+          const result = await porto.provider.request({
             method: 'eth_signTypedData_v4',
             params: [account, TypedData.serialize(typedData)],
           })
@@ -532,7 +532,7 @@ function SignTypedData() {
           const formData = new FormData(e.target as HTMLFormElement)
           const signature = formData.get('signature') as `0x${string}`
 
-          const [account] = await oddworld.provider.request({
+          const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
 

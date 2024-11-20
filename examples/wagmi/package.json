@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
-    "oddworld": "workspace:*",
+    "porto": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
     "viem": "catalog:",

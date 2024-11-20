@@ -2,16 +2,18 @@
 
 import {
   type UseMutationResult,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { EIP1193Provider } from 'viem'
 import {
   type Config,
   type ResolvedRegister,
   useAccount,
+  useChainId,
   useConfig,
 } from 'wagmi'
 import type {
@@ -152,36 +154,62 @@ export function useSessions<
 >(
   parameters: useSessions.Parameters<config, selectData> = {},
 ): useSessions.ReturnType<config, selectData> {
-  const { address, connector } = useAccount()
-  const queryClient = useQueryClient()
-  const config = useConfig(parameters)
-  const provider = useRef<EIP1193Provider>()
+  const { query = {}, ...rest } = parameters
 
+  const config = useConfig(rest)
+  const queryClient = useQueryClient()
+  const chainId = useChainId({ config })
+  const { address, connector, status } = useAccount()
+  const activeConnector = parameters.connector ?? connector
+
+  const enabled = Boolean(
+    (status === 'connected' ||
+      (status === 'reconnecting' && activeConnector?.getProvider)) &&
+      (query.enabled ?? true),
+  )
+  const queryKey = useMemo(
+    () =>
+      sessionsQueryKey({
+        address,
+        chainId: parameters.chainId ?? chainId,
+        connector: activeConnector,
+      }),
+    [address, chainId, parameters.chainId, activeConnector],
+  )
+
+  const provider = useRef<EIP1193Provider>()
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `queryKey` not required
   useEffect(() => {
-    if (!connector) return
+    if (!activeConnector) return
     ;(async () => {
-      provider.current ??= (await connector.getProvider?.()) as EIP1193Provider
+      provider.current ??=
+        (await activeConnector.getProvider?.()) as EIP1193Provider
       provider.current?.on('message', (event) => {
         if (event.type !== 'sessionsChanged') return
-        queryClient.setQueryData(
-          sessionsQueryKey({ address, connector }),
-          event.data,
-        )
+        queryClient.setQueryData(queryKey, event.data)
       })
     })()
-  }, [address, connector, queryClient])
+  }, [address, activeConnector, queryClient])
 
   return useQuery({
-    queryKey: sessionsQueryKey({
-      address,
-      connector,
-    }),
-    async queryFn() {
-      if (connector)
-        provider.current ??=
-          (await connector.getProvider?.()) as EIP1193Provider
-      return sessions(config, parameters)
-    },
+    ...(query as any),
+    enabled,
+    gcTime: 0,
+    queryKey,
+    queryFn: activeConnector
+      ? async (context) => {
+          const { connectorUid: _, ...options } = (
+            context.queryKey as typeof queryKey
+          )[1]
+          provider.current ??=
+            (await activeConnector.getProvider()) as EIP1193Provider
+          return await sessions(config, {
+            ...options,
+            connector: activeConnector,
+          })
+        }
+      : skipToken,
+    staleTime: Number.POSITIVE_INFINITY,
   }) as never
 }
 
@@ -192,11 +220,14 @@ export declare namespace useSessions {
   > = sessions.Parameters<config> & {
     config?: Config | config | undefined
     query?:
-      | UseQueryParameters<
-          sessions.ReturnType,
-          sessions.ErrorType,
-          selectData,
-          sessionsQueryKey.Value<config>
+      | Omit<
+          UseQueryParameters<
+            sessions.ReturnType,
+            sessions.ErrorType,
+            selectData,
+            sessionsQueryKey.Value<config>
+          >,
+          'gcTime' | 'staleTime'
         >
       | undefined
   }

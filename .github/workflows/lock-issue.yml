@@ -12,6 +12,6 @@ jobs:
       issue-comment: |
         This issue has been locked since it has been closed for more than 14 days.
 
-        If you found a concrete bug or regression related to it, please open a new [bug report](https://github.com/ithacaxyz/oddworld/issues/new?template=bug_report.yml) with a reproduction against the latest Oddworld version. If you have any questions or comments you can create a new [discussion thread](https://github.com/ithacaxyz/oddworld/discussions).
+        If you found a concrete bug or regression related to it, please open a new [bug report](https://github.com/ithacaxyz/porto/issues/new?template=bug_report.yml) with a reproduction against the latest Porto version. If you have any questions or comments you can create a new [discussion thread](https://github.com/ithacaxyz/porto/discussions).
 
 

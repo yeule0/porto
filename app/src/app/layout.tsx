@@ -14,7 +14,7 @@ const geistMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: 'Oddworld',
+  title: 'Porto',
   description: 'Next-gen Account for Ethereum',
 }
 

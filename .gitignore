@@ -40,3 +40,8 @@ out
 
 # vercel
 .vercel
+
+# proxy packages
+src/Chains
+src/Porto
+src/wagmi

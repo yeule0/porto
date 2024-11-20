@@ -6,7 +6,7 @@
     "dev": "vite"
   },
   "dependencies": {
-    "oddworld": "workspace:*",
+    "porto": "workspace:*",
     "ox": "^0.2.2",
     "react": "catalog:",
     "react-dom": "catalog:",

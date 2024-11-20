@@ -6,7 +6,7 @@ export type Schema = RpcSchema.From<
   | RpcSchema.Default
   | {
       Request: {
-        method: 'oddworld_ping'
+        method: 'porto_ping'
       }
       ReturnType: string
     }

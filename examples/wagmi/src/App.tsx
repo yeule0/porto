@@ -1,9 +1,4 @@
-import {
-  useCreateAccount,
-  useDisconnect,
-  useGrantSession,
-  useSessions,
-} from 'oddworld/react'
+import { W } from 'porto/wagmi'
 import { formatEther, parseEther } from 'viem'
 import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
@@ -29,8 +24,8 @@ export function App() {
 
 function Account() {
   const account = useAccount()
-  const { data: sessions } = useSessions()
-  const disconnect = useDisconnect()
+  const { data: sessions } = W.useSessions()
+  const disconnect = W.useDisconnect()
 
   return (
     <div>
@@ -57,13 +52,13 @@ function Account() {
 
 function Connect() {
   const connect = useConnect()
-  const createAccount = useCreateAccount()
+  const createAccount = W.useCreateAccount()
 
   return (
     <div>
       <h2>Connect</h2>
       {connect.connectors
-        .filter((x) => x.id === 'xyz.ithaca.oddworld')
+        .filter((x) => x.id === 'xyz.ithaca.porto')
         ?.map((connector) => (
           <div key={connector.uid}>
             <button
@@ -108,7 +103,7 @@ function Balance() {
 }
 
 function GrantSession() {
-  const grantSession = useGrantSession()
+  const grantSession = W.useGrantSession()
 
   return (
     <div>

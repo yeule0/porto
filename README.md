@@ -1,4 +1,4 @@
-# Oddworld
+# Porto
 
 Experimental Next-gen Account for Ethereum.
 
@@ -7,19 +7,19 @@ Experimental Next-gen Account for Ethereum.
 ### Install
 
 ```bash
-pnpm i oddworld
+pnpm i porto
 ```
 
 ### Usage
 
-The example below demonstrates usage of Oddworld's EIP-1193 Provider:
+The example below demonstrates usage of Porto's EIP-1193 Provider:
 
 ```ts twoslash
-import { Oddworld } from 'oddworld'
+import { Porto } from 'porto'
 
-const oddworld = Oddworld.create()
+const porto = Porto.create()
 
-const account = await oddworld.provider.request({ method: 'experimental_createAccount' })
+const account = await porto.provider.request({ method: 'experimental_createAccount' })
 ```
 
 ## Development
