@@ -98,6 +98,10 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
+          const keyIndex = getActiveSessionKeyIndex({ account })
+          if (typeof keyIndex !== 'number')
+            throw new Provider_ox.UnauthorizedError()
+
           return await AccountDelegation.execute(state.client, {
             account,
             calls: [
@@ -107,6 +111,7 @@ export function from<
                 value: Hex.toBigInt(value),
               },
             ],
+            keyIndex,
             rpId: keystoreHost,
           })
         }
@@ -336,19 +341,11 @@ export function from<
 
           const { enabled = true, id } = capabilities?.session ?? {}
 
-          const keyIndex = (() => {
-            if (!enabled) return -1
-            if (id)
-              return account.keys.findIndex(
-                (key) => PublicKey.toHex(key.publicKey) === id,
-              )
-            const index = account.keys.findIndex(
-              AccountDelegation.isActiveSessionKey,
-            )
-            if (index === -1) return 0
-            return index
-          })()
-          if (keyIndex === -1) throw new Provider_ox.UnauthorizedError()
+          const keyIndex = enabled
+            ? getActiveSessionKeyIndex({ account, id })
+            : undefined
+          if (typeof keyIndex !== 'number')
+            throw new Provider_ox.UnauthorizedError()
 
           return await AccountDelegation.execute(state.client, {
             account,
@@ -422,4 +419,18 @@ function requireParameter(
     throw new RpcResponse.InvalidParamsError({
       message: `Missing required parameter: ${details}`,
     })
+}
+
+function getActiveSessionKeyIndex(parameters: {
+  account: AccountDelegation.Account
+  id?: Hex.Hex
+}) {
+  const { account, id } = parameters
+  if (id)
+    return account.keys.findIndex(
+      (key) => PublicKey.toHex(key.publicKey) === id,
+    )
+  const index = account.keys.findIndex(AccountDelegation.isActiveSessionKey)
+  if (index === -1) return 0
+  return index
 }

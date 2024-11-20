@@ -17,7 +17,7 @@ export const defaultConfig = {
   transports: {
     [Chains.odysseyTestnet.id]: http(),
   },
-} as const
+} as const satisfies Config
 
 /**
  * Instantiates an Oddworld instance.
@@ -171,7 +171,7 @@ export type Config<
    * Keystore host (WebAuthn relying party).
    * @default 'self'
    */
-  keystoreHost?: 'self' | string | undefined
+  keystoreHost?: 'self' | (string & {}) | undefined
   /**
    * Transport to use for each chain.
    */
