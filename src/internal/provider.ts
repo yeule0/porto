@@ -99,8 +99,6 @@ export function from<
           if (!account) throw new Provider_ox.UnauthorizedError()
 
           const keyIndex = getActiveSessionKeyIndex({ account })
-          if (typeof keyIndex !== 'number')
-            throw new Provider_ox.UnauthorizedError()
 
           return await AccountDelegation.execute(state.client, {
             account,
@@ -131,8 +129,11 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
+          const keyIndex = getActiveSessionKeyIndex({ account })
+
           const signature = await AccountDelegation.sign({
             account,
+            keyIndex,
             payload: TypedData.getSignPayload(Json.parse(data)),
             rpId: keystoreHost,
           })
@@ -280,8 +281,11 @@ export function from<
           )
           if (!account) throw new Provider_ox.UnauthorizedError()
 
+          const keyIndex = getActiveSessionKeyIndex({ account })
+
           const signature = await AccountDelegation.sign({
             account,
+            keyIndex,
             payload: PersonalMessage.getSignPayload(data),
             rpId: keystoreHost,
           })
@@ -423,7 +427,7 @@ function requireParameter(
 
 function getActiveSessionKeyIndex(parameters: {
   account: AccountDelegation.Account
-  id?: Hex.Hex
+  id?: Hex.Hex | undefined
 }) {
   const { account, id } = parameters
   if (id)
