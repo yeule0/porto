@@ -13,7 +13,7 @@ export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
   headless: true,
-  keystoreHost: 'porto-tau.vercel.app',
+  keystoreHost: 'exp.porto.sh',
   transports: {
     [Chains.odysseyTestnet.id]: http(),
   },
