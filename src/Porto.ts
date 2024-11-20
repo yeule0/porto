@@ -215,5 +215,5 @@ function merge(p: unknown, currentState: State): State {
         (key) => key.expiry === 0n || AccountDelegation.isActiveSessionKey(key),
       ),
     })),
-  } as State
+  } satisfies State
 }
