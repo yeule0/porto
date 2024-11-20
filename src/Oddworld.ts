@@ -4,7 +4,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
 
 import * as Chains from './Chains.js'
-import type * as AccountDelegation from './internal/accountDelegation.js'
+import * as AccountDelegation from './internal/accountDelegation.js'
 import * as Provider from './internal/provider.js'
 import * as Storage from './internal/storage.js'
 import * as WebAuthn from './internal/webauthn.js'
@@ -84,6 +84,7 @@ export function create(config?: Config | undefined): Oddworld {
         }),
         {
           name: 'odd.store',
+          merge,
           partialize(state) {
             return {
               accounts: state.accounts.map((account) => ({
@@ -202,3 +203,17 @@ export type Store<
   StoreApi<State<chains>>,
   [['zustand/subscribeWithSelector', never], ['zustand/persist', any]]
 >
+
+function merge(p: unknown, currentState: State): State {
+  const persistedState = p as State
+  const state = { ...currentState, ...persistedState }
+  return {
+    ...state,
+    accounts: state.accounts.map((account) => ({
+      ...account,
+      keys: account.keys.filter(
+        (key) => key.expiry === 0n || AccountDelegation.isActiveSessionKey(key),
+      ),
+    })),
+  } as State
+}

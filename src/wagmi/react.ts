@@ -165,7 +165,7 @@ export function useSessions<
         if (event.type !== 'sessionsChanged') return
         queryClient.setQueryData(
           sessionsQueryKey({ address, connector }),
-          (data: any) => [...(data ?? []), event.data],
+          event.data,
         )
       })
     })()

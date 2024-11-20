@@ -169,7 +169,7 @@ export function from<
           const [
             {
               address,
-              expiry = Math.floor(Date.now() / 1000) + 60 * 15, // 15 minutes
+              expiry = Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
             } = {},
           ] =
             (params as RpcSchema.ExtractParams<
@@ -197,24 +197,30 @@ export function from<
 
           store.setState((x) => {
             const index = x.accounts.findIndex((x) =>
-              account ? Address.isEqual(x.address, account.address) : false,
+              account ? Address.isEqual(x.address, account.address) : true,
             )
             if (index === -1) return x
-
-            const accounts = [...x.accounts]
-            accounts[index]!.keys.push(key)
-
             return {
               ...x,
-              accounts,
+              accounts: x.accounts.map((account, i) =>
+                i === index
+                  ? { ...account, keys: [...account.keys, key] }
+                  : account,
+              ),
             }
           })
 
           emitter.emit('message', {
-            data: {
-              expiry,
-              id: PublicKey.toHex(key.publicKey),
-            },
+            data: [...account.keys, key]
+              .map((key) =>
+                AccountDelegation.isActiveSessionKey(key)
+                  ? {
+                      expiry: Number(key.expiry),
+                      id: PublicKey.toHex(key.publicKey),
+                    }
+                  : undefined,
+              )
+              .filter(Boolean),
             type: 'sessionsChanged',
           })
 
@@ -241,8 +247,7 @@ export function from<
 
           return account?.keys
             .map((key) => {
-              if (key.expiry < BigInt(Math.floor(Date.now() / 1000))) return
-              if (key.status === 'locked') return
+              if (!AccountDelegation.isActiveSessionKey(key)) return undefined
               return {
                 expiry: Number(key.expiry),
                 id: PublicKey.toHex(key.publicKey),
@@ -338,9 +343,7 @@ export function from<
                 (key) => PublicKey.toHex(key.publicKey) === id,
               )
             const index = account.keys.findIndex(
-              (key) =>
-                key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
-                key.status === 'unlocked',
+              AccountDelegation.isActiveSessionKey,
             )
             if (index === -1) return 0
             return index

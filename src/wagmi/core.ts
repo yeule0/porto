@@ -110,7 +110,7 @@ export async function grantSession<config extends Config>(
     ReturnType: grantSession.ReturnType
   }>({
     method: 'experimental_grantSession',
-    params: address && expiry ? [{ address, expiry }] : [],
+    params: [{ address, expiry }],
   })
 }
 

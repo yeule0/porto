@@ -359,6 +359,14 @@ export declare namespace execute {
   }
 }
 
+/** Whether or not the provided key is an active session key. */
+export function isActiveSessionKey(key: Key) {
+  return (
+    key.expiry > BigInt(Math.floor(Date.now() / 1000)) &&
+    key.status === 'unlocked'
+  )
+}
+
 /** Loads an existing Account. */
 export async function load<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
