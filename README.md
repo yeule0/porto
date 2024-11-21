@@ -2,6 +2,8 @@
 
 Experimental Next-gen Account for Ethereum.
 
+## Table of Contents
+
 - [Getting Started](#getting-started)
   - [Install](#install)
   - [Usage](#usage)
