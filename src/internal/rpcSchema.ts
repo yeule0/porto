@@ -69,6 +69,12 @@ export type CreateAccountParameters = {
   label?: string | undefined
 }
 
+export type GetSessionsParameters = {
+  address?: Address.Address | undefined
+}
+
+export type GetSessionsReturnType = readonly GrantSessionReturnType[]
+
 export type GrantSessionParameters = {
   address?: Address.Address | undefined
   expiry?: number | undefined
@@ -79,12 +85,6 @@ export type GrantSessionParameters = {
       }[]
     | undefined
 }
-
-export type GetSessionsParameters = {
-  address?: Address.Address | undefined
-}
-
-export type GetSessionsReturnType = readonly GrantSessionReturnType[]
 
 export type GrantSessionReturnType = {
   expiry: number
