@@ -344,16 +344,14 @@ export async function getAuthorizeSignPayload<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: getAuthorizeSignPayload.Parameters,
 ) {
-  const { address, keys, nonce } = parameters
+  const { address, keys } = parameters
 
   // Fetch the latest nonce. We will need to sign over it for replay protection.
-  const nonce_ =
-    nonce ??
-    (await readContract(client, {
-      abi: experimentalDelegationAbi,
-      address: address!,
-      functionName: 'nonce',
-    }))
+  const nonce = await readContract(client, {
+    abi: experimentalDelegationAbi,
+    address: address!,
+    functionName: 'nonce',
+  })
 
   // Serialize the key.
   const serializedKeys = keys.map((key) => ({
@@ -371,7 +369,7 @@ export async function getAuthorizeSignPayload<chain extends Chain | undefined>(
         'uint256 nonce',
         'Key[] keys',
       ]),
-      [nonce_, serializedKeys],
+      [nonce, serializedKeys],
     ),
   )
 
@@ -380,10 +378,9 @@ export async function getAuthorizeSignPayload<chain extends Chain | undefined>(
 
 export declare namespace getAuthorizeSignPayload {
   type Parameters = {
+    address: Address.Address
     keys: readonly Key[]
-  } & OneOf<
-    { address?: Address.Address | undefined } | { nonce?: bigint | undefined }
-  >
+  }
 }
 
 /** Whether or not the provided key is an active session key. */
