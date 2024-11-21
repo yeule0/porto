@@ -46,6 +46,12 @@ type CreateAccountParameters = {
 type GrantSessionParameters = {
   address?: Address.Address | undefined
   expiry?: number | undefined
+  keys?:
+    | readonly {
+        algorithm: 'p256' | 'secp256k1'
+        publicKey: Hex.Hex
+      }[]
+    | undefined
 }
 
 type GetSessionsParameters = {
