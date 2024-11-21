@@ -84,8 +84,7 @@ export function create(config: Config | undefined = {}): Porto {
         }),
         {
           name: 'porto.store',
-          // TODO: Fix
-          // merge,
+          merge,
           partialize(state) {
             return {
               accounts: state.accounts.map((account) => ({
@@ -206,11 +205,12 @@ function merge(p: unknown, currentState: State): State {
   const state = { ...currentState, ...persistedState }
   return {
     ...state,
-    accounts: state.accounts.map((account) => ({
-      ...account,
-      keys: account.keys.filter(
-        (key) => key.expiry === 0n || AccountDelegation.isActiveSessionKey(key),
-      ),
-    })),
+    // TODO: Fix
+    // accounts: state.accounts.map((account) => ({
+    //   ...account,
+    //   keys: account.keys.filter(
+    //     (key) => key.expiry === 0n || AccountDelegation.isActiveSessionKey(key),
+    //   ),
+    // })),
   } satisfies State
 }
