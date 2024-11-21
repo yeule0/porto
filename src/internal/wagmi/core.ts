@@ -7,17 +7,17 @@ import {
   type Hex,
 } from 'viem'
 import {
-  ConnectorAlreadyConnectedError,
-  ProviderNotFoundError,
   type BaseErrorType,
   type Config,
   type Connector,
+  ConnectorAlreadyConnectedError,
   type CreateConnectorFn,
+  ProviderNotFoundError,
 } from 'wagmi'
 import {
+  type ConnectReturnType,
   getConnectorClient,
   disconnect as wagmi_disconnect,
-  type ConnectReturnType,
 } from 'wagmi/actions'
 
 import type {

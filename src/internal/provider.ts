@@ -1,4 +1,5 @@
 import * as Mipd from 'mipd'
+import type { RpcSchema } from 'ox'
 import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
@@ -7,7 +8,6 @@ import * as ox_Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
 import * as TypedData from 'ox/TypedData'
-import type { RpcSchema } from 'ox'
 
 import type * as Chains from '../Chains.js'
 import type { Config, Store } from '../Porto.js'

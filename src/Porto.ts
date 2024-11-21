@@ -37,13 +37,13 @@ export function create<
     ...Chains.Chain[],
   ] = typeof defaultConfig.chains,
 >(config?: Config<chains>): Porto<chains>
-export function create(config?: Config | undefined): Porto {
+export function create(config: Config | undefined = {}): Porto {
   const {
     announceProvider = defaultConfig.announceProvider,
     chains = defaultConfig.chains,
     headless = defaultConfig.headless,
     transports = defaultConfig.transports,
-  } = config ?? {}
+  } = config
 
   const keystoreHost = (() => {
     if (config?.keystoreHost === 'self') return undefined
@@ -91,11 +91,7 @@ export function create(config?: Config | undefined): Porto {
                 ...account,
                 keys: account.keys.map((key) => ({
                   ...key,
-                  ...('raw' in key
-                    ? {
-                        raw: undefined,
-                      }
-                    : {}),
+                  ...('raw' in key ? { raw: undefined } : {}),
                 })),
               })),
               chain: state.chain,
@@ -115,7 +111,7 @@ export function create(config?: Config | undefined): Porto {
       headless,
       keystoreHost,
       transports,
-    } as Config,
+    } satisfies Config,
     store,
   })
 
