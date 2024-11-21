@@ -51,7 +51,7 @@ Get started with Wagmi by following the [official guide](https://wagmi.sh/docs/g
 ##### 2. Set up Porto
 
 After you have set up Wagmi, you can set up Porto by calling `Porto.create()`. This will automatically
-inject a Porto-configured EIP-1193 Provider into your Wagmi instance.
+inject a Porto-configured EIP-1193 Provider into your Wagmi instance via [EIP-6963: Multi Injected Provider Discovery](https://eips.ethereum.org/EIPS/eip-6963).
 
 ```tsx twoslash
 import { Porto } from 'porto'
