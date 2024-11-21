@@ -13,7 +13,7 @@ export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
   headless: true,
-  keystoreHost: 'exp.porto.sh',
+  keystoreHost: 'self',
   transports: {
     [Chains.odysseyTestnet.id]: http(),
   },
