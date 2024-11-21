@@ -4,28 +4,26 @@ Experimental Next-gen Account for Ethereum.
 
 ## Table of Contents
 
-- [Getting Started](#getting-started)
-  - [Install](#install)
-  - [Usage](#usage)
-  - [JSON-RPC Reference](#json-rpc-reference)
-    - [`experimental_connect`](#experimental_connect)
-    - [`experimental_createAccount`](#experimental_createaccount)
-    - [`experimental_disconnect`](#experimental_disconnect)
-    - [`experimental_grantSession`](#experimental_grantsession)
-    - [`experimental_sessions`](#experimental_sessions)
+- [Install](#install)
+- [Usage](#usage)
+  - [Usage with Wagmi](#usage-with-wagmi)
+- [JSON-RPC Reference](#json-rpc-reference)
+  - [`experimental_connect`](#experimental_connect)
+  - [`experimental_createAccount`](#experimental_createaccount)
+  - [`experimental_disconnect`](#experimental_disconnect)
+  - [`experimental_grantSession`](#experimental_grantsession)
+  - [`experimental_sessions`](#experimental_sessions)
 - [Development](#development)
   - [Contracts](#contracts)
 
 
-## Getting Started
-
-### Install
+## Install
 
 ```bash
 pnpm i porto
 ```
 
-### Usage
+## Usage
 
 The example below demonstrates usage of Porto's EIP-1193 Provider:
 
@@ -40,15 +38,15 @@ const account = await porto.provider.request({
 })
 ```
 
-#### Wagmi
+### Usage with Wagmi
 
 Porto can be used in conjunction with [Wagmi](https://wagmi.sh/) to provide a seamless experience for developers and end-users.
 
-##### 1. Set up Wagmi
+#### 1. Set up Wagmi
 
 Get started with Wagmi by following the [official guide](https://wagmi.sh/docs/getting-started).
 
-##### 2. Set up Porto
+#### 2. Set up Porto
 
 After you have set up Wagmi, you can set up Porto by calling `Porto.create()`. This will automatically
 inject a Porto-configured EIP-1193 Provider into your Wagmi instance via [EIP-6963: Multi Injected Provider Discovery](https://eips.ethereum.org/EIPS/eip-6963).
@@ -107,7 +105,7 @@ function Connect() {
 }
 ```
 
-### JSON-RPC Reference
+## JSON-RPC Reference
 
 Porto implements the following **standardized wallet** JSON-RPC methods:
 
@@ -125,11 +123,11 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 > [!NOTE]
 > These JSON-RPC methods intend to be upstreamed as an ERC in the near future. They are purposefully minimalistic and intend to be iterated on.
 
-#### `experimental_connect`
+### `experimental_connect`
 
 Connects an end-user to an application.
 
-##### Parameters
+#### Parameters
 
 ```ts
 {
@@ -148,7 +146,7 @@ Connects an end-user to an application.
 }
 ```
 
-##### Returns
+#### Returns
 
 ```ts
 {
@@ -171,11 +169,11 @@ Connects an end-user to an application.
 }
 ```
 
-#### `experimental_createAccount`
+### `experimental_createAccount`
 
 Creates (and connects) a new account.
 
-##### Parameters
+#### Parameters
 
 ```ts
 {
@@ -188,18 +186,18 @@ Creates (and connects) a new account.
 }
 ```
 
-##### Returns
+#### Returns
 
 ```ts
 // Address of the created account.
 `0x${string}`
 ```
 
-#### `experimental_disconnect`
+### `experimental_disconnect`
 
 Disconnects the account.
 
-##### Parameters
+#### Parameters
 
 ```ts
 {
@@ -207,11 +205,11 @@ Disconnects the account.
 }
 ```
 
-#### `experimental_grantSession`
+### `experimental_grantSession`
 
 Grants a session on the account.
 
-##### Parameters
+#### Parameters
 
 ```ts
 {
@@ -233,7 +231,7 @@ Grants a session on the account.
 }
 ```
 
-##### Returns
+#### Returns
 
 ```ts
 {
@@ -245,11 +243,11 @@ Grants a session on the account.
 }
 ```
 
-#### `experimental_sessions`
+### `experimental_sessions`
 
 Lists the active sessions on the account.
 
-##### Parameters
+#### Parameters
 
 ```ts
 {
@@ -261,10 +259,103 @@ Lists the active sessions on the account.
 }
 ```
 
-##### Returns
+#### Returns
 
 ```ts
 { expiry: number, id: `0x${string}` }[]
+```
+
+## Available ERC-5792 Capabilities
+
+Porto implements the following [ERC-5792 capabilities](https://eips.ethereum.org/EIPS/eip-5792#wallet_getcapabilities) to define extended behavior:
+
+### `atomicBatch`
+
+The Porto Account supports atomic batch calls. This means that multiple calls will be executed in a single transaction upon using [`wallet_sendCalls`](https://eips.ethereum.org/EIPS/eip-5792#wallet_sendcalls).
+
+### `createAccount`
+
+Porto supports programmatic account creation.
+
+#### Creation via `experimental_createAccount`
+
+Accounts may be created via the [`experimental_createAccount`](#experimental_createaccount) JSON-RPC method.
+
+Example:
+
+```ts
+{ method: 'experimental_createAccount' }
+```
+
+#### Creation via `experimental_connect`
+
+Accounts may be created upon connection with the `createAccount` parameter on the [`experimental_connect`](#experimental_connect) JSON-RPC method.
+
+Example:
+
+```ts
+{
+  method: 'experimental_connect',
+  params: [{
+    capabilities: {
+      createAccount: true
+      // OR
+      createAccount: { label: "My Example Account" }
+    }
+  }]
+}
+```
+
+### `sessions`
+
+Porto supports account session management (ie. session keys & their permissions).
+
+#### Granting sessions via `experimental_grantSession`
+
+Sessions may be granted via the [`experimental_grantSession`](#experimental_grantsession) JSON-RPC method.
+
+Example:
+
+```ts
+{
+  method: 'experimental_grantSession',
+  params: [{ 
+    address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe', 
+    expiry: 1727078400 
+  }]
+}
+```
+
+#### Granting sessions via `experimental_connect`
+
+Sessions may be granted upon connection with the `grantSession` parameter on the [`experimental_connect`](#experimental_connect) JSON-RPC method.
+
+Example:
+
+```ts
+{
+  method: 'experimental_connect',
+  params: [{ 
+    capabilities: { 
+      grantSession: {
+        expiry: 1727078400
+      }
+    } 
+  }]
+}
+```
+
+If a session is granted upon connection, the `experimental_connect` JSON-RPC method will return the session on the `capabilities.sessions` parameter of the response.
+
+Example:
+
+```ts
+{
+  address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
+  capabilities: {
+    sessions: [{ expiry: 1727078400, id: '0x...' }]
+  }
+}
 ```
 
 ## Development
