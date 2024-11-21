@@ -1,4 +1,4 @@
-import type * as RpcSchema from 'ox/RpcSchema'
+import type { RpcSchema } from 'ox'
 import {
   type Address,
   type Chain,
@@ -6,25 +6,40 @@ import {
   type EIP1193Provider,
   type Hex,
 } from 'viem'
-import type { BaseErrorType, Config, Connector } from 'wagmi'
+import {
+  ConnectorAlreadyConnectedError,
+  ProviderNotFoundError,
+  type BaseErrorType,
+  type Config,
+  type Connector,
+  type CreateConnectorFn,
+} from 'wagmi'
 import {
   getConnectorClient,
   disconnect as wagmi_disconnect,
+  type ConnectReturnType,
 } from 'wagmi/actions'
+
 import type {
   CreateAccountParameters,
   GrantSessionParameters,
   Schema,
 } from '../rpcSchema.js'
+import type { ChainIdParameter, ConnectorParameter } from './types.js'
 
 export async function connect<config extends Config>(
   config: config,
   parameters: connect.Parameters<config>,
-): Promise<connect.ReturnType> {
-  const { createAccount, grantSession } = parameters
+): Promise<connect.ReturnType<config>> {
+  // "Register" connector if not already created
+  let connector: Connector
+  if (typeof parameters.connector === 'function') {
+    connector = config._internal.connectors.setup(parameters.connector)
+  } else connector = parameters.connector
 
-  const connector = parameters.connector ?? config.connectors[0]
-  if (!connector) throw new Error('Connector is required')
+  // Check if connector is already connected
+  if (connector.uid === config.state.current)
+    throw new ConnectorAlreadyConnectedError()
 
   if (parameters.chainId && parameters.chainId !== config.state.chainId)
     throw new ChainMismatchError({
@@ -37,26 +52,68 @@ export async function connect<config extends Config>(
       currentChainId: config.state.chainId,
     })
 
-  const provider = (await connector.getProvider()) as EIP1193Provider
-  return provider.request<{
-    Method: 'experimental_connect'
-    Parameters?: RpcSchema.ExtractParams<Schema, 'experimental_connect'>
-    ReturnType: RpcSchema.ExtractReturnType<Schema, 'experimental_connect'>
-  }>({
-    method: 'experimental_connect',
-    params: [{ capabilities: { createAccount, grantSession } }],
-  }) as unknown as connect.ReturnType
+  try {
+    config.setState((x) => ({ ...x, status: 'connecting' }))
+    connector.emitter.emit('message', { type: 'connecting' })
+
+    const provider = (await connector.getProvider()) as
+      | EIP1193Provider
+      | undefined
+    if (!provider) throw new ProviderNotFoundError()
+
+    const { createAccount, grantSession } = parameters
+    const method = 'experimental_connect'
+    type method = typeof method
+    await provider.request<{
+      Method: method
+      Parameters?: RpcSchema.ExtractParams<Schema, method>
+      ReturnType: RpcSchema.ExtractReturnType<Schema, method>
+    }>({
+      method,
+      params: [{ capabilities: { createAccount, grantSession } }],
+    })
+    // we already connected, but call `connector.connect` so connector even listeners are set up
+    const data = await connector.connect({
+      chainId: parameters.chainId,
+      isReconnecting: true,
+    })
+    const accounts = data.accounts as readonly [Address, ...Address[]]
+
+    connector.emitter.off('connect', config._internal.events.connect)
+    connector.emitter.on('change', config._internal.events.change)
+    connector.emitter.on('disconnect', config._internal.events.disconnect)
+
+    await config.storage?.setItem('recentConnectorId', connector.id)
+    config.setState((x) => ({
+      ...x,
+      connections: new Map(x.connections).set(connector.uid, {
+        accounts,
+        chainId: data.chainId,
+        connector,
+      }),
+      current: connector.uid,
+      status: 'connected',
+    }))
+
+    return { accounts, chainId: data.chainId }
+  } catch (error) {
+    config.setState((x) => ({
+      ...x,
+      // Keep existing connector connected in case of error
+      status: x.current ? 'connected' : 'disconnected',
+    }))
+    throw error
+  }
 }
 
 export declare namespace connect {
-  type Parameters<config extends Config = Config> = {
-    chainId?: config['chains'][number]['id'] | undefined
-    connector?: Connector | undefined
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> & {
+    connector: Connector | CreateConnectorFn
     createAccount?: boolean | CreateAccountParameters | undefined
     grantSession?: boolean | GrantSessionParameters | undefined
   }
 
-  type ReturnType = RpcSchema.ExtractReturnType<Schema, 'experimental_connect'>
+  type ReturnType<config extends Config = Config> = ConnectReturnType<config>
 
   // TODO: Exhaustive ErrorType
   type ErrorType = BaseErrorType
@@ -65,11 +122,16 @@ export declare namespace connect {
 export async function createAccount<config extends Config>(
   config: config,
   parameters: createAccount.Parameters<config>,
-): Promise<createAccount.ReturnType> {
-  const { label } = parameters
+): Promise<createAccount.ReturnType<config>> {
+  // "Register" connector if not already created
+  let connector: Connector
+  if (typeof parameters.connector === 'function') {
+    connector = config._internal.connectors.setup(parameters.connector)
+  } else connector = parameters.connector
 
-  const connector = parameters.connector ?? config.connectors[0]
-  if (!connector) throw new Error('Connector is required')
+  // Check if connector is already connected
+  if (connector.uid === config.state.current)
+    throw new ConnectorAlreadyConnectedError()
 
   if (parameters.chainId && parameters.chainId !== config.state.chainId)
     throw new ChainMismatchError({
@@ -82,33 +144,76 @@ export async function createAccount<config extends Config>(
       currentChainId: config.state.chainId,
     })
 
-  const provider = (await connector.getProvider()) as EIP1193Provider
-  return provider.request<{
-    Method: 'experimental_createAccount'
-    Parameters?: [createAccount.Parameters]
-    ReturnType: createAccount.ReturnType
-  }>({
-    method: 'experimental_createAccount',
-    params: [{ label }],
-  })
+  try {
+    config.setState((x) => ({ ...x, status: 'connecting' }))
+    connector.emitter.emit('message', { type: 'connecting' })
+
+    const provider = (await connector.getProvider()) as
+      | EIP1193Provider
+      | undefined
+    if (!provider) throw new ProviderNotFoundError()
+
+    const { label } = parameters
+    const method = 'experimental_createAccount'
+    type method = typeof method
+    await provider.request<{
+      Method: method
+      Parameters?: RpcSchema.ExtractParams<Schema, method>
+      ReturnType: RpcSchema.ExtractReturnType<Schema, method>
+    }>({
+      method,
+      params: [{ label }],
+    })
+
+    // we already connected, but call `connector.connect` so connector even listeners are set up
+    const data = await connector.connect({
+      chainId: parameters.chainId,
+      isReconnecting: true,
+    })
+    const accounts = data.accounts as readonly [Address, ...Address[]]
+
+    connector.emitter.off('connect', config._internal.events.connect)
+    connector.emitter.on('change', config._internal.events.change)
+    connector.emitter.on('disconnect', config._internal.events.disconnect)
+
+    await config.storage?.setItem('recentConnectorId', connector.id)
+    config.setState((x) => ({
+      ...x,
+      connections: new Map(x.connections).set(connector.uid, {
+        accounts,
+        chainId: data.chainId,
+        connector,
+      }),
+      current: connector.uid,
+      status: 'connected',
+    }))
+
+    return { accounts, chainId: data.chainId }
+  } catch (error) {
+    config.setState((x) => ({
+      ...x,
+      // Keep existing connector connected in case of error
+      status: x.current ? 'connected' : 'disconnected',
+    }))
+    throw error
+  }
 }
 
 export declare namespace createAccount {
-  type Parameters<config extends Config = Config> = {
-    chainId?: config['chains'][number]['id'] | undefined
-    connector?: Connector | undefined
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> & {
+    connector: Connector | CreateConnectorFn
     label?: string | undefined
   }
 
-  type ReturnType = [Address]
+  type ReturnType<config extends Config = Config> = ConnectReturnType<config>
 
   // TODO: Exhaustive ErrorType
   type ErrorType = BaseErrorType
 }
 
-export async function disconnect<config extends Config>(
-  config: config,
-  parameters: disconnect.Parameters<config>,
+export async function disconnect(
+  config: Config,
+  parameters: disconnect.Parameters,
 ): Promise<disconnect.ReturnType> {
   const connector = (() => {
     if (parameters.connector) return parameters.connector
@@ -117,24 +222,23 @@ export async function disconnect<config extends Config>(
     return connection?.connector
   })()
 
-  await wagmi_disconnect(config, parameters)
-
   const provider = (await connector?.getProvider()) as
     | EIP1193Provider
     | undefined
+
+  await wagmi_disconnect(config, parameters)
+
+  const method = 'experimental_disconnect'
+  type method = typeof method
   await provider?.request<{
-    Method: 'experimental_disconnect'
-    Parameters?: undefined
-    ReturnType: disconnect.ReturnType
-  }>({
-    method: 'experimental_disconnect',
-  })
+    Method: method
+    Parameters: never
+    ReturnType: never
+  }>({ method })
 }
 
 export declare namespace disconnect {
-  type Parameters<_config extends Config = Config> = {
-    connector?: Connector | undefined
-  }
+  type Parameters = ConnectorParameter
 
   // biome-ignore lint/suspicious/noConfusingVoidType: <explanation>
   type ReturnType = void
@@ -155,23 +259,24 @@ export async function grantSession<config extends Config>(
     connector,
   })
 
+  const method = 'experimental_grantSession'
+  type method = typeof method
   return client.request<{
-    Method: 'experimental_grantSession'
-    Parameters: [grantSession.Parameters] | []
-    ReturnType: grantSession.ReturnType
+    Method: method
+    Parameters?: RpcSchema.ExtractParams<Schema, method>
+    ReturnType: RpcSchema.ExtractReturnType<Schema, method>
   }>({
-    method: 'experimental_grantSession',
+    method,
     params: [{ address, expiry }],
   })
 }
 
 export declare namespace grantSession {
-  type Parameters<config extends Config = Config> = {
-    address?: Address | undefined
-    chainId?: config['chains'][number]['id'] | undefined
-    connector?: Connector | undefined
-    expiry?: number | undefined
-  }
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> &
+    ConnectorParameter & {
+      address?: Address | undefined
+      expiry?: number | undefined
+    }
 
   type ReturnType = {
     expiry: number
@@ -194,24 +299,25 @@ export async function sessions<config extends Config>(
     connector,
   })
 
+  const method = 'experimental_sessions'
+  type method = typeof method
   return client.request<{
-    Method: 'experimental_sessions'
-    Parameters?: [sessions.Parameters]
-    ReturnType: sessions.ReturnType
+    Method: method
+    Parameters?: RpcSchema.ExtractParams<Schema, method>
+    ReturnType: RpcSchema.ExtractReturnType<Schema, method>
   }>({
-    method: 'experimental_sessions',
+    method,
     params: [{ address }],
   })
 }
 
 export declare namespace sessions {
-  type Parameters<config extends Config = Config> = {
-    address?: Address | undefined
-    chainId?: config['chains'][number]['id'] | undefined
-    connector?: Connector | undefined
-  }
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> &
+    ConnectorParameter & {
+      address?: Address | undefined
+    }
 
-  type ReturnType = {
+  type ReturnType = readonly {
     expiry: number
     id: Hex
   }[]

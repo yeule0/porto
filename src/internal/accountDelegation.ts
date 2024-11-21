@@ -407,6 +407,7 @@ export async function load<chain extends Chain | undefined>(
 
   const response = raw.response as AuthenticatorAssertionResponse
   const address = Bytes.toHex(new Uint8Array(response.userHandle!))
+  const credentialId = raw.id
 
   // If there are extra keys to authorize (ie. session keys), sign over them.
   const authorizeKeysResult = await (async () => {
@@ -419,7 +420,7 @@ export async function load<chain extends Chain | undefined>(
 
     const { signature, metadata } = await WebAuthnP256.sign({
       challenge: payload,
-      credentialId: raw.id,
+      credentialId,
       rpId,
     })
 
@@ -465,7 +466,7 @@ export async function load<chain extends Chain | undefined>(
       if (index === 0)
         return {
           expiry: 0n,
-          id: raw.id,
+          id: credentialId,
           publicKey: PublicKey.from(key.publicKey),
           raw,
           status: 'unlocked',

@@ -30,6 +30,7 @@ import {
   sessions,
 } from './core.js'
 import { sessionsQueryKey } from './query.js'
+import type { ConfigParameter } from './types.js'
 
 export function useConnect<
   config extends Config = ResolvedRegister['config'],
@@ -42,15 +43,17 @@ export function useConnect<
   return useMutation({
     ...mutation,
     async mutationFn(variables) {
-      return connect(config, variables)
+      return connect(config as Config, variables)
     },
     mutationKey: ['connect'],
   })
 }
 
 export declare namespace useConnect {
-  type Parameters<config extends Config = Config, context = unknown> = {
-    config?: Config | config | undefined
+  type Parameters<
+    config extends Config = Config,
+    context = unknown,
+  > = ConfigParameter<config> & {
     mutation?:
       | UseMutationParameters<
           connect.ReturnType,
@@ -83,15 +86,17 @@ export function useCreateAccount<
   return useMutation({
     ...mutation,
     async mutationFn(variables) {
-      return createAccount(config, variables)
+      return createAccount(config as Config, variables)
     },
     mutationKey: ['createAccount'],
   })
 }
 
 export declare namespace useCreateAccount {
-  type Parameters<config extends Config = Config, context = unknown> = {
-    config?: Config | config | undefined
+  type Parameters<
+    config extends Config = Config,
+    context = unknown,
+  > = ConfigParameter<config> & {
     mutation?:
       | UseMutationParameters<
           createAccount.ReturnType,
@@ -117,8 +122,8 @@ export function useDisconnect<
   config extends Config = ResolvedRegister['config'],
   context = unknown,
 >(
-  parameters: useDisconnect.Parameters<config, context> = {},
-): useDisconnect.ReturnType<config, context> {
+  parameters: useDisconnect.Parameters<context> = {},
+): useDisconnect.ReturnType<context> {
   const { mutation } = parameters
   const config = useConfig(parameters)
   return useMutation({
@@ -131,25 +136,21 @@ export function useDisconnect<
 }
 
 export declare namespace useDisconnect {
-  type Parameters<config extends Config = Config, context = unknown> = {
-    config?: Config | config | undefined
+  type Parameters<context = unknown> = ConfigParameter & {
     mutation?:
       | UseMutationParameters<
           disconnect.ReturnType,
           disconnect.ErrorType,
-          disconnect.Parameters<config>,
+          disconnect.Parameters,
           context
         >
       | undefined
   }
 
-  type ReturnType<
-    config extends Config = Config,
-    context = unknown,
-  > = UseMutationResult<
+  type ReturnType<context = unknown> = UseMutationResult<
     disconnect.ReturnType,
     disconnect.ErrorType,
-    disconnect.Parameters<config>,
+    disconnect.Parameters,
     context
   >
 }
@@ -172,8 +173,10 @@ export function useGrantSession<
 }
 
 export declare namespace useGrantSession {
-  type Parameters<config extends Config = Config, context = unknown> = {
-    config?: Config | config | undefined
+  type Parameters<
+    config extends Config = Config,
+    context = unknown,
+  > = ConfigParameter<config> & {
     mutation?:
       | UseMutationParameters<
           grantSession.ReturnType,
@@ -200,7 +203,7 @@ export function useSessions<
   selectData = sessions.ReturnType,
 >(
   parameters: useSessions.Parameters<config, selectData> = {},
-): useSessions.ReturnType<config, selectData> {
+): useSessions.ReturnType<selectData> {
   const { query = {}, ...rest } = parameters
 
   const config = useConfig(rest)
@@ -264,23 +267,23 @@ export declare namespace useSessions {
   type Parameters<
     config extends Config = Config,
     selectData = sessions.ReturnType,
-  > = sessions.Parameters<config> & {
-    config?: Config | config | undefined
-    query?:
-      | Omit<
-          UseQueryParameters<
-            sessions.ReturnType,
-            sessions.ErrorType,
-            selectData,
-            sessionsQueryKey.Value<config>
-          >,
-          'gcTime' | 'staleTime'
-        >
-      | undefined
-  }
+  > = sessions.Parameters<config> &
+    ConfigParameter<config> & {
+      query?:
+        | Omit<
+            UseQueryParameters<
+              sessions.ReturnType,
+              sessions.ErrorType,
+              selectData,
+              sessionsQueryKey.Value<config>
+            >,
+            'gcTime' | 'staleTime'
+          >
+        | undefined
+    }
 
-  type ReturnType<
-    _config extends Config = Config,
-    selectData = sessions.ReturnType,
-  > = UseQueryReturnType<selectData, sessions.ErrorType>
+  type ReturnType<selectData = sessions.ReturnType> = UseQueryReturnType<
+    selectData,
+    sessions.ErrorType
+  >
 }

@@ -3,20 +3,20 @@ import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
 import * as PersonalMessage from 'ox/PersonalMessage'
-import * as Provider_ox from 'ox/Provider'
+import * as ox_Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcResponse from 'ox/RpcResponse'
-import type * as RpcSchema from 'ox/RpcSchema'
 import * as TypedData from 'ox/TypedData'
+import type { RpcSchema } from 'ox'
 
 import type * as Chains from '../Chains.js'
 import type { Config, Store } from '../Porto.js'
 import * as AccountDelegation from './accountDelegation.js'
-import type * as RpcSchema_internal from './rpcSchema.js'
+import type * as Schema from './rpcSchema.js'
 
-export type Provider = Provider_ox.Provider<{
+export type Provider = ox_Provider.Provider<{
   includeEvents: true
-  schema: RpcSchema_internal.Schema
+  schema: Schema.Schema
 }> & {
   /**
    * Not part of versioned API, proceed with caution.
@@ -25,19 +25,6 @@ export type Provider = Provider_ox.Provider<{
   _internal: {
     destroy: () => void
   }
-}
-
-export function announce(provider: Provider) {
-  if (typeof window === 'undefined') return () => {}
-  return Mipd.announceProvider({
-    info: {
-      icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTk1IiBoZWlnaHQ9IjU5NSIgdmlld0JveD0iMCAwIDU5NSA1OTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1OTUiIGhlaWdodD0iNTk1IiBmaWxsPSIjMTQ1QUM2Ii8+CjxwYXRoIGQ9Ik0zNzMuMzI1IDMwNS44NTJDMzgyLjQ4NyAzMDMuMTA5IDM5Mi4zMyAzMDcuMDA1IDM5Ny4xNjMgMzE1LjI4N0w0NTAuNjAxIDQwNi44NTVDNDU3LjM1NyA0MTguNDMyIDQ0OS4wNDIgNDMzIDQzNS42NzggNDMzSDE2MC4zMjdDMTQ2LjI4NCA0MzMgMTM4LjA5NSA0MTcuMDg3IDE0Ni4yMTkgNDA1LjU4N0wxNzAuNTIxIDM3MS4xODhDMTczLjIwNCAzNjcuMzkxIDE3Ny4wNzYgMzY0LjYwNCAxODEuNTE5IDM2My4yNzRMMzczLjMyNSAzMDUuODUyWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggb3BhY2l0eT0iMC43NSIgZD0iTTI3NC4zOTggMTc2LjcxOUMyNzguMzQzIDE2OS42NiAyODguOTE0IDE3MS4zODMgMjkwLjQzMyAxNzkuMzMzTDMxMi45OTYgMjk3LjQ0MUMzMTQuMTYxIDMwMy41MzkgMzEwLjU2MiAzMDkuNTM5IDMwNC42NDggMzExLjM1NUwxOTcuOSAzNDQuMTUyQzE5MC40NCAzNDYuNDQzIDE4NC4wMSAzMzguNDI5IDE4Ny44MjggMzMxLjU5OUwyNzQuMzk4IDE3Ni43MTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBvcGFjaXR5PSIwLjUiIGQ9Ik0zMDEuNjc1IDE2OS4yMTlDMzAwLjU2NiAxNjMuNDUyIDMwOC4zMjggMTYwLjUzNyAzMTEuMjYgMTY1LjYyTDM3OS4wNDggMjgzLjEzM0MzODAuNzUgMjg2LjA4MyAzNzkuMjE4IDI4OS44NTEgMzc1Ljk0NyAyOTAuNzY0TDMzNi42NzcgMzAxLjcxNkMzMzEuODEyIDMwMy4wNzMgMzI2LjgyOSAyOTkuOTc0IDMyNS44NzEgMjk0Ljk5N0wzMDEuNjc1IDE2OS4yMTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K',
-      name: 'Porto',
-      rdns: 'xyz.ithaca.porto',
-      uuid: crypto.randomUUID(),
-    },
-    provider: provider as any,
-  })
 }
 
 export function from<
@@ -49,8 +36,8 @@ export function from<
   const { config, store } = parameters
   const { announceProvider, headless, keystoreHost } = config
 
-  const emitter = Provider_ox.createEmitter()
-  const provider = Provider_ox.from({
+  const emitter = ox_Provider.createEmitter()
+  const provider = ox_Provider.from({
     ...emitter,
     async request({ method, params }) {
       const state = store.getState()
@@ -58,16 +45,20 @@ export function from<
       switch (method) {
         case 'eth_accounts': {
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
-          return state.accounts.map((account) => account.address)
+            throw new ox_Provider.DisconnectedError()
+          return state.accounts.map(
+            (account) => account.address,
+          ) satisfies RpcSchema.ExtractReturnType<Schema.Schema, 'eth_accounts'>
         }
 
         case 'eth_chainId': {
-          return Hex.fromNumber(state.chainId)
+          return Hex.fromNumber(
+            state.chainId,
+          ) satisfies RpcSchema.ExtractReturnType<Schema.Schema, 'eth_chainId'>
         }
 
         case 'eth_requestAccounts': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
 
           const { account } = await AccountDelegation.load(state.client, {
             rpId: keystoreHost,
@@ -76,22 +67,25 @@ export function from<
           store.setState((x) => ({ ...x, accounts: [account] }))
 
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
-          return [account.address]
+          return [account.address] satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'eth_requestAccounts'
+          >
         }
 
         case 'eth_sendTransaction': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [{ chainId, data = '0x', from, to, value = '0x0' }] =
             params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
+              Schema.Schema,
               'eth_sendTransaction'
             >
 
           if (chainId && Hex.toNumber(chainId) !== state.chainId)
-            throw new Provider_ox.ChainDisconnectedError()
+            throw new ox_Provider.ChainDisconnectedError()
 
           requireParameter(to, 'to')
           requireParameter(from, 'from')
@@ -99,11 +93,11 @@ export function from<
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, from),
           )
-          if (!account) throw new Provider_ox.UnauthorizedError()
+          if (!account) throw new ox_Provider.UnauthorizedError()
 
           const keyIndex = getActiveSessionKeyIndex({ account })
 
-          return await AccountDelegation.execute(state.client, {
+          return (await AccountDelegation.execute(state.client, {
             account,
             calls: [
               {
@@ -114,23 +108,26 @@ export function from<
             ],
             keyIndex,
             rpId: keystoreHost,
-          })
+          })) satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'eth_sendTransaction'
+          >
         }
 
         case 'eth_signTypedData_v4': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [address, data] = params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
+            Schema.Schema,
             'eth_signTypedData_v4'
           >
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, address),
           )
-          if (!account) throw new Provider_ox.UnauthorizedError()
+          if (!account) throw new ox_Provider.UnauthorizedError()
 
           const keyIndex = getActiveSessionKeyIndex({ account })
 
@@ -141,14 +138,17 @@ export function from<
             rpId: keystoreHost,
           })
 
-          return signature
+          return signature satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'eth_signTypedData_v4'
+          >
         }
 
         case 'experimental_connect': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
 
           const [{ capabilities }] = (params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
+            Schema.Schema,
             'experimental_connect'
           >) ?? [{}]
           const { createAccount, grantSession } = capabilities ?? {}
@@ -181,14 +181,27 @@ export function from<
           store.setState((x) => ({ ...x, accounts: [account] }))
 
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
-          return [account.address]
+          return [
+            {
+              address: account.address,
+              capabilities: {
+                sessions: account.keys.map((key) => ({
+                  expiry: Number(key.expiry),
+                  id: PublicKey.toHex(key.publicKey),
+                })),
+              },
+            },
+          ] satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'experimental_connect'
+          >
         }
 
         case 'experimental_createAccount': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
 
           const [{ label }] = (params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
+            Schema.Schema,
             'experimental_createAccount'
           >) ?? [{}]
 
@@ -202,7 +215,10 @@ export function from<
           store.setState((x) => ({ ...x, accounts: [account] }))
 
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
-          return [account.address]
+          return account.address satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'experimental_createAccount'
+          >
         }
 
         case 'experimental_disconnect': {
@@ -211,27 +227,26 @@ export function from<
         }
 
         case 'experimental_grantSession': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [
             {
               address,
-              expiry = Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-            } = {},
-          ] =
-            (params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
-              'experimental_grantSession'
-            >) ?? []
+              expiry = Math.floor(Date.now() / 1_000) + 60 * 60, // 1 hour
+            },
+          ] = (params as RpcSchema.ExtractParams<
+            Schema.Schema,
+            'experimental_grantSession'
+          >) ?? [{}]
 
           const account = address
             ? state.accounts.find((account) =>
                 Address.isEqual(account.address, address),
               )
             : state.accounts[0]
-          if (!account) throw new Provider_ox.UnauthorizedError()
+          if (!account) throw new ox_Provider.UnauthorizedError()
 
           const key = await AccountDelegation.createWebCryptoKey({
             expiry: BigInt(expiry),
@@ -276,15 +291,18 @@ export function from<
           return {
             expiry,
             id: PublicKey.toHex(key.publicKey),
-          }
+          } satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'experimental_grantSession'
+          >
         }
 
         case 'experimental_sessions': {
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [{ address }] = (params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
+            Schema.Schema,
             'experimental_sessions'
           >) ?? [{}]
 
@@ -306,23 +324,26 @@ export function from<
         }
 
         case 'porto_ping': {
-          return 'pong'
+          return 'pong' satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'porto_ping'
+          >
         }
 
         case 'personal_sign': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [data, address] = params as RpcSchema.ExtractParams<
-            RpcSchema_internal.Schema,
+            Schema.Schema,
             'personal_sign'
           >
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, address),
           )
-          if (!account) throw new Provider_ox.UnauthorizedError()
+          if (!account) throw new ox_Provider.UnauthorizedError()
 
           const keyIndex = getActiveSessionKeyIndex({ account })
 
@@ -333,13 +354,16 @@ export function from<
             rpId: keystoreHost,
           })
 
-          return signature
+          return signature satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'personal_sign'
+          >
         }
 
         case 'wallet_getCallsStatus': {
           const [id] =
             (params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
+              Schema.Schema,
               'wallet_getCallsStatus'
             >) ?? []
 
@@ -352,7 +376,10 @@ export function from<
           return {
             receipts: [receipt],
             status: 'CONFIRMED',
-          }
+          } satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'wallet_getCallsStatus'
+          >
         }
 
         case 'wallet_getCapabilities': {
@@ -368,29 +395,29 @@ export function from<
                 supported: true,
               },
             },
-          }
+          } satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'wallet_getCapabilities'
+          >
         }
 
         case 'wallet_sendCalls': {
-          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+          if (!headless) throw new ox_Provider.UnsupportedMethodError()
           if (state.accounts.length === 0)
-            throw new Provider_ox.DisconnectedError()
+            throw new ox_Provider.DisconnectedError()
 
           const [{ chainId, calls, from, capabilities }] =
-            params as RpcSchema.ExtractParams<
-              RpcSchema_internal.Schema,
-              'wallet_sendCalls'
-            >
+            params as RpcSchema.ExtractParams<Schema.Schema, 'wallet_sendCalls'>
 
           if (chainId && Hex.toNumber(chainId) !== state.chainId)
-            throw new Provider_ox.ChainDisconnectedError()
+            throw new ox_Provider.ChainDisconnectedError()
 
           requireParameter(from, 'from')
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, from),
           )
-          if (!account) throw new Provider_ox.UnauthorizedError()
+          if (!account) throw new ox_Provider.UnauthorizedError()
 
           const { enabled = true, id } = capabilities?.session ?? {}
 
@@ -398,19 +425,22 @@ export function from<
             ? getActiveSessionKeyIndex({ account, id })
             : undefined
           if (typeof keyIndex !== 'number')
-            throw new Provider_ox.UnauthorizedError()
+            throw new ox_Provider.UnauthorizedError()
 
-          return await AccountDelegation.execute(state.client, {
+          return (await AccountDelegation.execute(state.client, {
             account,
             calls: calls as AccountDelegation.Calls,
             keyIndex,
             rpId: keystoreHost,
-          })
+          })) satisfies RpcSchema.ExtractReturnType<
+            Schema.Schema,
+            'wallet_sendCalls'
+          >
         }
 
         default: {
           if (method.startsWith('wallet_'))
-            throw new Provider_ox.UnsupportedMethodError()
+            throw new ox_Provider.UnsupportedMethodError()
           return state.client.request({ method, params } as any)
         }
       }
@@ -462,6 +492,19 @@ export declare namespace from {
     config: Config<chains>
     store: Store
   }
+}
+
+export function announce(provider: Provider) {
+  if (typeof window === 'undefined') return () => {}
+  return Mipd.announceProvider({
+    info: {
+      icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTk1IiBoZWlnaHQ9IjU5NSIgdmlld0JveD0iMCAwIDU5NSA1OTUiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1OTUiIGhlaWdodD0iNTk1IiBmaWxsPSIjMTQ1QUM2Ii8+CjxwYXRoIGQ9Ik0zNzMuMzI1IDMwNS44NTJDMzgyLjQ4NyAzMDMuMTA5IDM5Mi4zMyAzMDcuMDA1IDM5Ny4xNjMgMzE1LjI4N0w0NTAuNjAxIDQwNi44NTVDNDU3LjM1NyA0MTguNDMyIDQ0OS4wNDIgNDMzIDQzNS42NzggNDMzSDE2MC4zMjdDMTQ2LjI4NCA0MzMgMTM4LjA5NSA0MTcuMDg3IDE0Ni4yMTkgNDA1LjU4N0wxNzAuNTIxIDM3MS4xODhDMTczLjIwNCAzNjcuMzkxIDE3Ny4wNzYgMzY0LjYwNCAxODEuNTE5IDM2My4yNzRMMzczLjMyNSAzMDUuODUyWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggb3BhY2l0eT0iMC43NSIgZD0iTTI3NC4zOTggMTc2LjcxOUMyNzguMzQzIDE2OS42NiAyODguOTE0IDE3MS4zODMgMjkwLjQzMyAxNzkuMzMzTDMxMi45OTYgMjk3LjQ0MUMzMTQuMTYxIDMwMy41MzkgMzEwLjU2MiAzMDkuNTM5IDMwNC42NDggMzExLjM1NUwxOTcuOSAzNDQuMTUyQzE5MC40NCAzNDYuNDQzIDE4NC4wMSAzMzguNDI5IDE4Ny44MjggMzMxLjU5OUwyNzQuMzk4IDE3Ni43MTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBvcGFjaXR5PSIwLjUiIGQ9Ik0zMDEuNjc1IDE2OS4yMTlDMzAwLjU2NiAxNjMuNDUyIDMwOC4zMjggMTYwLjUzNyAzMTEuMjYgMTY1LjYyTDM3OS4wNDggMjgzLjEzM0MzODAuNzUgMjg2LjA4MyAzNzkuMjE4IDI4OS44NTEgMzc1Ljk0NyAyOTAuNzY0TDMzNi42NzcgMzAxLjcxNkMzMzEuODEyIDMwMy4wNzMgMzI2LjgyOSAyOTkuOTc0IDMyNS44NzEgMjk0Ljk5N0wzMDEuNjc1IDE2OS4yMTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K',
+      name: 'Porto',
+      rdns: 'xyz.ithaca.porto',
+      uuid: crypto.randomUUID(),
+    },
+    provider: provider as any,
+  })
 }
 
 function requireParameter(
