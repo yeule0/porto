@@ -178,17 +178,17 @@ export function from<
             })
           })()
 
+          const sessions = getActiveSessionKeys(account.keys)
+
           store.setState((x) => ({ ...x, accounts: [account] }))
 
           emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
+
           return [
             {
               address: account.address,
               capabilities: {
-                sessions: account.keys.map((key) => ({
-                  expiry: Number(key.expiry),
-                  id: PublicKey.toHex(key.publicKey),
-                })),
+                sessions,
               },
             },
           ] satisfies RpcSchema.ExtractReturnType<
@@ -275,16 +275,7 @@ export function from<
           })
 
           emitter.emit('message', {
-            data: [...account.keys, key]
-              .map((key) =>
-                AccountDelegation.isActiveSessionKey(key)
-                  ? {
-                      expiry: Number(key.expiry),
-                      id: PublicKey.toHex(key.publicKey),
-                    }
-                  : undefined,
-              )
-              .filter(Boolean),
+            data: getActiveSessionKeys([...account.keys, key]),
             type: 'sessionsChanged',
           })
 
@@ -312,15 +303,7 @@ export function from<
               )
             : state.accounts[0]
 
-          return account?.keys
-            .map((key) => {
-              if (!AccountDelegation.isActiveSessionKey(key)) return undefined
-              return {
-                expiry: Number(key.expiry),
-                id: PublicKey.toHex(key.publicKey),
-              }
-            })
-            .filter(Boolean)
+          return getActiveSessionKeys(account?.keys ?? [])
         }
 
         case 'porto_ping': {
@@ -507,16 +490,6 @@ export function announce(provider: Provider) {
   })
 }
 
-function requireParameter(
-  param: unknown,
-  details: string,
-): asserts param is NonNullable<typeof param> {
-  if (typeof param === 'undefined')
-    throw new RpcResponse.InvalidParamsError({
-      message: `Missing required parameter: ${details}`,
-    })
-}
-
 function getActiveSessionKeyIndex(parameters: {
   account: AccountDelegation.Account
   id?: Hex.Hex | undefined
@@ -529,4 +502,28 @@ function getActiveSessionKeyIndex(parameters: {
   const index = account.keys.findIndex(AccountDelegation.isActiveSessionKey)
   if (index === -1) return 0
   return index
+}
+
+function getActiveSessionKeys(
+  keys: readonly AccountDelegation.Key[],
+): Schema.GrantSessionReturnType[] {
+  return keys
+    .map((key) => {
+      if (!AccountDelegation.isActiveSessionKey(key)) return undefined
+      return {
+        expiry: Number(key.expiry),
+        id: PublicKey.toHex(key.publicKey),
+      }
+    })
+    .filter(Boolean) as never
+}
+
+function requireParameter(
+  param: unknown,
+  details: string,
+): asserts param is NonNullable<typeof param> {
+  if (typeof param === 'undefined')
+    throw new RpcResponse.InvalidParamsError({
+      message: `Missing required parameter: ${details}`,
+    })
 }
