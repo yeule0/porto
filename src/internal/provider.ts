@@ -141,6 +141,46 @@ export function from<
           return signature
         }
 
+        case 'experimental_connect': {
+          if (!headless) throw new Provider_ox.UnsupportedMethodError()
+
+          const [{ capabilities }] = (params as RpcSchema.ExtractParams<
+            RpcSchema_internal.Schema,
+            'experimental_connect'
+          >) ?? [{}]
+          const { createAccount, grantSession } = capabilities ?? {}
+
+          const { expiry = Math.floor(Date.now() / 1000) + 60 * 60 } =
+            typeof grantSession === 'object' ? grantSession : {}
+          const key = grantSession
+            ? await AccountDelegation.createWebCryptoKey({
+                expiry: BigInt(expiry),
+              })
+            : undefined
+
+          const { account } = await (async () => {
+            if (createAccount) {
+              const { label } =
+                typeof createAccount === 'object' ? createAccount : {}
+              return await AccountDelegation.create(state.client, {
+                authorizeKeys: key ? [key] : undefined,
+                delegation: state.delegation,
+                label,
+                rpId: keystoreHost,
+              })
+            }
+            return await AccountDelegation.load(state.client, {
+              authorizeKeys: key ? [key] : undefined,
+              rpId: keystoreHost,
+            })
+          })()
+
+          store.setState((x) => ({ ...x, accounts: [account] }))
+
+          emitter.emit('connect', { chainId: Hex.fromNumber(state.chainId) })
+          return [account.address]
+        }
+
         case 'experimental_createAccount': {
           if (!headless) throw new Provider_ox.UnsupportedMethodError()
 
@@ -197,7 +237,7 @@ export function from<
           // TODO: wait for tx to be included?
           await AccountDelegation.authorize(state.client, {
             account,
-            key,
+            keys: [key],
             rpId: keystoreHost,
           })
 
@@ -316,6 +356,9 @@ export function from<
           return {
             [Hex.fromNumber(state.chainId)]: {
               atomicBatch: {
+                supported: true,
+              },
+              createAccount: {
                 supported: true,
               },
               session: {

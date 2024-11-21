@@ -17,6 +17,7 @@ export function App() {
     <div>
       <State />
       <Events />
+      <Connect />
       <Register />
       <Login />
       <Disconnect />
@@ -102,6 +103,44 @@ function Events() {
     <div>
       <h3>Events</h3>
       <pre>{JSON.stringify(responses, null, 2)}</pre>
+    </div>
+  )
+}
+
+function Connect() {
+  const [result, setResult] = useState<unknown | null>(null)
+  return (
+    <div>
+      <h3>experimental_connect</h3>
+      <button
+        onClick={() =>
+          porto.provider
+            .request({
+              method: 'experimental_connect',
+              params: [{ capabilities: { grantSession: true } }],
+            })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Login
+      </button>
+      <button
+        onClick={() =>
+          porto.provider
+            .request({
+              method: 'experimental_connect',
+              params: [
+                { capabilities: { createAccount: true, grantSession: true } },
+              ],
+            })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Register
+      </button>
+      <pre>{JSON.stringify(result, null, 2)}</pre>
     </div>
   )
 }

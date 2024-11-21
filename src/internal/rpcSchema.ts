@@ -12,10 +12,23 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
+        method: 'experimental_connect'
+        params?: [ConnectParameters] | undefined
+      }
+      ReturnType: ConnectReturnType
+    }
+  | {
+      Request: {
         method: 'experimental_createAccount'
         params?: [CreateAccountParameters] | undefined
       }
       ReturnType: Address.Address
+    }
+  | {
+      Request: {
+        method: 'experimental_disconnect'
+      }
+      ReturnType: undefined
     }
   | {
       Request: {
@@ -31,13 +44,26 @@ export type Schema = RpcSchema.From<
       }
       ReturnType: GetSessionsReturnType
     }
-  | {
-      Request: {
-        method: 'experimental_disconnect'
-      }
-      ReturnType: undefined
-    }
 >
+
+type ConnectParameters = {
+  capabilities?:
+    | {
+        createAccount?: true | CreateAccountParameters | undefined
+        grantSession?:
+          | true
+          | Omit<GrantSessionParameters, 'address'>
+          | undefined
+      }
+    | undefined
+}
+
+type ConnectReturnType = readonly {
+  address: Address.Address
+  capabilities?: {
+    sessions?: GetSessionsReturnType | undefined
+  }
+}[]
 
 type CreateAccountParameters = {
   label?: string | undefined

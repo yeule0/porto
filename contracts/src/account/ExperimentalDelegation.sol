@@ -81,55 +81,64 @@ contract ExperimentalDelegation is Receiver, MultiSendCallOnly {
 
     /// @notice Initializes the EOA with a public key to authorize.
     /// @param label_ - The label to associate with the EOA.
-    /// @param key - The key to authorize.
-    function initialize(string calldata label_, Key calldata key) public onlyOwner returns (uint32 keyIndex) {
+    /// @param keys_ - The keys to authorize.
+    function initialize(
+        string calldata label_,
+        Key[] calldata keys_
+    ) public onlyOwner {
         if (keys.length > 0) revert AlreadyInitialized();
 
         label = label_;
 
-        return _authorize(key);
+        _authorize(keys_);
     }
 
     /// @notice Initializes the EOA with a public key to authorize, provided the EOA's signature.
     /// @param label_ - The label to associate with the EOA.
-    /// @param key - The key to authorize.
+    /// @param keys_ - The key to authorize.
     /// @param signature - The signature over the key: `sign(keccak256(abi.encode(nonce, key)))`.
-    function initialize(string calldata label_, Key calldata key, ECDSA.Signature calldata signature)
-        public
-        returns (uint32 keyIndex)
-    {
-        bytes32 digest = keccak256(abi.encode(nonce++, label_, key));
+    function initialize(
+        string calldata label_,
+        Key[] calldata keys_,
+        ECDSA.Signature calldata signature
+    ) public {
+        bytes32 digest = keccak256(abi.encode(nonce++, label_, keys_));
 
-        address signer = ecrecover(digest, signature.yParity == 0 ? 27 : 28, bytes32(signature.r), bytes32(signature.s));
+        address signer = ecrecover(
+            digest,
+            signature.yParity == 0 ? 27 : 28,
+            bytes32(signature.r),
+            bytes32(signature.s)
+        );
         if (signer != address(this)) revert InvalidSignature();
 
         if (keys.length > 0) revert AlreadyInitialized();
 
         label = label_;
 
-        return _authorize(key);
+        _authorize(keys_);
     }
 
     /// @notice Authorizes a new public key.
-    /// @param key - The key to authorize.
-    function authorize(Key calldata key) public onlyOwner returns (uint32 keyIndex) {
-        return _authorize(key);
+    /// @param keys_ - The key to authorize.
+    function authorize(Key[] calldata keys_) public onlyOwner {
+        _authorize(keys_);
     }
 
     /// @notice Authorizes a new public key on behalf of the EOA, provided the EOA's signature.
-    /// @param key - The key to authorize.
-    /// @param signature - The signature over the key: `sign(keccak256(abi.encode(nonce, key)))`.
-    function authorize(Key calldata key, bytes calldata signature) public returns (uint32 keyIndex) {
+    /// @param keys_ - The keys to authorize.
+    /// @param signature - The signature over the keys: `sign(keccak256(abi.encode(nonce, keys)))`.
+    function authorize(Key[] calldata keys_, bytes calldata signature) public {
         WrappedSignature memory wrappedSignature = _parseSignature(signature);
         Key memory authorizingKey = keys[wrappedSignature.keyIndex];
 
         // Revert for expiring keys. Assume that non-expiring keys are "admins".
         if (authorizingKey.expiry != 0) revert KeyExpiredOrUnauthorized();
 
-        bytes32 digest = keccak256(abi.encode(nonce++, key));
+        bytes32 digest = keccak256(abi.encode(nonce++, keys_));
         _assertSignature(digest, signature);
 
-        return _authorize(key);
+        _authorize(keys_);
     }
 
     /// @notice Revokes an authorized public key.
@@ -174,7 +183,10 @@ contract ExperimentalDelegation is Receiver, MultiSendCallOnly {
     /// @param digest - The digest to verify.
     /// @param signature - The wrapped signature to verify.
     /// @return magicValue - The magic value indicating the validity of the signature.
-    function isValidSignature(bytes32 digest, bytes calldata signature) public view returns (bytes4 magicValue) {
+    function isValidSignature(
+        bytes32 digest,
+        bytes calldata signature
+    ) public view returns (bytes4 magicValue) {
         WrappedSignature memory wrappedSignature = _parseSignature(signature);
 
         // If prehash flag is set (usually for WebCrypto P256), SHA-256 hash the digest.
@@ -202,12 +214,25 @@ contract ExperimentalDelegation is Receiver, MultiSendCallOnly {
             if (key.expiry > 0 && key.expiry < block.timestamp) return failure;
 
             // Verify based on key type.
-            if (key.keyType == KeyType.P256 && P256.verify(digest, wrappedSignature.signature, key.publicKey)) {
+            if (
+                key.keyType == KeyType.P256 &&
+                P256.verify(digest, wrappedSignature.signature, key.publicKey)
+            ) {
                 return success;
             }
             if (key.keyType == KeyType.WebAuthnP256) {
-                WebAuthnP256.Metadata memory metadata = abi.decode(wrappedSignature.metadata, (WebAuthnP256.Metadata));
-                if (WebAuthnP256.verify(digest, metadata, wrappedSignature.signature, key.publicKey)) return success;
+                WebAuthnP256.Metadata memory metadata = abi.decode(
+                    wrappedSignature.metadata,
+                    (WebAuthnP256.Metadata)
+                );
+                if (
+                    WebAuthnP256.verify(
+                        digest,
+                        metadata,
+                        wrappedSignature.signature,
+                        key.publicKey
+                    )
+                ) return success;
             }
         }
 
@@ -235,18 +260,24 @@ contract ExperimentalDelegation is Receiver, MultiSendCallOnly {
     ////////////////////////////////////////////////////////////////////////
 
     /// @notice Authorizes a new public key.
-    /// @param key - The key to authorize.
-    /// @return keyIndex - The index of the authorized key.
-    function _authorize(Key calldata key) internal returns (uint32 keyIndex) {
-        keys.push(key);
-        return uint32(keys.length - 1);
+    /// @param keys_ - The keys to authorize.
+    function _authorize(Key[] calldata keys_) internal {
+        for (uint32 i = 0; i < keys_.length; i++) {
+            keys.push(keys_[i]);
+        }
     }
 
     /// @notice Asserts that a signature is valid.
     /// @param digest - The digest to verify.
     /// @param signature - The wrapped signature to verify.
-    function _assertSignature(bytes32 digest, bytes calldata signature) internal view {
-        WrappedSignature memory wrappedSignature = abi.decode(signature, (WrappedSignature));
+    function _assertSignature(
+        bytes32 digest,
+        bytes calldata signature
+    ) internal view {
+        WrappedSignature memory wrappedSignature = abi.decode(
+            signature,
+            (WrappedSignature)
+        );
 
         Key memory key = keys[wrappedSignature.keyIndex];
         if (key.expiry > 0 && key.expiry < block.timestamp) {
@@ -261,12 +292,20 @@ contract ExperimentalDelegation is Receiver, MultiSendCallOnly {
     /// @notice Parses a signature from bytes format.
     /// @param signature - The signature to parse.
     /// @return wrappedSignature - The parsed signature.
-    function _parseSignature(bytes calldata signature) internal pure returns (WrappedSignature memory) {
+    function _parseSignature(
+        bytes calldata signature
+    ) internal pure returns (WrappedSignature memory) {
         if (signature.length == 65) {
             bytes32 r = bytes32(signature[0:32]);
             bytes32 s = bytes32(signature[32:64]);
             uint8 yParity = uint8(signature[64]);
-            return WrappedSignature(0, ECDSA.Signature(uint256(r), uint256(s), yParity), false, OWNER_METADATA);
+            return
+                WrappedSignature(
+                    0,
+                    ECDSA.Signature(uint256(r), uint256(s), yParity),
+                    false,
+                    OWNER_METADATA
+                );
         }
         return abi.decode(signature, (WrappedSignature));
     }

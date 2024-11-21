@@ -78,44 +78,20 @@ export async function authorize<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: authorize.Parameters,
 ) {
-  const { account, key, keyIndex = 0, rpId } = parameters
+  const { account, keys, keyIndex = 0, rpId } = parameters
 
-  // Fetch the latest nonce. We will need to sign over it for replay protection.
-  const nonce = await readContract(client, {
-    abi: experimentalDelegationAbi,
+  const { payload, serializedKeys } = await getAuthorizeSignPayload(client, {
     address: account.address,
-    functionName: 'nonce',
+    keys,
   })
 
-  // Serialize the key.
-  const serializedKey = {
-    expiry: key.expiry,
-    keyType: keyType[key.type],
-    publicKey: key.publicKey,
-  }
-
-  // Construct the signing payload.
-  const payload = Hash.keccak256(
-    AbiParameters.encode(
-      AbiParameters.from([
-        'struct PublicKey { uint256 x; uint256 y; }',
-        'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
-        'uint256 nonce',
-        'Key key',
-      ]),
-      [nonce, serializedKey],
-    ),
-  )
-
-  // Sign the payload.
   const signature = await sign({ account, payload, keyIndex, rpId })
 
-  // Authorize the key onto the Account.
   const hash = await writeContract(client, {
     abi: experimentalDelegationAbi,
     address: account.address,
     functionName: 'authorize',
-    args: [serializedKey, signature],
+    args: [serializedKeys, signature],
     account: null,
     chain: null,
   })
@@ -127,8 +103,8 @@ export declare namespace authorize {
   type Parameters = {
     /** Account to add the key to. */
     account: Account
-    /** Key to authorize. */
-    key: Key
+    /** Keys to authorize. */
+    keys: readonly Key[]
     /** Index of the key to sign with. */
     keyIndex?: number | undefined
     /** Relying Party ID. */
@@ -141,7 +117,7 @@ export async function create<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: create.Parameters,
 ) {
-  const { delegation, rpId } = parameters
+  const { authorizeKeys, delegation, rpId } = parameters
 
   // Generate a random private key to instantiate the Account.
   // We will only hold onto the private key for the duration of this lexical scope
@@ -163,12 +139,12 @@ export async function create<chain extends Chain | undefined>(
     userId: Bytes.from(address),
   })
 
-  // Serialize the key.
-  const serializedKey = {
+  // Serialize the keys.
+  const serializedKeys = [key, ...(authorizeKeys ?? [])].map((key) => ({
     expiry: key.expiry,
     keyType: keyType[key.type],
     publicKey: key.publicKey,
-  }
+  }))
 
   // Construct the signing payload (nonce will always be zero for instantiation).
   const payload = Hash.keccak256(
@@ -178,9 +154,9 @@ export async function create<chain extends Chain | undefined>(
         'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
         'uint256 nonce',
         'string label',
-        'Key key',
+        'Key[] keys',
       ]),
-      [0n, label, serializedKey],
+      [0n, label, serializedKeys],
     ),
   )
 
@@ -202,17 +178,19 @@ export async function create<chain extends Chain | undefined>(
     abi: experimentalDelegationAbi,
     address,
     functionName: 'initialize',
-    args: [label, serializedKey, signature],
+    args: [label, serializedKeys, signature],
     authorizationList: [authorization],
     account: null,
     chain: null,
   })
 
+  const keys = [key, ...(authorizeKeys ?? [])]
+
   return {
     account: {
       address,
       label,
-      keys: [key],
+      keys,
     },
     hash,
   }
@@ -220,6 +198,8 @@ export async function create<chain extends Chain | undefined>(
 
 export declare namespace create {
   type Parameters = {
+    /** Extra keys to authorize. */
+    authorizeKeys?: readonly Key[] | undefined
     /** Contract address to delegate to. */
     delegation: Address.Address
     /** Label for the account. */
@@ -359,6 +339,53 @@ export declare namespace execute {
   }
 }
 
+/** Gets the signing payload for authorizing a key. */
+export async function getAuthorizeSignPayload<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: getAuthorizeSignPayload.Parameters,
+) {
+  const { address, keys, nonce } = parameters
+
+  // Fetch the latest nonce. We will need to sign over it for replay protection.
+  const nonce_ =
+    nonce ??
+    (await readContract(client, {
+      abi: experimentalDelegationAbi,
+      address: address!,
+      functionName: 'nonce',
+    }))
+
+  // Serialize the key.
+  const serializedKeys = keys.map((key) => ({
+    expiry: key.expiry,
+    keyType: keyType[key.type],
+    publicKey: key.publicKey,
+  }))
+
+  // Construct the signing payload.
+  const payload = Hash.keccak256(
+    AbiParameters.encode(
+      AbiParameters.from([
+        'struct PublicKey { uint256 x; uint256 y; }',
+        'struct Key { uint256 expiry; uint8 keyType; PublicKey publicKey; }',
+        'uint256 nonce',
+        'Key[] keys',
+      ]),
+      [nonce_, serializedKeys],
+    ),
+  )
+
+  return { payload, serializedKeys }
+}
+
+export declare namespace getAuthorizeSignPayload {
+  type Parameters = {
+    keys: readonly Key[]
+  } & OneOf<
+    { address?: Address.Address | undefined } | { nonce?: bigint | undefined }
+  >
+}
+
 /** Whether or not the provided key is an active session key. */
 export function isActiveSessionKey(key: Key) {
   return (
@@ -372,7 +399,7 @@ export async function load<chain extends Chain | undefined>(
   client: Client<Transport, chain>,
   parameters: load.Parameters = {},
 ) {
-  const { rpId } = parameters
+  const { authorizeKeys = [], rpId } = parameters
 
   // We will sign a random challenge. We need to do this to extract the
   // user id (ie. the address) to query for the Account's keys.
@@ -384,8 +411,31 @@ export async function load<chain extends Chain | undefined>(
   const response = raw.response as AuthenticatorAssertionResponse
   const address = Bytes.toHex(new Uint8Array(response.userHandle!))
 
-  // Query for the Account's keys and label.
-  const [keys, label] = await Promise.all([
+  // If there are extra keys to authorize (ie. session keys), sign over them.
+  const authorizeKeysResult = await (async () => {
+    if (authorizeKeys.length === 0) return undefined
+
+    const { serializedKeys, payload } = await getAuthorizeSignPayload(client, {
+      address,
+      keys: authorizeKeys ?? [],
+    })
+
+    const { signature, metadata } = await WebAuthnP256.sign({
+      challenge: payload,
+      credentialId: raw.id,
+      rpId,
+    })
+
+    const wrappedSignature = wrapSignature({
+      metadata: getWebAuthnMetadata(metadata),
+      signature,
+    })
+
+    return { serializedKeys, signature: wrappedSignature }
+  })()
+
+  // Query for the Account's keys and label, and authorize additional keys if provided.
+  const [serializedKeys, label] = await Promise.all([
     readContract(client, {
       abi: experimentalDelegationAbi,
       address,
@@ -396,38 +446,59 @@ export async function load<chain extends Chain | undefined>(
       address,
       functionName: 'label',
     }),
+    authorizeKeysResult
+      ? writeContract(client, {
+          abi: experimentalDelegationAbi,
+          address,
+          functionName: 'authorize',
+          args: [
+            authorizeKeysResult.serializedKeys,
+            authorizeKeysResult.signature,
+          ],
+          account: null,
+          chain: null,
+        })
+      : null,
   ])
 
-  // Now that we have the keys, we can "hydrate" the account.
+  const keys = [
+    // Hydrate the keys from the Account's contract.
+    ...serializedKeys.map((key, index) => {
+      // Assume that the first key is the "master" WebAuthn key.
+      if (index === 0)
+        return {
+          expiry: 0n,
+          id: raw.id,
+          publicKey: PublicKey.from(key.publicKey),
+          raw,
+          status: 'unlocked',
+          type: 'webauthn',
+        } satisfies WebAuthnKey
+
+      return {
+        expiry: key.expiry,
+        publicKey: PublicKey.from(key.publicKey),
+        status: 'locked',
+        type: (keyTypeSerialized as any)[key.keyType],
+      } satisfies Key
+    }),
+    // Add the additional keys that were authorized.
+    ...(authorizeKeys ?? []),
+  ] satisfies Key[]
+
   return {
     account: {
       address,
       label,
-      keys: keys.map((key, index) => {
-        // Assume that the first key is the "master" WebAuthn key.
-        if (index === 0)
-          return {
-            expiry: 0n,
-            id: raw.id,
-            publicKey: PublicKey.from(key.publicKey),
-            raw,
-            status: 'unlocked',
-            type: 'webauthn',
-          } satisfies WebAuthnKey
-
-        return {
-          expiry: key.expiry,
-          publicKey: PublicKey.from(key.publicKey),
-          status: 'locked',
-          type: (keyTypeSerialized as any)[key.keyType],
-        } satisfies Key
-      }),
+      keys,
     },
   }
 }
 
 export declare namespace load {
   type Parameters = {
+    /** Extra keys to authorize. */
+    authorizeKeys?: readonly Key[] | undefined
     /** Relying Party ID. */
     rpId?: string | undefined
   }

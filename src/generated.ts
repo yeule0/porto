@@ -636,7 +636,7 @@ export const experimentErc20Config = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xb46b3f3f7F8B198894d1787b9d6c0effbd3928c9)
  */
 export const experimentalDelegationAbi = [
   { type: 'fallback', stateMutability: 'payable' },
@@ -652,9 +652,39 @@ export const experimentalDelegationAbi = [
     type: 'function',
     inputs: [
       {
-        name: 'key',
-        internalType: 'struct ExperimentalDelegation.Key',
-        type: 'tuple',
+        name: 'keys_',
+        internalType: 'struct ExperimentalDelegation.Key[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+    ],
+    name: 'authorize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'keys_',
+        internalType: 'struct ExperimentalDelegation.Key[]',
+        type: 'tuple[]',
         components: [
           { name: 'expiry', internalType: 'uint256', type: 'uint256' },
           {
@@ -676,37 +706,7 @@ export const experimentalDelegationAbi = [
       { name: 'signature', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'authorize',
-    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      {
-        name: 'key',
-        internalType: 'struct ExperimentalDelegation.Key',
-        type: 'tuple',
-        components: [
-          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
-          {
-            name: 'keyType',
-            internalType: 'enum ExperimentalDelegation.KeyType',
-            type: 'uint8',
-          },
-          {
-            name: 'publicKey',
-            internalType: 'struct ECDSA.PublicKey',
-            type: 'tuple',
-            components: [
-              { name: 'x', internalType: 'uint256', type: 'uint256' },
-              { name: 'y', internalType: 'uint256', type: 'uint256' },
-            ],
-          },
-        ],
-      },
-    ],
-    name: 'authorize',
-    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    outputs: [],
     stateMutability: 'nonpayable',
   },
   {
@@ -761,40 +761,9 @@ export const experimentalDelegationAbi = [
     inputs: [
       { name: 'label_', internalType: 'string', type: 'string' },
       {
-        name: 'key',
-        internalType: 'struct ExperimentalDelegation.Key',
-        type: 'tuple',
-        components: [
-          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
-          {
-            name: 'keyType',
-            internalType: 'enum ExperimentalDelegation.KeyType',
-            type: 'uint8',
-          },
-          {
-            name: 'publicKey',
-            internalType: 'struct ECDSA.PublicKey',
-            type: 'tuple',
-            components: [
-              { name: 'x', internalType: 'uint256', type: 'uint256' },
-              { name: 'y', internalType: 'uint256', type: 'uint256' },
-            ],
-          },
-        ],
-      },
-    ],
-    name: 'initialize',
-    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'label_', internalType: 'string', type: 'string' },
-      {
-        name: 'key',
-        internalType: 'struct ExperimentalDelegation.Key',
-        type: 'tuple',
+        name: 'keys_',
+        internalType: 'struct ExperimentalDelegation.Key[]',
+        type: 'tuple[]',
         components: [
           { name: 'expiry', internalType: 'uint256', type: 'uint256' },
           {
@@ -825,7 +794,38 @@ export const experimentalDelegationAbi = [
       },
     ],
     name: 'initialize',
-    outputs: [{ name: 'keyIndex', internalType: 'uint32', type: 'uint32' }],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'label_', internalType: 'string', type: 'string' },
+      {
+        name: 'keys_',
+        internalType: 'struct ExperimentalDelegation.Key[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'expiry', internalType: 'uint256', type: 'uint256' },
+          {
+            name: 'keyType',
+            internalType: 'enum ExperimentalDelegation.KeyType',
+            type: 'uint8',
+          },
+          {
+            name: 'publicKey',
+            internalType: 'struct ECDSA.PublicKey',
+            type: 'tuple',
+            components: [
+              { name: 'x', internalType: 'uint256', type: 'uint256' },
+              { name: 'y', internalType: 'uint256', type: 'uint256' },
+            ],
+          },
+        ],
+      },
+    ],
+    name: 'initialize',
+    outputs: [],
     stateMutability: 'nonpayable',
   },
   {
@@ -899,14 +899,14 @@ export const experimentalDelegationAbi = [
 ] as const
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xb46b3f3f7F8B198894d1787b9d6c0effbd3928c9)
  */
 export const experimentalDelegationAddress = {
-  911867: '0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc',
+  911867: '0xb46b3f3f7F8B198894d1787b9d6c0effbd3928c9',
 } as const
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x50E075Dd0620DC401c0F0Cda83D0Eba170429AAc)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xb46b3f3f7F8B198894d1787b9d6c0effbd3928c9)
  */
 export const experimentalDelegationConfig = {
   address: experimentalDelegationAddress,
