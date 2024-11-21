@@ -2,6 +2,27 @@
 
 Experimental Next-gen Account for Ethereum.
 
+<p>
+  <a href="https://www.npmjs.com/package/porto">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/v/porto?colorA=21262d&colorB=21262d&style=flat">
+      <img src="https://img.shields.io/npm/v/porto?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="Version">
+    </picture>
+  </a>
+  <a href="https://github.com/ithacaxyz/porto/blob/main/LICENSE-MIT">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/license-MIT-blue.svg?colorA=21262d&colorB=21262d&style=flat">
+      <img src="https://img.shields.io/badge/license-MIT-blue.svg?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="MIT License">
+    </picture>
+  </a>
+  <a href="https://github.com/ithacaxyz/porto/blob/main/LICENSE-APACHE">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/license-APACHE-blue.svg?colorA=21262d&colorB=21262d&style=flat">
+      <img src="https://img.shields.io/badge/license-APACHE-blue.svg?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="APACHE License">
+    </picture>
+  </a>
+</p>
+
 ## Table of Contents
 
 - [Install](#install)
@@ -13,9 +34,12 @@ Experimental Next-gen Account for Ethereum.
   - [`experimental_disconnect`](#experimental_disconnect)
   - [`experimental_grantSession`](#experimental_grantsession)
   - [`experimental_sessions`](#experimental_sessions)
+- [Available ERC-5792 Capabilities](#available-erc-5792-capabilities)
+  - [`atomicBatch`](#atomicbatch)
+  - [`createAccount`](#createaccount)
+  - [`sessions`](#sessions)
 - [Development](#development)
-  - [Contracts](#contracts)
-
+- [License](#license)
 
 ## Install
 
@@ -377,3 +401,18 @@ $ foundryup
 $ forge build --config-path ./contracts/foundry.toml # Build
 $ forge test --config-path ./contracts/foundry.toml # Test
 ```
+
+## License
+
+<sup>
+Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
+2.0</a> or <a href="LICENSE-MIT">MIT license</a> at your option.
+</sup>
+
+<br>
+
+<sub>
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in these crates by you, as defined in the Apache-2.0 license,
+shall be dual licensed as above, without any additional terms or conditions.
+</sub>
