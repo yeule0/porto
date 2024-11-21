@@ -84,7 +84,8 @@ export function create(config: Config | undefined = {}): Porto {
         }),
         {
           name: 'porto.store',
-          merge,
+          // TODO: Fix
+          // merge,
           partialize(state) {
             return {
               accounts: state.accounts.map((account) => ({

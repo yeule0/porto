@@ -6,6 +6,8 @@ import { WagmiProvider } from 'wagmi'
 import { App } from './App'
 import { wagmiConfig } from './config'
 
+import './main.css'
+
 const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')!).render(
