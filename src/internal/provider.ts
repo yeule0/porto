@@ -84,11 +84,14 @@ export function from<
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
 
-          const [{ data = '0x', from, to, value = '0x0' }] =
+          const [{ chainId, data = '0x', from, to, value = '0x0' }] =
             params as RpcSchema.ExtractParams<
               RpcSchema_internal.Schema,
               'eth_sendTransaction'
             >
+
+          if (chainId && Hex.toNumber(chainId) !== state.chainId)
+            throw new Provider_ox.ChainDisconnectedError()
 
           requireParameter(to, 'to')
           requireParameter(from, 'from')
@@ -373,11 +376,14 @@ export function from<
           if (state.accounts.length === 0)
             throw new Provider_ox.DisconnectedError()
 
-          const [{ calls, from, capabilities }] =
+          const [{ chainId, calls, from, capabilities }] =
             params as RpcSchema.ExtractParams<
               RpcSchema_internal.Schema,
               'wallet_sendCalls'
             >
+
+          if (chainId && Hex.toNumber(chainId) !== state.chainId)
+            throw new Provider_ox.ChainDisconnectedError()
 
           requireParameter(from, 'from')
 
