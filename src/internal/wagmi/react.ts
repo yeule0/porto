@@ -22,8 +22,55 @@ import type {
   UseQueryReturnType,
 } from 'wagmi/query'
 
-import { createAccount, disconnect, grantSession, sessions } from './core.js'
+import {
+  connect,
+  createAccount,
+  disconnect,
+  grantSession,
+  sessions,
+} from './core.js'
 import { sessionsQueryKey } from './query.js'
+
+export function useConnect<
+  config extends Config = ResolvedRegister['config'],
+  context = unknown,
+>(
+  parameters: useConnect.Parameters<config, context> = {},
+): useConnect.ReturnType<config, context> {
+  const { mutation } = parameters
+  const config = useConfig(parameters)
+  return useMutation({
+    ...mutation,
+    async mutationFn(variables) {
+      return connect(config, variables)
+    },
+    mutationKey: ['connect'],
+  })
+}
+
+export declare namespace useConnect {
+  type Parameters<config extends Config = Config, context = unknown> = {
+    config?: Config | config | undefined
+    mutation?:
+      | UseMutationParameters<
+          connect.ReturnType,
+          connect.ErrorType,
+          connect.Parameters<config>,
+          context
+        >
+      | undefined
+  }
+
+  type ReturnType<
+    config extends Config = Config,
+    context = unknown,
+  > = UseMutationResult<
+    connect.ReturnType,
+    connect.ErrorType,
+    connect.Parameters<config>,
+    context
+  >
+}
 
 export function useCreateAccount<
   config extends Config = ResolvedRegister['config'],

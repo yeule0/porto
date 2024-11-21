@@ -46,30 +46,30 @@ export type Schema = RpcSchema.From<
     }
 >
 
-type ConnectParameters = {
+export type ConnectParameters = {
   capabilities?:
     | {
-        createAccount?: true | CreateAccountParameters | undefined
+        createAccount?: boolean | CreateAccountParameters | undefined
         grantSession?:
-          | true
+          | boolean
           | Omit<GrantSessionParameters, 'address'>
           | undefined
       }
     | undefined
 }
 
-type ConnectReturnType = readonly {
+export type ConnectReturnType = readonly {
   address: Address.Address
   capabilities?: {
     sessions?: GetSessionsReturnType | undefined
   }
 }[]
 
-type CreateAccountParameters = {
+export type CreateAccountParameters = {
   label?: string | undefined
 }
 
-type GrantSessionParameters = {
+export type GrantSessionParameters = {
   address?: Address.Address | undefined
   expiry?: number | undefined
   keys?:
@@ -80,13 +80,13 @@ type GrantSessionParameters = {
     | undefined
 }
 
-type GetSessionsParameters = {
+export type GetSessionsParameters = {
   address?: Address.Address | undefined
 }
 
-type GetSessionsReturnType = readonly GrantSessionReturnType[]
+export type GetSessionsReturnType = readonly GrantSessionReturnType[]
 
-type GrantSessionReturnType = {
+export type GrantSessionReturnType = {
   expiry: number
   id: Hex.Hex
 }

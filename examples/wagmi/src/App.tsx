@@ -1,8 +1,14 @@
 import { W } from 'porto/wagmi'
 import { formatEther, parseEther } from 'viem'
-import { type BaseError, useAccount, useConnect, useReadContract } from 'wagmi'
+import {
+  type BaseError,
+  useAccount,
+  useConnectors,
+  useReadContract,
+} from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
 
+import { useState } from 'react'
 import { ExperimentERC20 } from './contracts'
 
 export function App() {
@@ -10,13 +16,14 @@ export function App() {
   return (
     <>
       <Account />
-      <Connect />
-      {isConnected && (
+      {isConnected ? (
         <>
           <Balance />
           <GrantSession />
           <Mint />
         </>
+      ) : (
+        <Connect />
       )}
     </>
   )
@@ -51,33 +58,45 @@ function Account() {
 }
 
 function Connect() {
-  const connect = useConnect()
-  const createAccount = W.useCreateAccount()
+  const [grantSession, setGrantSession] = useState<boolean>(true)
+
+  const connectors = useConnectors()
+  const connect = W.useConnect()
 
   return (
     <div>
       <h2>Connect</h2>
-      {connect.connectors
+      <label>
+        <input
+          type="checkbox"
+          checked={grantSession}
+          onChange={() => setGrantSession((x) => !x)}
+        />
+        Grant Session
+      </label>
+      {connectors
         .filter((x) => x.id === 'xyz.ithaca.porto')
         ?.map((connector) => (
           <div key={connector.uid}>
             <button
               key={connector.uid}
-              onClick={() => connect.connect({ connector })}
+              onClick={() => connect.mutate({ connector, grantSession })}
               type="button"
             >
               Login
             </button>
             <button
-              onClick={() => createAccount.mutate({ connector })}
+              onClick={() =>
+                connect.mutate({ connector, createAccount: true, grantSession })
+              }
               type="button"
             >
               Register
             </button>
           </div>
         ))}
-      <div>{connect.status ?? createAccount.status}</div>
-      <div>{connect.error?.message ?? createAccount.error?.message}</div>
+      <div>{connect.status}</div>
+      <div>{connect.error?.message}</div>
     </div>
   )
 }
@@ -103,8 +122,10 @@ function Balance() {
 }
 
 function GrantSession() {
+  const sessions = W.useSessions()
   const grantSession = W.useGrantSession()
 
+  if (sessions.data?.length !== 0) return null
   return (
     <div>
       <h2>Grant Session</h2>

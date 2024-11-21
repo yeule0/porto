@@ -1,3 +1,4 @@
+import type * as RpcSchema from 'ox/RpcSchema'
 import {
   type Address,
   type Chain,
@@ -10,6 +11,56 @@ import {
   getConnectorClient,
   disconnect as wagmi_disconnect,
 } from 'wagmi/actions'
+import type {
+  CreateAccountParameters,
+  GrantSessionParameters,
+  Schema,
+} from '../rpcSchema.js'
+
+export async function connect<config extends Config>(
+  config: config,
+  parameters: connect.Parameters<config>,
+): Promise<connect.ReturnType> {
+  const { createAccount, grantSession } = parameters
+
+  const connector = parameters.connector ?? config.connectors[0]
+  if (!connector) throw new Error('Connector is required')
+
+  if (parameters.chainId && parameters.chainId !== config.state.chainId)
+    throw new ChainMismatchError({
+      chain:
+        config.chains.find((chain) => chain.id === parameters.chainId) ??
+        ({
+          id: parameters.chainId,
+          name: `Chain ${parameters.chainId}`,
+        } as Chain),
+      currentChainId: config.state.chainId,
+    })
+
+  const provider = (await connector.getProvider()) as EIP1193Provider
+  return provider.request<{
+    Method: 'experimental_connect'
+    Parameters?: RpcSchema.ExtractParams<Schema, 'experimental_connect'>
+    ReturnType: RpcSchema.ExtractReturnType<Schema, 'experimental_connect'>
+  }>({
+    method: 'experimental_connect',
+    params: [{ capabilities: { createAccount, grantSession } }],
+  }) as unknown as connect.ReturnType
+}
+
+export declare namespace connect {
+  type Parameters<config extends Config = Config> = {
+    chainId?: config['chains'][number]['id'] | undefined
+    connector?: Connector | undefined
+    createAccount?: boolean | CreateAccountParameters | undefined
+    grantSession?: boolean | GrantSessionParameters | undefined
+  }
+
+  type ReturnType = RpcSchema.ExtractReturnType<Schema, 'experimental_connect'>
+
+  // TODO: Exhaustive ErrorType
+  type ErrorType = BaseErrorType
+}
 
 export async function createAccount<config extends Config>(
   config: config,
