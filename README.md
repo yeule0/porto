@@ -122,6 +122,9 @@ Porto implements the following **standardized wallet** JSON-RPC methods:
 
 In addition to the above, Porto implements the following **experimental** JSON-RPC methods:
 
+> [!NOTE]
+> These JSON-RPC methods intend to be upstreamed as an ERC in the near future. They are purposefully minimalistic and intend to be iterated on.
+
 #### `experimental_connect`
 
 Connects an end-user to an application.
