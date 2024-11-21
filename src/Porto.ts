@@ -13,7 +13,7 @@ export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
   headless: true,
-  keystoreHost: 'exp.porto.sh',
+  keystoreHost: 'self',
   transports: {
     [Chains.odysseyTestnet.id]: http(),
   },
@@ -42,18 +42,18 @@ export function create(config: Config | undefined = {}): Porto {
     announceProvider = defaultConfig.announceProvider,
     chains = defaultConfig.chains,
     headless = defaultConfig.headless,
+    keystoreHost: keystoreHost_ = defaultConfig.keystoreHost,
     transports = defaultConfig.transports,
   } = config
 
   const keystoreHost = (() => {
-    if (config?.keystoreHost === 'self') return undefined
-    if (config?.keystoreHost) return config.keystoreHost
+    if (keystoreHost_ === 'self') return undefined
     if (
       typeof window !== 'undefined' &&
       window.location.hostname === 'localhost'
     )
       return undefined
-    return defaultConfig.keystoreHost
+    return keystoreHost_
   })()
 
   if (headless && keystoreHost) WebAuthn.touchWellknown({ rpId: keystoreHost })
