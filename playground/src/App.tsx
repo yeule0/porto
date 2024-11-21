@@ -108,38 +108,49 @@ function Events() {
 }
 
 function Connect() {
+  const [grantSession, setGrantSession] = useState<boolean>(true)
   const [result, setResult] = useState<unknown | null>(null)
   return (
     <div>
       <h3>experimental_connect</h3>
-      <button
-        onClick={() =>
-          porto.provider
-            .request({
-              method: 'experimental_connect',
-              params: [{ capabilities: { grantSession: true } }],
-            })
-            .then(setResult)
-        }
-        type="button"
-      >
-        Login
-      </button>
-      <button
-        onClick={() =>
-          porto.provider
-            .request({
-              method: 'experimental_connect',
-              params: [
-                { capabilities: { createAccount: true, grantSession: true } },
-              ],
-            })
-            .then(setResult)
-        }
-        type="button"
-      >
-        Register
-      </button>
+      <label>
+        <input
+          type="checkbox"
+          checked={grantSession}
+          onChange={() => setGrantSession((x) => !x)}
+        />
+        Grant Session
+      </label>
+      <div>
+        <button
+          onClick={() =>
+            porto.provider
+              .request({
+                method: 'experimental_connect',
+                params: [{ capabilities: { grantSession } }],
+              })
+              .then(setResult)
+          }
+          type="button"
+        >
+          Login
+        </button>
+        <button
+          onClick={() =>
+            porto.provider
+              .request({
+                method: 'experimental_connect',
+                params: [
+                  { capabilities: { createAccount: true, grantSession } },
+                ],
+              })
+              .then(setResult)
+          }
+          type="button"
+        >
+          Register
+        </button>
+      </div>
       <pre>{JSON.stringify(result, null, 2)}</pre>
     </div>
   )

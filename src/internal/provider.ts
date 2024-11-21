@@ -361,7 +361,7 @@ export function from<
               createAccount: {
                 supported: true,
               },
-              session: {
+              sessions: {
                 supported: true,
               },
             },
