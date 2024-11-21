@@ -4,7 +4,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
 
 import * as Chains from './Chains.js'
-import * as AccountDelegation from './internal/accountDelegation.js'
+import type * as AccountDelegation from './internal/accountDelegation.js'
 import * as Provider from './internal/provider.js'
 import * as Storage from './internal/storage.js'
 import * as WebAuthn from './internal/webauthn.js'
