@@ -50,7 +50,7 @@ pnpm i porto
 
 ## Usage
 
-The example below demonstrates usage of Porto's EIP-1193 Provider:
+The example below demonstrates usage of Porto's [EIP-1193](https://eips.ethereum.org/EIPS/eip-1193) Provider:
 
 ```ts twoslash
 import { Porto } from 'porto'
