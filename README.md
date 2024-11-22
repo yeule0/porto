@@ -34,11 +34,11 @@ Experimental Next-gen Account for Ethereum.
   - [`experimental_disconnect`](#experimental_disconnect)
   - [`experimental_grantSession`](#experimental_grantsession)
   - [`experimental_sessions`](#experimental_sessions)
-- [Wagmi Reference](#wagmi-reference)
 - [Available ERC-5792 Capabilities](#available-erc-5792-capabilities)
   - [`atomicBatch`](#atomicbatch)
   - [`createAccount`](#createaccount)
   - [`sessions`](#sessions)
+- [Wagmi Reference](#wagmi-reference)
 - [Development](#development)
 - [License](#license)
 
@@ -289,44 +289,6 @@ Lists the active sessions on the account.
 ```ts
 { expiry: number, id: `0x${string}` }[]
 ```
-
-## Wagmi Reference
-
-Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS Actions and React Hooks that map directly to the [experimental JSON-RPC methods](#json-rpc-reference).
-
-> [!NOTE]
-> Porto only supports the React version of Wagmi at the moment. If you are interested in adding support for other Wagmi Adapters, please create a Pull Request.
-
-### VanillaJS Actions
-
-Import via named export or `A` namespace (better autocomplete DX and does not impact tree shaking).
-
-- `connect`
-- `createAccount`
-- `disconnect`
-- `grantSession`
-- `sessions`
-
-```ts
-import { A } from 'porto/wagmi/actions' // A.connect()
-import { connect } from 'porto/wagmi/actions'
-```
-
-### React Hooks
-
-Import via named export or `W` namespace (better autocomplete DX and does not impact tree shaking).
-
-- `useConnect`
-- `useCreateAccount`
-- `useDisconnect`
-- `useGrantSession`
-- `useSessions`
-
-```ts
-import { W } from 'porto/wagmi' // W.useConnect()
-import { useConnect } from 'porto/wagmi'
-```
-
 ## Available ERC-5792 Capabilities
 
 Porto implements the following [ERC-5792 capabilities](https://eips.ethereum.org/EIPS/eip-5792#wallet_getcapabilities) to define extended behavior:
@@ -420,6 +382,43 @@ Example:
 }
 ```
 
+## Wagmi Reference
+
+Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS Actions and React Hooks that map directly to the [experimental JSON-RPC methods](#json-rpc-reference).
+
+> [!NOTE]
+> Porto only supports the React version of Wagmi at the moment. If you are interested in adding support for other Wagmi Adapters, please create a Pull Request.
+
+### VanillaJS Actions
+
+Import via named export or `A` namespace (better autocomplete DX and does not impact tree shaking).
+
+- `connect`
+- `createAccount`
+- `disconnect`
+- `grantSession`
+- `sessions`
+
+```ts
+import { A } from 'porto/wagmi/actions' // A.connect()
+import { connect } from 'porto/wagmi/actions'
+```
+
+### React Hooks
+
+Import via named export or `W` namespace (better autocomplete DX and does not impact tree shaking).
+
+- `useConnect`
+- `useCreateAccount`
+- `useDisconnect`
+- `useGrantSession`
+- `useSessions`
+
+```ts
+import { W } from 'porto/wagmi' // W.useConnect()
+import { useConnect } from 'porto/wagmi'
+```
+
 ## Development
 
 ```bash
@@ -427,7 +426,7 @@ Example:
 $ curl -fsSL https://get.pnpm.io/install.sh | sh - 
 
 $ pnpm install # Install modules
-$ pnpm dev # Run
+$ pnpm dev # Run playground
 ```
 
 ### Contracts
