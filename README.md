@@ -235,7 +235,9 @@ Disconnects the account.
 
 ### `experimental_grantSession`
 
-Grants a session on the account.
+Grants a session on the account. 
+
+> Minimal alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
 
 #### Parameters
 
