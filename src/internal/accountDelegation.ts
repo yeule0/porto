@@ -398,16 +398,25 @@ export async function load<chain extends Chain | undefined>(
 ) {
   const { authorizeKeys = [], rpId } = parameters
 
-  // We will sign a random challenge. We need to do this to extract the
-  // user id (ie. the address) to query for the Account's keys.
-  const { raw } = await WebAuthnP256.sign({
-    challenge: '0x',
-    rpId,
-  })
+  let address: Address.Address
+  let raw: PublicKeyCredential
+  let credentialId: string
+  if (parameters.address && parameters.credentialId) {
+    address = parameters.address
+    credentialId = parameters.credentialId
+  } else {
+    // We will sign a random challenge. We need to do this to extract the
+    // user id (ie. the address) to query for the Account's keys.
+    const credential = await WebAuthnP256.sign({
+      challenge: '0x',
+      rpId,
+    })
 
-  const response = raw.response as AuthenticatorAssertionResponse
-  const address = Bytes.toHex(new Uint8Array(response.userHandle!))
-  const credentialId = raw.id
+    const response = credential.raw.response as AuthenticatorAssertionResponse
+    address = Bytes.toHex(new Uint8Array(response.userHandle!))
+    raw = credential.raw
+    credentialId = raw.id
+  }
 
   // If there are extra keys to authorize (ie. session keys), sign over them.
   const authorizeKeysResult = await (async () => {
@@ -418,11 +427,12 @@ export async function load<chain extends Chain | undefined>(
       keys: authorizeKeys ?? [],
     })
 
-    const { signature, metadata } = await WebAuthnP256.sign({
+    const { signature, metadata, ...rest } = await WebAuthnP256.sign({
       challenge: payload,
       credentialId,
       rpId,
     })
+    raw = rest.raw
 
     const wrappedSignature = wrapSignature({
       metadata: getWebAuthnMetadata(metadata),
@@ -495,6 +505,8 @@ export async function load<chain extends Chain | undefined>(
 
 export declare namespace load {
   type Parameters = {
+    address?: Address.Address | undefined
+    credentialId?: string | undefined
     /** Extra keys to authorize. */
     authorizeKeys?: readonly Key[] | undefined
     /** Relying Party ID. */
