@@ -23,6 +23,9 @@ Experimental Next-gen Account for Ethereum.
   </a>
 </p>
 
+> [!WARNING]
+> This repository is work-in-progress and highly experimental. It is recommended not to use it in production just yet.
+
 ## Table of Contents
 
 - [Install](#install)
