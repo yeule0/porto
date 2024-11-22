@@ -1,4 +1,5 @@
 export {
+  useConnect,
   useCreateAccount,
   useDisconnect,
   useGrantSession,

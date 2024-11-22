@@ -24,13 +24,23 @@
       "types": "./_dist/wagmi.d.ts",
       "default": "./_dist/wagmi.js"
     },
+    "./wagmi/actions": {
+      "types": "./_dist/actions.d.ts",
+      "default": "./_dist/actions.js"
+    },
+    "./wagmi/query": {
+      "types": "./_dist/query.d.ts",
+      "default": "./_dist/query.js"
+    },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
       "Chains": ["./_dist/Chains.d.ts"],
       "Porto": ["./_dist/Porto.d.ts"],
-      "wagmi": ["./_dist/wagmi.d.ts"]
+      "wagmi": ["./_dist/wagmi.d.ts"],
+      "wagmi/actions": ["./_dist/actions.d.ts"],
+      "wagmi/query": ["./_dist/query.d.ts"]
     }
   },
   "files": [

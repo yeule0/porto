@@ -34,6 +34,7 @@ Experimental Next-gen Account for Ethereum.
   - [`experimental_disconnect`](#experimental_disconnect)
   - [`experimental_grantSession`](#experimental_grantsession)
   - [`experimental_sessions`](#experimental_sessions)
+- [Wagmi Reference](#wagmi-reference)
 - [Available ERC-5792 Capabilities](#available-erc-5792-capabilities)
   - [`atomicBatch`](#atomicbatch)
   - [`createAccount`](#createaccount)
@@ -91,10 +92,10 @@ export const wagmiConfig = createConfig({
 })
 ```
 
-This means you can now use Wagmi-compatible Hooks like `W.useConnect`:
+This means you can now use Wagmi-compatible Hooks like `useConnect`. For more info, check out the [Wagmi Reference](#wagmi-reference).
 
-```tsx twoslash
-import { W } from 'porto/react'
+```tsx
+import { W } from 'porto/wagmi'
 import { useConnectors } from 'wagmi'
 
 function Connect() {
@@ -107,7 +108,7 @@ function Connect() {
         onClick={() =>
           connect.mutate({ 
             connector, 
-            grantSession: true
+            grantSession: true,
           })
         }
       >
@@ -118,7 +119,7 @@ function Connect() {
           connect.mutate({ 
             connector, 
             createAccount: true, 
-            grantSession: true 
+            grantSession: true,
           }
         )}
       >
@@ -289,6 +290,43 @@ Lists the active sessions on the account.
 { expiry: number, id: `0x${string}` }[]
 ```
 
+## Wagmi Reference
+
+Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS Actions and React Hooks that map directly to the [experimental JSON-RPC methods](#json-rpc-reference).
+
+> [!NOTE]
+> Porto only supports the React version of Wagmi at the moment. If you are interested in adding support for other Wagmi Adapters, please create a Pull Request.
+
+### VanillaJS Actions
+
+Import via named export or `A` namespace (better autocomplete DX and does not impact tree shaking).
+
+- `connect`
+- `createAccount`
+- `disconnect`
+- `grantSession`
+- `sessions`
+
+```ts
+import { A } from 'porto/wagmi/actions'
+import { connect } from 'porto/wagmi/actions'
+```
+
+### React Hooks
+
+Import via named export or `W` namespace (better autocomplete DX and does not impact tree shaking).
+
+- `useConnect`
+- `useCreateAccount`
+- `useDisconnect`
+- `useGrantSession`
+- `useSessions`
+
+```ts
+import { W } from 'porto/wagmi'
+import { useConnect } from 'porto/wagmi'
+```
+
 ## Available ERC-5792 Capabilities
 
 Porto implements the following [ERC-5792 capabilities](https://eips.ethereum.org/EIPS/eip-5792#wallet_getcapabilities) to define extended behavior:
@@ -413,6 +451,6 @@ Licensed under either of <a href="LICENSE-APACHE">Apache License, Version
 
 <sub>
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in these crates by you, as defined in the Apache-2.0 license,
+for inclusion in these packages by you, as defined in the Apache-2.0 license,
 shall be dual licensed as above, without any additional terms or conditions.
 </sub>
