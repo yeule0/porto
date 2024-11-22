@@ -308,7 +308,7 @@ Import via named export or `A` namespace (better autocomplete DX and does not im
 - `sessions`
 
 ```ts
-import { A } from 'porto/wagmi/actions'
+import { A } from 'porto/wagmi/actions' // A.connect()
 import { connect } from 'porto/wagmi/actions'
 ```
 
@@ -323,7 +323,7 @@ Import via named export or `W` namespace (better autocomplete DX and does not im
 - `useSessions`
 
 ```ts
-import { W } from 'porto/wagmi'
+import { W } from 'porto/wagmi' // W.useConnect()
 import { useConnect } from 'porto/wagmi'
 ```
 
