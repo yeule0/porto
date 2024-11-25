@@ -5,7 +5,7 @@
   "changelog": ["@changesets/changelog-github", { "repo": "ithacaxyz/porto" }],
   "commit": false,
   "fixed": [],
-  "ignore": ["wagmi"],
+  "ignore": ["*-example"],
   "linked": [],
   "updateInternalDependencies": "patch"
 }

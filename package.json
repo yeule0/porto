@@ -14,7 +14,7 @@
     "clean": "rm -rf src/_dist src/Chains src/Porto src/wagmi ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
     "deps": "pnpx taze -r",
     "dev": "pnpm preconstruct && pnpm --filter playground dev",
-    "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi dev",
+    "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi-example dev",
     "knip": "knip --production",
     "format": "biome format --write",
     "postinstall": "pnpm preconstruct",
