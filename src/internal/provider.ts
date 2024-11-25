@@ -173,6 +173,8 @@ export function from<
               })
             }
             return await AccountDelegation.load(state.client, {
+              // address: '0x35a19d3b2ec257cedceff387c0b208e31a8114a7',
+              // credentialId: 'FlBlx6pFPz4un7EomM1J4Q',
               authorizeKeys: key ? [key] : undefined,
               rpId: keystoreHost,
             })

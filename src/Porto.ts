@@ -206,6 +206,8 @@ function merge(p: unknown, currentState: State): State {
   return {
     ...state,
     // TODO: Fix
+    // When filtering out keys, `keyIndex` changes and no longer matches index in
+    // `WrappedSignature` (via `wrapSignature`).
     // accounts: state.accounts.map((account) => ({
     //   ...account,
     //   keys: account.keys.filter(

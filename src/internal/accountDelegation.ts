@@ -414,8 +414,8 @@ export async function load<chain extends Chain | undefined>(
 
     const response = credential.raw.response as AuthenticatorAssertionResponse
     address = Bytes.toHex(new Uint8Array(response.userHandle!))
+    credentialId = credential.raw.id
     raw = credential.raw
-    credentialId = raw.id
   }
 
   // If there are extra keys to authorize (ie. session keys), sign over them.
