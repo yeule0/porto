@@ -434,6 +434,17 @@ export async function load<chain extends Chain | undefined>(
     })
     raw = rest.raw
 
+    // if `address` and `credentialId` were passed (to remove first signature),
+    // check to make sure `address` matches the key used for the second signature.
+    if (parameters.address && parameters.credentialId) {
+      const response = rest.raw.response as AuthenticatorAssertionResponse
+      const userHandle = Bytes.toHex(new Uint8Array(response.userHandle!))
+      if (address !== userHandle)
+        throw new Error(
+          `supplied address "${address}" does not match signature address "${userHandle}"`,
+        )
+    }
+
     const wrappedSignature = wrapSignature({
       metadata: getWebAuthnMetadata(metadata),
       signature,
