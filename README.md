@@ -1,4 +1,4 @@
-[Porto](https://github.com/ithacaxyz/porto/blob/main/.github/banner.png)
+![Porto](https://github.com/ithacaxyz/porto/blob/main/.github/banner.png)
 
 # Porto
 
