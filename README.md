@@ -433,6 +433,7 @@ import { useConnect } from 'porto/wagmi'
 $ curl -fsSL https://get.pnpm.io/install.sh | sh - 
 
 $ pnpm install # Install modules
+$ pnpm wagmi generate # get ABIs, etc.
 $ pnpm dev # Run playground
 ```
 
