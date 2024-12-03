@@ -1,10 +1,14 @@
 import { AbiFunction, Hex, Json, PublicKey, TypedData, Value } from 'ox'
 import { Porto } from 'porto'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  privateKeyToAddress,
+} from 'viem/accounts'
 
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { ExperimentERC20 } from './contracts'
 
 export const porto = Porto.create()
@@ -313,18 +317,42 @@ function GetSessions() {
 }
 
 function ImportAccount() {
-  const account = useMemo(() => privateKeyToAccount(generatePrivateKey()), [])
-
-  const [grantSession, setGrantSession] = useState<boolean>(true)
-  const [prepareResult, setPrepareResult] = useState<{
-    context: any
-    signPayloads: readonly Hex.Hex[]
+  const [accountData, setAccountData] = useState<{
+    address: string
+    privateKey: string
   } | null>(null)
+  const [grantSession, setGrantSession] = useState<boolean>(true)
+  const [privateKey, setPrivateKey] = useState<string>('')
   const [result, setResult] = useState<unknown | null>(null)
 
   return (
     <div>
       <h3>experimental_importAccount</h3>
+      <p>
+        <button
+          onClick={() => {
+            const privateKey = generatePrivateKey()
+            setPrivateKey(privateKey)
+            setAccountData({
+              privateKey,
+              address: privateKeyToAddress(privateKey),
+            })
+          }}
+          type="button"
+        >
+          Create Account
+        </button>
+        {accountData && <pre>{JSON.stringify(accountData, null, 2)}</pre>}
+      </p>
+      <div>
+        <input
+          type="text"
+          value={privateKey}
+          onChange={(e) => setPrivateKey(e.target.value)}
+          placeholder="Private Key"
+          style={{ width: '300px' }}
+        />
+      </div>
       <label>
         <input
           type="checkbox"
@@ -335,37 +363,29 @@ function ImportAccount() {
       </label>
       <div>
         <button
-          onClick={() =>
-            porto.provider
-              .request({
-                method: 'experimental_prepareImportAccount',
-                params: [
-                  { address: account.address, capabilities: { grantSession } },
-                ],
-              })
-              .then(setPrepareResult)
-          }
-          type="button"
-        >
-          Prepare
-        </button>
-        <button
-          disabled={!prepareResult}
           onClick={async () => {
+            const account = privateKeyToAccount(privateKey as Hex.Hex)
+
+            const { context, signPayloads } = await porto.provider.request({
+              method: 'experimental_prepareImportAccount',
+              params: [
+                { address: account.address, capabilities: { grantSession } },
+              ],
+            })
+
             const signatures = await Promise.all(
-              prepareResult!.signPayloads.map((hash: Hex.Hex) =>
-                account.sign({ hash }),
-              ),
+              signPayloads.map((hash: Hex.Hex) => account.sign({ hash })),
             )
+
             const address = await porto.provider.request({
               method: 'experimental_importAccount',
-              params: [{ context: prepareResult!.context, signatures }],
+              params: [{ context, signatures }],
             })
             setResult(address)
           }}
           type="button"
         >
-          Sign & Import
+          Import Account
         </button>
       </div>
       {result ? (
