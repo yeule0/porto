@@ -2,12 +2,12 @@ import { AbiFunction, Hex, Json, PublicKey, TypedData, Value } from 'ox'
 import { Porto } from 'porto'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
-import { verifyMessage, verifyTypedData } from 'viem/actions'
 import {
   generatePrivateKey,
   privateKeyToAccount,
   privateKeyToAddress,
 } from 'viem/accounts'
+import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { ExperimentERC20 } from './contracts'
 
@@ -374,7 +374,7 @@ function ImportAccount() {
             })
 
             const signatures = await Promise.all(
-              signPayloads.map((hash: Hex.Hex) => account.sign({ hash })),
+              signPayloads.map((hash) => account.sign({ hash })),
             )
 
             const address = await porto.provider.request({
