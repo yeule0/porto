@@ -52,13 +52,10 @@
     "pre-commit": "pnpm check"
   },
   "knip": {
-    "ignore": [".github/**", "scripts/**", "src/_test/**", "src/package.json"],
-    "ignoreBinaries": ["dev", "only-allow", "printf"],
-    "workspaces": {
-      "src": {
-        "entry": ["index.ts!"]
-      }
-    }
+    "entry": ["src/index.ts!", "src/actions.ts!", "src/query.ts!"],
+    "project": ["src/**"],
+    "ignore": ["src/internal/**", "src/generated.ts"],
+    "ignoreDependencies": ["@tanstack/react-query", "react", "wagmi"]
   },
   "size-limit": [
     {

@@ -11,7 +11,7 @@ import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { ExperimentERC20 } from './contracts'
 
-export const porto = Porto.create()
+const porto = Porto.create()
 
 const client = createClient({
   transport: custom(porto.provider),
@@ -691,7 +691,7 @@ function SignTypedData() {
   )
 }
 
-export const typedData = {
+const typedData = {
   domain: {
     name: 'Ether Mail 🥵',
     version: '1.1.1',
