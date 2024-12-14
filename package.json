@@ -9,7 +9,9 @@
     "changeset:publish": "pnpm changeset:prepublish && changeset publish",
     "changeset:version": "changeset version && pnpm format",
     "check": "biome check . --fix --unsafe",
+    "check:build": "tsx ./scripts/prepublish.ts && publint --strict ./src && attw --pack ./src --profile esm-only",
     "check:repo": "sherif",
+    "check:size": "size-limit",
     "check:types": "tsc --noEmit",
     "clean": "rm -rf src/_dist src/Chains src/Porto src/wagmi ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
     "deps": "pnpx taze -r",
@@ -23,16 +25,20 @@
     "prepare": "pnpm simple-git-hooks"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.1",
     "@biomejs/biome": "^1.8.3",
     "@changesets/changelog-github": "^0.5.0",
     "@changesets/cli": "^2.27.7",
+    "@size-limit/preset-big-lib": "^11.1.6",
     "@tanstack/react-query": "catalog:",
     "@types/node": "^22.5.4",
     "@types/react": "catalog:",
     "@wagmi/cli": "^2.1.18",
     "knip": "^5.30.6",
+    "publint": "^0.2.12",
     "sherif": "^0.11.0",
     "simple-git-hooks": "^2.11.1",
+    "size-limit": "^11.1.6",
     "tsx": "^4.17.0",
     "typescript": "catalog:",
     "viem": "catalog:",
@@ -53,5 +59,13 @@
         "entry": ["index.ts!"]
       }
     }
-  }
+  },
+  "size-limit": [
+    {
+      "name": "import * from 'ox'",
+      "path": "./src/_dist/index.js",
+      "import": "*",
+      "limit": "54 kB"
+    }
+  ]
 }
