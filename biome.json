@@ -3,7 +3,7 @@
   "files": {
     "ignore": [
       "contracts/lib",
-      "src/generated.ts",
+      "src/core/internal/generated.ts",
       "tsconfig.json",
       "tsconfig.*.json"
     ]
@@ -38,18 +38,6 @@
       }
     }
   },
-  "overrides": [
-    {
-      "include": ["./scripts/**/*.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsoleLog": "off"
-          }
-        }
-      }
-    }
-  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "single",

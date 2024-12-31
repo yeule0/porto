@@ -1,38 +1,41 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, relative, resolve } from 'node:path'
+import * as fs from 'node:fs'
+import { join, relative, resolve } from 'node:path'
+import { getExports } from './utils/exports.js'
 
-// Generates proxy packages for package.json#exports.
+const packageJsonPath = join(import.meta.dirname, '../src/package.json')
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
 
-console.log('Generating proxy packages.')
+const exports = getExports({
+  onEntry: ({ entryName, name, parentEntryName }) => {
+    const modulePath = (dist?: string) => {
+      let path = './'
+      if (dist) path += `${dist}/`
+      if (dist || (parentEntryName && parentEntryName !== 'core'))
+        path += `${parentEntryName}/`
+      if (dist || name !== 'index') path += name
+      return path
+    }
 
-const packagePath = resolve(import.meta.dirname, '../src/package.json')
-type Package = Record<string, unknown> & {
-  name?: string | undefined
-  private?: boolean | undefined
-  exports: Record<string, { types: string; default: string } | string>
-}
-const packageJson = JSON.parse(await readFile(packagePath, 'utf8')) as Package
+    try {
+      fs.mkdirSync(resolve(import.meta.dirname, '../src', entryName))
+    } catch {}
+    fs.writeFileSync(
+      resolve(import.meta.dirname, '../src', entryName, 'package.json'),
+      JSON.stringify(
+        {
+          type: 'module',
+          types: relative(modulePath(), modulePath('_dist')) + '.d.ts',
+          main: relative(modulePath(), modulePath('_dist')) + '.js',
+        },
+        null,
+        2,
+      ),
+    )
+  },
+})
 
-console.log(`${packageJson.name} — ${dirname(packagePath)}`)
+packageJson.exports = exports.dist
 
-const dir = resolve(dirname(packagePath))
+delete packageJson.type
 
-for (const [key, exports] of Object.entries(packageJson.exports)) {
-  // Skip `package.json` export
-  if (/package\.json$/.test(key)) continue
-  if (key === '.') continue
-  if (typeof exports === 'string') continue
-  if (!exports.default) continue
-
-  const proxyDir = resolve(dir, key)
-  await mkdir(proxyDir, { recursive: true })
-
-  const types = relative(key, exports.types)
-  const main = relative(key, exports.default)
-  await writeFile(
-    `${proxyDir}/package.json`,
-    `${JSON.stringify({ type: 'module', types, main }, undefined, 2)}\n`,
-  )
-}
-
-console.log('Done. Generated proxy packages.')
+fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))

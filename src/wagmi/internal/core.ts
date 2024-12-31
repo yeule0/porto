@@ -25,7 +25,7 @@ import type {
   CreateAccountParameters,
   GrantSessionParameters,
   Schema,
-} from '../rpcSchema.js'
+} from '../../core/internal/rpcSchema.js'
 import type { ChainIdParameter, ConnectorParameter } from './types.js'
 
 export async function connect<config extends Config>(

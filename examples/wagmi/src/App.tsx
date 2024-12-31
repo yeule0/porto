@@ -1,4 +1,4 @@
-import { W } from 'porto/wagmi'
+import { Hooks } from 'porto/wagmi'
 import { type Hex, formatEther, parseEther } from 'viem'
 import {
   type BaseError,
@@ -39,8 +39,8 @@ export function App() {
 
 function Account() {
   const account = useAccount()
-  const { data: sessions } = W.useSessions()
-  const disconnect = W.useDisconnect()
+  const { data: sessions } = Hooks.useSessions()
+  const disconnect = Hooks.useDisconnect()
 
   return (
     <div>
@@ -69,7 +69,7 @@ function Connect() {
   const [grantSession, setGrantSession] = useState<boolean>(true)
 
   const connectors = useConnectors()
-  const connect = W.useConnect()
+  const connect = Hooks.useConnect()
 
   return (
     <div>
@@ -118,7 +118,7 @@ function ImportAccount() {
   const [privateKey, setPrivateKey] = useState<string>('')
 
   const connectors = useConnectors()
-  const importAccount = W.useImportAccount()
+  const importAccount = Hooks.useImportAccount()
 
   return (
     <div>
@@ -202,8 +202,8 @@ function Balance() {
 }
 
 function GrantSession() {
-  const sessions = W.useSessions()
-  const grantSession = W.useGrantSession()
+  const sessions = Hooks.useSessions()
+  const grantSession = Hooks.useGrantSession()
 
   if (sessions.data?.length !== 0) return null
   return (

@@ -17,7 +17,7 @@ import {
   signAuthorization,
 } from 'viem/experimental'
 
-import { experimentalDelegationAbi } from '../generated.js'
+import { experimentalDelegationAbi } from './generated.js'
 import type { OneOf, Undefined } from './types.js'
 
 ////////////////////////////////////////////////////////////

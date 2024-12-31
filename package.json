@@ -14,7 +14,7 @@
     "check:repo": "sherif",
     "check:size": "size-limit",
     "check:types": "tsc --noEmit",
-    "clean": "rm -rf src/_dist src/Chains src/Porto src/wagmi ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
+    "clean": "rm -rf src/_dist ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
     "deps": "pnpx taze -r",
     "dev": "pnpm preconstruct && pnpm --filter playground dev",
     "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi-example dev",
@@ -52,9 +52,9 @@
     "pre-commit": "pnpm check"
   },
   "knip": {
-    "entry": ["src/{index,actions,query,wagmi}.ts!"],
+    "entry": ["src/{index,wagmi/index}.ts!"],
     "project": ["src/**"],
-    "ignore": ["src/internal/**", "src/generated.ts"],
+    "ignore": ["**/internal/**", "src/core/internal/generated.ts"],
     "ignoreDependencies": ["@tanstack/react-query", "react", "wagmi"]
   },
   "size-limit": [

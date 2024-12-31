@@ -1,7 +1,7 @@
 import type * as Address from 'ox/Address'
 import type { Chain as Chain_viem } from 'viem'
 import * as chains from 'viem/chains'
-import { experimentalDelegationAddress } from './generated.js'
+import { experimentalDelegationAddress } from './internal/generated.js'
 
 export type Chain = Chain_viem & {
   contracts: Chain_viem['contracts'] & {

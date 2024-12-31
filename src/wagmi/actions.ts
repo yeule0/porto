@@ -5,5 +5,4 @@ export {
   grantSession,
   importAccount,
   sessions,
-} from './internal/wagmi/core.js'
-export * as A from './internal/wagmi/core.js'
+} from './internal/core.js'

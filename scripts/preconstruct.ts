@@ -1,67 +1,55 @@
-import { mkdir, readFile, readdir, rm, symlink } from 'node:fs/promises'
-import { basename, dirname, join, resolve } from 'node:path'
+import * as fs from 'node:fs'
+import { basename, dirname, resolve } from 'node:path'
+import { getExports } from './utils/exports.js'
 
-// Symlinks package sources to dist for local development
-
+// biome-ignore lint/suspicious/noConsoleLog:
 console.log('Setting up packages for development.')
 
 const packagePath = resolve(import.meta.dirname, '../src/package.json')
-type Package = {
-  bin?: Record<string, string> | undefined
-  exports: Record<string, { types: string; default: string } | string>
-  name?: string | undefined
-  private?: boolean | undefined
-}
-const packageJson = JSON.parse(await readFile(packagePath, 'utf8')) as Package
+const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'))
 
+// biome-ignore lint/suspicious/noConsoleLog:
 console.log(`${packageJson.name} — ${dirname(packagePath)}`)
 
 const dir = resolve(dirname(packagePath))
 
 // Empty dist directories
-const distDirName = '_dist'
-const dist = resolve(dir, distDirName)
-let files: string[] = []
-try {
-  files = await readdir(dist)
-} catch {
-  await mkdir(dist)
-}
+fs.rmSync(resolve(dir, '_dist'), { recursive: true, force: true })
 
-const promises = []
-for (const file of files) {
-  promises.push(rm(join(dist, file), { recursive: true, force: true }))
-}
-await Promise.all(promises)
+const exports = getExports()
 
 // Link exports to dist locations
-for (const [key, exports] of Object.entries(packageJson.exports)) {
+for (const [key, distExports] of Object.entries(exports.dist ?? {})) {
   // Skip `package.json` exports
   if (/package\.json$/.test(key)) continue
-  if (typeof exports === 'string') continue
+
+  let entries: any
+  if (typeof distExports === 'string')
+    entries = [
+      ['default', distExports],
+      ['types', distExports.replace('.js', '.d.ts')],
+    ]
+  else entries = Object.entries(distExports as {})
 
   // Link exports to dist locations
-  for (const [_, value] of Object.entries(exports) as [
+  for (const [, value] of entries as [
     type: 'types' | 'default',
     value: string,
   ][]) {
-    const srcDir = resolve(dir, dirname(value).replace(distDirName, ''))
-    let srcFileName: string
-    if (key === '.') srcFileName = 'index.ts'
-    else {
-      srcFileName = basename(`${key}.ts`)
-    }
-    const srcFilePath = resolve(srcDir, srcFileName)
+    const srcFilePath = resolve(dir, exports.src[key]!)
 
     const distDir = resolve(dir, dirname(value))
     const distFileName = basename(value)
     const distFilePath = resolve(distDir, distFileName)
 
-    await mkdir(distDir, { recursive: true })
+    fs.mkdirSync(distDir, { recursive: true })
 
     // Symlink src to dist file
-    await symlink(srcFilePath, distFilePath, 'file')
+    try {
+      fs.symlinkSync(srcFilePath, distFilePath, 'file')
+    } catch {}
   }
 }
 
-console.log('Done. Set up packages.')
+// biome-ignore lint/suspicious/noConsoleLog:
+console.log('Done.')

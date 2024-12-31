@@ -7,51 +7,12 @@
   "types": "./_dist/index.d.ts",
   "typings": "./_dist/index.d.ts",
   "sideEffects": false,
-  "exports": {
-    ".": {
-      "types": "./_dist/index.d.ts",
-      "default": "./_dist/index.js"
-    },
-    "./Chains": {
-      "types": "./_dist/Chains.d.ts",
-      "default": "./_dist/Chains.js"
-    },
-    "./Porto": {
-      "types": "./_dist/Porto.d.ts",
-      "default": "./_dist/Porto.js"
-    },
-    "./wagmi": {
-      "types": "./_dist/wagmi.d.ts",
-      "default": "./_dist/wagmi.js"
-    },
-    "./wagmi/actions": {
-      "types": "./_dist/actions.d.ts",
-      "default": "./_dist/actions.js"
-    },
-    "./wagmi/query": {
-      "types": "./_dist/query.d.ts",
-      "default": "./_dist/query.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "typesVersions": {
-    "*": {
-      "Chains": ["./_dist/Chains.d.ts"],
-      "Porto": ["./_dist/Porto.d.ts"],
-      "wagmi": ["./_dist/wagmi.d.ts"],
-      "wagmi/actions": ["./_dist/actions.d.ts"],
-      "wagmi/query": ["./_dist/query.d.ts"]
-    }
-  },
   "files": [
     "*",
     "!**/_test/**",
     "!**/*.tsbuildinfo",
     "!tsconfig.build.json",
-    "!jsr.json",
-    "/Chains",
-    "/Porto",
-    "/wagmi"
+    "!jsr.json"
   ],
   "dependencies": {
     "idb-keyval": "^6.2.1",

@@ -102,11 +102,11 @@ export const wagmiConfig = createConfig({
 This means you can now use Wagmi-compatible Hooks like `useConnect`. For more info, check out the [Wagmi Reference](#wagmi-reference).
 
 ```tsx
-import { W } from 'porto/wagmi'
+import { Hooks } from 'porto/wagmi'
 import { useConnectors } from 'wagmi'
 
 function Connect() {
-  const connect = W.useConnect()
+  const connect = Hooks.useConnect()
   const connectors = useConnectors()
 
   return connectors?.map((connector) => (
@@ -485,8 +485,8 @@ Import via named export or `A` namespace (better autocomplete DX and does not im
 - `sessions`
 
 ```ts
-import { A } from 'porto/wagmi/actions' // A.connect()
-import { connect } from 'porto/wagmi/actions'
+import { Actions } from 'porto/wagmi' // Actions.connect()
+import { connect } from 'porto/wagmi/Actions'
 ```
 
 ### React Hooks
@@ -501,8 +501,8 @@ Import via named export or `W` namespace (better autocomplete DX and does not im
 - `useSessions`
 
 ```ts
-import { W } from 'porto/wagmi' // W.useConnect()
-import { useConnect } from 'porto/wagmi'
+import { Hooks } from 'porto/wagmi' // Hooks.useConnect()
+import { useConnect } from 'porto/wagmi/Hooks'
 ```
 
 ## Development
