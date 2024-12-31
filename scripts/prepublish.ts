@@ -36,6 +36,4 @@ const exports = getExports({
 
 packageJson.exports = exports.dist
 
-delete packageJson.type
-
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
