@@ -475,7 +475,7 @@ Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS 
 
 ### VanillaJS Actions
 
-Import via named export or `A` namespace (better autocomplete DX and does not impact tree shaking).
+Import via named export or `Actions` namespace (better autocomplete DX and does not impact tree shaking).
 
 - `connect`
 - `createAccount`
@@ -491,7 +491,7 @@ import { connect } from 'porto/wagmi/Actions'
 
 ### React Hooks
 
-Import via named export or `W` namespace (better autocomplete DX and does not impact tree shaking).
+Import via named export or `Hooks` namespace (better autocomplete DX and does not impact tree shaking).
 
 - `useConnect`
 - `useCreateAccount`
