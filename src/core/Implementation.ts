@@ -12,7 +12,7 @@ import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import type { Hash } from 'viem'
 import { readContract } from 'viem/actions'
 
-import type { Clients, Config } from './Porto.js'
+import type { Client, Config } from './Porto.js'
 import * as Account from './internal/account.js'
 import * as Call from './internal/call.js'
 import * as Delegation from './internal/delegation.js'
@@ -30,8 +30,8 @@ export type Implementation = {
       account: Account.Account
       /** Key to authorize. */
       key?: RpcSchema.AuthorizeKeyParameters['key'] | undefined
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** RPC Request. */
@@ -43,8 +43,8 @@ export type Implementation = {
       authorizeKeys?:
         | readonly RpcSchema.AuthorizeKeyParameters['key'][]
         | undefined
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Preparation context (from `prepareCreateAccount`). */
       context?: unknown | undefined
       /** Porto config. */
@@ -67,8 +67,8 @@ export type Implementation = {
       account: Account.Account
       /** Calls to execute. */
       calls: readonly Call.Call[]
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Key to use to execute the calls. */
       key?: { publicKey: Hex.Hex } | undefined
       /** Porto config. */
@@ -84,8 +84,8 @@ export type Implementation = {
       authorizeKeys?:
         | readonly RpcSchema.AuthorizeKeyParameters['key'][]
         | undefined
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** Credential ID to use to load an existing account. */
@@ -104,8 +104,8 @@ export type Implementation = {
       authorizeKeys?:
         | readonly RpcSchema.AuthorizeKeyParameters['key'][]
         | undefined
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** Label to associate with the account. */
@@ -124,8 +124,8 @@ export type Implementation = {
       account: Account.Account
       /** Public key of the key to revoke. */
       publicKey: Hex.Hex
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** RPC Request. */
@@ -135,8 +135,8 @@ export type Implementation = {
     signPersonalMessage: (parameters: {
       /** Account to sign the message with. */
       account: Account.Account
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** Data to sign. */
@@ -148,8 +148,8 @@ export type Implementation = {
     signTypedData: (parameters: {
       /** Account to sign the message with. */
       account: Account.Account
-      /** Viem Clients. */
-      clients: Clients
+      /** Viem Client. */
+      client: Client
       /** Porto config. */
       config: Config
       /** Data to sign. */
@@ -195,7 +195,7 @@ export function local(parameters: local.Parameters = {}) {
   return from({
     actions: {
       async authorizeKey(parameters) {
-        const { account, clients, key: keyToAuthorize } = parameters
+        const { account, client, key: keyToAuthorize } = parameters
 
         const keys = await getKeysToAuthorize({
           authorizeKeys: [keyToAuthorize],
@@ -203,7 +203,7 @@ export function local(parameters: local.Parameters = {}) {
         })
 
         // TODO: wait for tx to be included?
-        const hash = await Delegation.execute(clients.relay, {
+        const hash = await Delegation.execute(client, {
           account,
           calls: getAuthorizeCalls(keys!),
         })
@@ -212,7 +212,7 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async createAccount(parameters) {
-        const { authorizeKeys, clients, label } = parameters
+        const { authorizeKeys, client, label } = parameters
 
         const { account, context, signatures } = await (async () => {
           if (parameters.context && parameters.signatures)
@@ -230,7 +230,7 @@ export function local(parameters: local.Parameters = {}) {
           const { context, signPayloads } = await prepareCreateAccount({
             address,
             authorizeKeys,
-            clients,
+            client,
             defaultExpiry,
             keystoreHost,
             label,
@@ -246,7 +246,7 @@ export function local(parameters: local.Parameters = {}) {
           return { account, context, signatures }
         })()
 
-        const hash = await Delegation.execute(clients.relay, {
+        const hash = await Delegation.execute(client, {
           ...(context as any),
           account,
           signatures,
@@ -256,7 +256,7 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async execute(parameters) {
-        const { account, calls, clients } = parameters
+        const { account, calls, client } = parameters
 
         const key = (() => {
           // If a key is provided, use it.
@@ -308,7 +308,7 @@ export function local(parameters: local.Parameters = {}) {
           return sessionKey ?? adminKey
         })()
 
-        const hash = await Delegation.execute(clients.relay, {
+        const hash = await Delegation.execute(client, {
           account,
           calls,
           key,
@@ -318,7 +318,7 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async loadAccounts(parameters) {
-        const { authorizeKeys, clients } = parameters
+        const { authorizeKeys, client } = parameters
 
         const { address, credentialId } = await (async () => {
           if (parameters.address && parameters.credentialId)
@@ -344,7 +344,7 @@ export function local(parameters: local.Parameters = {}) {
 
         // Fetch the delegated account's keys.
         const [keyCount, extraKeys] = await Promise.all([
-          readContract(clients.default, {
+          readContract(client, {
             abi: delegationAbi,
             address,
             functionName: 'keyCount',
@@ -356,7 +356,7 @@ export function local(parameters: local.Parameters = {}) {
         ])
         const keys = await Promise.all(
           Array.from({ length: Number(keyCount) }, (_, index) =>
-            Delegation.keyAt(clients.default, { account: address, index }),
+            Delegation.keyAt(client, { account: address, index }),
           ),
         )
 
@@ -378,7 +378,7 @@ export function local(parameters: local.Parameters = {}) {
         })
 
         if (extraKeys)
-          await Delegation.execute(clients.relay, {
+          await Delegation.execute(client, {
             account,
             calls: getAuthorizeCalls(extraKeys),
           })
@@ -389,12 +389,12 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async prepareCreateAccount(parameters) {
-        const { address, authorizeKeys, clients, label } = parameters
+        const { address, authorizeKeys, client, label } = parameters
 
         return await prepareCreateAccount({
           address,
           authorizeKeys,
-          clients,
+          client,
           defaultExpiry,
           keystoreHost,
           label,
@@ -402,7 +402,7 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async revokeKey(parameters) {
-        const { account, clients, publicKey } = parameters
+        const { account, client, publicKey } = parameters
 
         const key = account.keys?.find((key) => key.publicKey === publicKey)
         if (!key) return
@@ -415,7 +415,7 @@ export function local(parameters: local.Parameters = {}) {
             'cannot revoke key. account must have at least one admin key.',
           )
 
-        await Delegation.execute(clients.relay, {
+        await Delegation.execute(client, {
           account,
           calls: [Call.setCanExecute({ key, enabled: false })],
         })
@@ -485,7 +485,7 @@ export function mock() {
       ...local().actions,
 
       async createAccount(parameters) {
-        const { authorizeKeys, clients } = parameters
+        const { authorizeKeys, client } = parameters
 
         const privateKey = Secp256k1.randomPrivateKey()
 
@@ -501,11 +501,11 @@ export function mock() {
         const account = Account.fromPrivateKey(privateKey, {
           keys: [key, ...(extraKeys ?? [])],
         })
-        const delegation = clients.default.chain.contracts.delegation.address
+        const delegation = client.chain.contracts.delegation.address
 
         address = account.address
 
-        const hash = await Delegation.execute(clients.relay, {
+        const hash = await Delegation.execute(client, {
           account,
           calls: getAuthorizeCalls(account.keys),
           delegation,
@@ -515,18 +515,18 @@ export function mock() {
       },
 
       async loadAccounts(parameters) {
-        const { clients } = parameters
+        const { client } = parameters
 
         if (!address) throw new Error('no address found.')
 
-        const keyCount = await readContract(clients.default, {
+        const keyCount = await readContract(client, {
           abi: delegationAbi,
           address,
           functionName: 'keyCount',
         })
         const keys = await Promise.all(
           Array.from({ length: Number(keyCount) }, (_, index) =>
-            Delegation.keyAt(clients.default, { account: address!, index }),
+            Delegation.keyAt(client, { account: address!, index }),
           ),
         )
 
@@ -550,12 +550,12 @@ export function mock() {
 async function prepareCreateAccount(parameters: {
   address: Address.Address
   authorizeKeys: readonly RpcSchema.AuthorizeKeyParameters['key'][] | undefined
-  clients: Clients
+  client: Client
   defaultExpiry: number
   label?: string | undefined
   keystoreHost?: string | undefined
 }) {
-  const { address, authorizeKeys, clients, defaultExpiry, keystoreHost } =
+  const { address, authorizeKeys, client, defaultExpiry, keystoreHost } =
     parameters
 
   const label =
@@ -579,16 +579,13 @@ async function prepareCreateAccount(parameters: {
     address,
     keys,
   })
-  const delegation = clients.default.chain.contracts.delegation.address
+  const delegation = client.chain.contracts.delegation.address
 
-  const { request, signPayloads } = await Delegation.prepareExecute(
-    clients.default,
-    {
-      account,
-      calls: getAuthorizeCalls(account.keys),
-      delegation,
-    },
-  )
+  const { request, signPayloads } = await Delegation.prepareExecute(client, {
+    account,
+    calls: getAuthorizeCalls(account.keys),
+    delegation,
+  })
 
   return { context: request, signPayloads }
 }
