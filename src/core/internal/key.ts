@@ -51,6 +51,9 @@ export type Secp256k1Key = BaseKey<'secp256k1', { privateKey: PrivateKeyFn }>
 export type WebCryptoKey = BaseKey<
   'p256',
   {
+    credential?:
+      | Pick<WebAuthnP256.P256Credential, 'id' | 'publicKey'>
+      | undefined
     privateKey: CryptoKey
   }
 >
@@ -61,6 +64,14 @@ export type WebAuthnKey = BaseKey<
     rpId: string | undefined
   }
 >
+
+export type Rpc = {
+  callScopes?: CallScopes | undefined
+  expiry: number
+  publicKey: Hex.Hex
+  role: 'admin' | 'session'
+  type: 'p256' | 'secp256k1' | 'webauthn-p256'
+}
 
 /** Serialized (contract-compatible) format of a key. */
 export type Serialized = {
@@ -417,6 +428,23 @@ export declare namespace fromP256 {
 }
 
 /**
+ * Instantiates a key from its RPC format.
+ *
+ * @param rpc - RPC key.
+ * @returns Key.
+ */
+export function fromRpc(rpc: Rpc): Key {
+  return {
+    canSign: false,
+    callScopes: rpc.callScopes,
+    expiry: rpc.expiry,
+    publicKey: rpc.publicKey,
+    role: rpc.role,
+    type: rpc.type,
+  }
+}
+
+/**
  * Instantiates a Secp256k1 key from its parameters.
  *
  * @example
@@ -744,6 +772,22 @@ export async function sign(
     publicKey,
     prehash,
   })
+}
+
+/**
+ * Converts a key into RPC format.
+ *
+ * @param key - Key.
+ * @returns RPC key.
+ */
+export function toRpc(key: Key): Rpc {
+  return {
+    callScopes: key.callScopes,
+    expiry: key.expiry,
+    publicKey: key.publicKey,
+    role: key.role,
+    type: key.type,
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////
