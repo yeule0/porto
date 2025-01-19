@@ -23,7 +23,7 @@ import type { ExactPartial, OneOf } from './internal/types.js'
 export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
-  implementation: Implementation.dialog(),
+  implementation: Implementation.local(),
   storage: Storage.idb(),
   transports: {
     [Chains.odysseyTestnet.id]: {
