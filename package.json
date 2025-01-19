@@ -62,6 +62,7 @@
     "entry": ["src/{index,test/index,wagmi/index}.ts!"],
     "project": ["src/**"],
     "ignore": [
+      "app/**",
       "**/internal/**",
       "playground/**",
       "src/core/internal/generated.ts"
