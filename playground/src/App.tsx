@@ -17,12 +17,21 @@ const client = createClient({
   transport: custom(porto.provider),
 })
 
-const callScopes = [
-  {
-    signature: 'mint(address,uint256)',
-    to: ExperimentERC20.address,
-  },
-] as const
+const permissions = {
+  calls: [
+    {
+      signature: 'mint(address,uint256)',
+      to: ExperimentERC20.address,
+    },
+  ],
+  // spend: [
+  //   {
+  //     limit: Hex.fromNumber(Value.fromEther('50')),
+  //     period: 'minute',
+  //     token: ExperimentERC20.address,
+  //   },
+  // ],
+} as const
 
 export function App() {
   return (
@@ -140,7 +149,7 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? { callScopes } : undefined,
+                      authorizeKey: authorizeKey ? { permissions } : undefined,
                     },
                   },
                 ],
@@ -159,7 +168,7 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? { callScopes } : undefined,
+                      authorizeKey: authorizeKey ? { permissions } : undefined,
                       createAccount: true,
                     },
                   },
@@ -288,10 +297,8 @@ function AuthorizeKey() {
             params: [
               {
                 address: account,
-                key: {
-                  callScopes,
-                  expiry: Math.floor(Date.now() / 1000) + expiry,
-                },
+                expiry: Math.floor(Date.now() / 1000) + expiry,
+                permissions,
               },
             ],
           })
@@ -415,7 +422,7 @@ function UpgradeAccount() {
                 {
                   address: account.address,
                   capabilities: {
-                    authorizeKey: authorizeKey ? { callScopes } : undefined,
+                    authorizeKey: authorizeKey ? { permissions } : undefined,
                   },
                 },
               ],

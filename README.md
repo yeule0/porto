@@ -157,18 +157,20 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 
 Authorizes a key that can perform actions on behalf of the account.
 
-If `key.role` is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
+If the `key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
 
 The following `role` values are supported:
 
 - `admin`: 
+  - MUST specify a `key`
   - CAN have an infinite expiry 
-  - CAN have call scopes (`callScopes`)
+  - CAN have permissions (`permissions`)
   - CAN execute calls (e.g. `eth_sendTransaction`, `wallet_sendCalls`)
   - CAN sign arbitrary data (e.g. `personal_sign`, `eth_signTypedData_v4`)
 - `session`: 
+  - CAN specify a `key` - if absent, a new arbitrary key will be generated
   - MUST have a limited expiry
-  - MUST have call scopes (`callScopes`)
+  - MUST have permissions (`permissions`)
   - CAN only execute calls
   - CANNOT sign arbitrary data
 
@@ -182,24 +184,37 @@ type Request = {
   params: [{
     // Address of the account to authorize a key on.
     address?: `0x${string}`
-    // Key to authorize on the account.
+    // Expiry of the key.
+    expiry?: number
+    // Key to authorize.
     key?: {
-      // Call scopes to authorize on the key.
-      callScopes?: {
+      // Public key. Accepts an address for `contract` type.
+      publicKey?: `0x${string}`,
+      // Key type.
+      type?: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256', 
+    }
+    // Key permissions.
+    permissions?: {
+      // Call permissions to authorize on the key.
+      calls?: {
         // Function signature or 4-byte selector.
         signature?: string
         // Authorized target address.
         to?: `0x${string}`
+      }[],
+      // Spend permissions of the key.
+      spend?: {
+        // Spending limit (in wei) per period.
+        limit: bigint
+        // Period of the spend limit.
+        period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+        // ERC20 token to set the limit on. 
+        // If not provided, the limit will be set on the native token (e.g. ETH).
+        token?: `0x${string}`
       }[]
-      // Expiry of the key.
-      expiry?: number
-      // Public key.
-      publicKey?: `0x${string}`,
-      // Role of key.
-      role?: 'admin' | 'session',
-      // Type of key.
-      type?: 'p256' | 'secp256k1' | 'webauthn-p256',
     }
+    // Role of key.
+    role?: 'admin' | 'session',
   }]
 }
 ```
@@ -208,14 +223,23 @@ type Request = {
 
 ```ts
 type Response = {
-  callScopes?: {
-    signature?: string
-    to?: `0x${string}`
-  }[]
   expiry: number,
-  publicKey: `0x${string}`,
+  key?: {
+    publicKey: `0x${string}`,
+    type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
+  },
+  permissions?: {
+    calls?: {
+      signature?: string
+      to?: `0x${string}`
+    }[]
+    spend?: {
+      limit: bigint
+      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+      token?: `0x${string}`
+    }[]
+  }
   role: 'admin' | 'session',
-  type: 'p256' | 'secp256k1' | 'webauthn-p256',
 }
 ```
 
@@ -226,8 +250,8 @@ type Response = {
 const key = await porto.provider.request({
   method: 'experimental_authorizeKey',
   params: [{ 
-    key: { 
-      callScopes: [
+    permissions: {
+      calls: [
         { 
           signature: 'mint()', 
           to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' 
@@ -241,20 +265,21 @@ const key = await porto.provider.request({
   }],
 })
 
-// Provide and authorize a P256 session key.
+// Provide and authorize a P256 session key with a spend limit.
 const key = await porto.provider.request({
   method: 'experimental_authorizeKey',
-  params: [{ 
-    key: { 
-      callScopes: [
-        { 
-          signature: 'mint()', 
-          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' 
-        },
-      ],
+  params: [{
+    key: {
       publicKey: '0x...',
       type: 'p256',
-    } 
+    },
+    permissions: {
+      spend: [{
+        limit: 100_000_000n, // 100 USDC
+        period: 'day',
+        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      }]
+    },
   }],
 })
 ```
@@ -311,14 +336,23 @@ type Request = {
     capabilities: {
       // Whether to authorize a key with an optional expiry.
       authorizeKey?: { 
-        callScopes?: {
-          signature?: string
-          to?: `0x${string}`
-        }[]
-        expiry?: number 
-        publicKey?: `0x${string}`
+        expiry?: number,
+        key?: {
+          publicKey?: `0x${string}`,
+          type?: 'p256' | 'secp256k1' | 'webauthn-p256'
+        },
+        permissions?: {
+          calls?: {
+            signature?: string
+            to?: `0x${string}`
+          }[]
+          spend?: {
+            limit: bigint
+            period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+            token?: `0x${string}`
+          }[]
+        }
         role?: 'admin' | 'session'
-        type?: 'p256' | 'secp256k1' | 'webauthn-p256'
       },
     } 
   }]
@@ -380,11 +414,18 @@ type Request = {
 
 ```ts
 type Response = { 
-  callScopes?: {
-    signature?: string
-    to?: `0x${string}`
-  }[]
   expiry: number, 
+  permissions?: {
+    calls?: {
+      signature?: string
+      to?: `0x${string}`
+    }[]
+    spend?: {
+      limit: bigint
+      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+      token?: `0x${string}`
+    }[]
+  }
   publicKey: `0x${string}`, 
   role: 'admin' | 'session', 
   type: 'p256' | 'secp256k1' | 'webauthn-p256' 
@@ -475,7 +516,7 @@ Porto supports account key management (ie. authorized keys & their scopes).
 
 Keys may be authorized via the [`experimental_authorizeKey`](#experimental_authorizeKey) JSON-RPC method.
 
-If `key.role` is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
+If the `key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
 
 Example:
 
@@ -484,13 +525,13 @@ Example:
   method: 'experimental_authorizeKey',
   params: [{ 
     address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe', 
-    key: {
-      callScopes: [{
+    expiry: 1727078400,
+    permissions: {
+      calls: [{
         signature: 'mint()',
         to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
       }],
-      expiry: 1727078400,
-    }
+    },
   }]
 }
 ```
@@ -499,7 +540,7 @@ Example:
 
 Keys may be authorized upon connection with the `authorizeKey` capability on the [`wallet_connect`]([#wallet_connect](https://github.com/ethereum/ERCs/blob/abd1c9f4eda2d6ad06ade0e3af314637a27d1ee7/ERCS/erc-7846.md)) JSON-RPC method.
 
-If `authorizeKey.role` is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
+If the `authorizeKey.key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
 
 Example:
 
@@ -509,11 +550,13 @@ Example:
   params: [{ 
     capabilities: { 
       authorizeKey: {
-        callScopes: [{
-          signature: 'mint()',
-          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
-        }],
         expiry: 1727078400,
+        permissions: {
+          calls: [{
+            signature: 'mint()',
+            to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
+          }],
+        }
       }
     } 
   }]
@@ -530,11 +573,13 @@ Example:
     address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
     capabilities: {
       keys: [{ 
-        callScopes: [{
-          signature: 'mint()',
-          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
-        }],
         expiry: 1727078400,
+        permissions: {
+          calls: [{
+            signature: 'mint()',
+            to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
+          }],
+        },
         publicKey: '0x...', 
         role: 'session', 
         type: 'p256' 
