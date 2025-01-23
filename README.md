@@ -205,7 +205,7 @@ type Request = {
       // Spend permissions of the key.
       spend?: {
         // Spending limit (in wei) per period.
-        limit: bigint
+        limit: `0x${string}`,
         // Period of the spend limit.
         period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
         // ERC20 token to set the limit on. 
@@ -224,22 +224,20 @@ type Request = {
 ```ts
 type Response = {
   expiry: number,
-  key?: {
-    publicKey: `0x${string}`,
-    type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
-  },
+  publicKey: `0x${string}`,
   permissions?: {
     calls?: {
-      signature?: string
-      to?: `0x${string}`
-    }[]
+      signature?: string,
+      to?: `0x${string}`,
+    }[],
     spend?: {
-      limit: bigint
-      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-      token?: `0x${string}`
-    }[]
-  }
+      limit: `0x${string}`,
+      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year',
+      token?: `0x${string}`,
+    }[],
+  },
   role: 'admin' | 'session',
+  type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
 }
 ```
 
