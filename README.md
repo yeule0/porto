@@ -163,16 +163,16 @@ The following `role` values are supported:
 
 - `admin`: 
   - MUST specify a `key`
-  - CAN have an infinite expiry 
-  - CAN have permissions (`permissions`)
-  - CAN execute calls (e.g. `eth_sendTransaction`, `wallet_sendCalls`)
-  - CAN sign arbitrary data (e.g. `personal_sign`, `eth_signTypedData_v4`)
+  - MAY have an infinite expiry 
+  - MAY OPTIONALLY have permissions (`permissions`)
+  - MAY execute calls (e.g. `eth_sendTransaction`, `wallet_sendCalls`)
+  - MAY sign arbitrary data (e.g. `personal_sign`, `eth_signTypedData_v4`)
 - `session`: 
-  - CAN specify a `key` - if absent, a new arbitrary key will be generated
+  - MAY specify a `key` - if absent, a new arbitrary key will be generated
   - MUST have a limited expiry
   - MUST have permissions (`permissions`)
-  - CAN only execute calls
-  - CANNOT sign arbitrary data
+  - MAY only execute calls
+  - MUST NOT sign arbitrary data
 
 > Minimal alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
 
