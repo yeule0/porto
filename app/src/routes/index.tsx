@@ -18,13 +18,13 @@ function RouteComponent() {
 
   if (loading)
     return (
-      <div className="flex flex-grow flex-col justify-center">
+      <div className="p-3">
         <IndeterminateLoader title="Responding" />
       </div>
     )
 
   return (
-    <div className="flex flex-grow flex-col justify-between p-3">
+    <div className="flex flex-col p-3">
       <Header
         title="Method Not implemented"
         icon={LucideTriangleAlert}
@@ -53,7 +53,7 @@ function RouteComponent() {
         <Button
           className="flex-grow"
           type="button"
-          variant="primary"
+          variant="warning"
           onClick={() => {
             setLoading(true)
             respond(request!).then(() => setTimeout(() => setLoading(false)))

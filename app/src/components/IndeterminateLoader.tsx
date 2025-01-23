@@ -1,9 +1,9 @@
 export function IndeterminateLoader(props: IndeterminateLoader.Props) {
   const { title } = props
   return (
-    <div className="flex flex-col items-center justify-center gap-2">
-      <div className="flex size-8 items-center justify-center rounded-full bg-blueA3">
-        <div>
+    <div>
+      <div className="flex items-center gap-2">
+        <div className="flex size-8 items-center justify-center rounded-full bg-blueA3 text-blue10">
           <svg
             className="animate-spin"
             aria-hidden="true"
@@ -23,13 +23,11 @@ export function IndeterminateLoader(props: IndeterminateLoader.Props) {
             />
           </svg>
         </div>
+
+        <div className="font-medium text-[18px] text-gray12">{title}</div>
       </div>
 
-      <div className="text-center font-medium text-[18px] text-gray12">
-        {title}
-      </div>
-
-      <div className="text-center text-[15px] leading-[22px]">
+      <div className="mt-1.5 text-[15px] leading-[17.9px]">
         <div className="text-gray12">This will only take a few moments.</div>
         <div className="text-gray9">Please do not close the window.</div>
       </div>

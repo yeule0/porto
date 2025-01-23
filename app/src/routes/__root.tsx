@@ -42,7 +42,7 @@ function RouteComponent() {
     <div ref={elementRef}>
       <div
         {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-        className="flex h-fit min-h-[300px] min-w-[282px] flex-col overflow-hidden border-blackA1 bg-gray1 data-iframe:rounded-[14px] data-iframe:border dark:border-whiteA1 dark:bg-gray2"
+        className="flex h-fit min-w-[282px] flex-col overflow-hidden border-blackA1 bg-gray1 data-iframe:rounded-[14px] data-iframe:border dark:border-whiteA1 dark:bg-gray2"
       >
         <header className="flex items-center justify-between border-blackA1 border-b bg-blackA1 px-3 pt-2 pb-1.5 dark:border-whiteA1 dark:bg-whiteA1">
           <div className="flex items-center gap-2">
@@ -67,9 +67,7 @@ function RouteComponent() {
           </button>
         </header>
 
-        <div className="flex flex-grow flex-col">
-          <Outlet />
-        </div>
+        <Outlet />
 
         <React.Suspense>
           <TanStackRouterDevtools position="bottom-right" />

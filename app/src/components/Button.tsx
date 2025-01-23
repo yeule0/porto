@@ -28,6 +28,7 @@ export namespace Button {
           default:
             'text-gray12 bg-blackA1 dark:bg-whiteA1 border border-blackA1 dark:border-whiteA1',
           primary: 'text-white bg-blue10',
+          warning: 'text-white bg-amber8',
         },
         size: {
           default: 'h-9 px-5 rounded-lg text-[15px]',

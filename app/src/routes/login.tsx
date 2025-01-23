@@ -25,13 +25,13 @@ function RouteComponent() {
 
   if (loading)
     return (
-      <div className="flex flex-grow flex-col justify-center">
+      <div className="p-3">
         <IndeterminateLoader title="Signing in" />
       </div>
     )
 
   return (
-    <div className="flex flex-grow flex-col justify-between">
+    <div className="flex flex-col">
       <div className="px-3 pt-3">
         <Header
           title="Sign in"
@@ -45,7 +45,7 @@ function RouteComponent() {
         />
       </div>
 
-      <div>
+      <div className="mt-3">
         <div className="flex gap-2 px-3 pb-3">
           <Button
             className="flex-grow"
