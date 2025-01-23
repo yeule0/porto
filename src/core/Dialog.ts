@@ -48,7 +48,7 @@ export function iframe() {
 
       const root = document.createElement('dialog')
       root.dataset.porto = ''
-      root.style.insetBlockStart = '-1000px'
+      root.style.top = '-10000px'
       document.body.appendChild(root)
 
       const iframe = document.createElement('iframe')
@@ -68,7 +68,7 @@ export function iframe() {
 
       root.appendChild(document.createElement('style')).textContent = `
         dialog[data-porto]::backdrop {
-          background-color: rgba(0, 0, 0, 0.5);
+          background-color: rgba(0, 0, 0, 0);
         }
 
         @keyframes porto-fade-in {
@@ -85,12 +85,20 @@ export function iframe() {
 
       const messenger = Messenger.bridge({
         from: Messenger.fromWindow(window, { targetOrigin: hostUrl.origin }),
-        to: Messenger.fromWindow(iframe.contentWindow!),
+        to: Messenger.fromWindow(iframe.contentWindow!, {
+          targetOrigin: hostUrl.origin,
+        }),
       })
 
       messenger.on('rpc-response', (response) =>
         handleResponse(store, response),
       )
+      messenger.on('__internal', (payload) => {
+        if (payload.type === 'resize') {
+          iframe.style.height = `${payload.height}px`
+          iframe.style.width = `${payload.width}px`
+        }
+      })
 
       function onEscape(event: KeyboardEvent) {
         if (event.key === 'Escape') handleBlur(store)
@@ -103,6 +111,12 @@ export function iframe() {
           if (open) return
           open = true
 
+          messenger.send('__internal', {
+            type: 'init',
+            mode: 'iframe',
+            targetOrigin: location.origin,
+          })
+
           root.showModal()
           document.addEventListener('keydown', onEscape)
           document.body.style.overflow = 'hidden'
@@ -110,9 +124,10 @@ export function iframe() {
         },
         close() {
           open = false
-
           root.close()
-          Object.assign(document.body.style, bodyStyle)
+          Object.assign(document.body.style, bodyStyle ?? '')
+          // firefox: explicitly restore/clear `overflow` directly
+          document.body.style.overflow = bodyStyle.overflow ?? ''
           iframe.style.display = 'none'
         },
         destroy() {
@@ -157,6 +172,9 @@ export function popup() {
 
       let messenger: Messenger.Messenger | undefined
 
+      const width = 282
+      const height = 282
+
       return {
         open() {
           const left = (window.innerWidth - width) / 2 + window.screenX
@@ -173,13 +191,23 @@ export function popup() {
             from: Messenger.fromWindow(window, {
               targetOrigin: hostUrl.origin,
             }),
-            to: Messenger.fromWindow(popup),
+            to: Messenger.fromWindow(popup, {
+              targetOrigin: hostUrl.origin,
+            }),
             waitForReady: true,
+          })
+
+          messenger.send('__internal', {
+            type: 'init',
+            mode: 'popup',
+            targetOrigin: location.origin,
           })
 
           messenger.on('rpc-response', (response) =>
             handleResponse(store, response),
           )
+
+          messenger.on('__internal', (_payload) => {})
 
           window.addEventListener('focus', onBlur)
 
@@ -206,9 +234,6 @@ export function popup() {
   })
 }
 
-const width = 320
-const height = 180
-
 const styles = {
   backdrop: {
     display: 'none',
@@ -222,12 +247,9 @@ const styles = {
     animation: 'porto-fade-in 0.1s ease-in-out',
     display: 'none',
     border: 'none',
-    borderRadius: '8px',
     position: 'fixed',
     top: '16px',
-    left: `calc(50% - ${width / 2}px)`,
-    width: `${width}px`,
-    height: `${height}px`,
+    insetInlineEnd: '16px',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
 

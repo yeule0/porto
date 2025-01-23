@@ -1,5 +1,6 @@
 import { AbiFunction, Hex, Json, TypedData, Value } from 'ox'
 import { Porto } from 'porto'
+import { Implementation } from 'porto'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
 import {
@@ -11,7 +12,9 @@ import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { ExperimentERC20 } from './contracts'
 
-export const porto = Porto.create()
+const porto = Porto.create({
+  implementation: Implementation.dialog(),
+})
 
 const client = createClient({
   transport: custom(porto.provider),
@@ -39,24 +42,30 @@ export function App() {
       <State />
       <Events />
       <GetCapabilities />
-      <p>
+      <div>
+        <br />
         <hr />
-      </p>
+        <br />
+      </div>
       <Connect />
       <Login />
       <Register />
       <Accounts />
       <Disconnect />
       <UpgradeAccount />
-      <p>
+      <div>
+        <br />
         <hr />
-      </p>
+        <br />
+      </div>
       <AuthorizeKey />
       <GetKeys />
       <RevokeKey />
-      <p>
+      <div>
+        <br />
         <hr />
-      </p>
+        <br />
+      </div>
       <SendCalls />
       <SendTransaction />
       <SignMessage />
