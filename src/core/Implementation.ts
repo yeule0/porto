@@ -598,7 +598,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 {
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: authorizeKey_rpc as any,
+                    authorizeKey: {
+                      ...authorizeKey_rpc,
+                      key: authorizeKey_rpc?.publicKey
+                        ? {
+                            publicKey: authorizeKey_rpc?.publicKey,
+                            type: authorizeKey_rpc?.type,
+                          }
+                        : undefined,
+                    } as never,
                   },
                 },
               ],
@@ -710,7 +718,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
                   ...request.params?.[0],
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: authorizeKey_rpc as any,
+                    authorizeKey: {
+                      ...authorizeKey_rpc,
+                      key: authorizeKey_rpc?.publicKey
+                        ? {
+                            publicKey: authorizeKey_rpc?.publicKey,
+                            type: authorizeKey_rpc?.type,
+                          }
+                        : undefined,
+                    } as never,
                   },
                 },
               ],
