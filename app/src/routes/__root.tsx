@@ -39,7 +39,7 @@ function RouteComponent() {
   }, [mode])
 
   return (
-    <div ref={elementRef}>
+    <div className="w-min" ref={elementRef}>
       <div
         {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
         className="flex h-fit min-w-[282px] flex-col overflow-hidden border-blackA1 bg-gray1 data-iframe:rounded-[14px] data-iframe:border dark:border-whiteA1 dark:bg-gray2"
