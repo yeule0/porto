@@ -26,7 +26,7 @@ Experimental Next-gen Account for Ethereum.
 </p>
 
 > [!WARNING]
-> This repository is work-in-progress and highly experimental. It is recommended not to use it in production just yet.
+> Do not use in production. This repository is work-in-progress and highly experimental. Non-major version bumps may contain breaking changes.
 
 ## Table of Contents
 
