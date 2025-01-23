@@ -54,7 +54,9 @@ function RouteComponent() {
           variant="primary"
           onClick={() => {
             setLoading(true)
-            respond(request!).then(() => setTimeout(() => setLoading(false)))
+            respond(request!)
+              .catch(() => setLoading(false))
+              .then(() => setTimeout(() => setLoading(false)))
           }}
         >
           Sign up
