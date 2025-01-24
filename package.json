@@ -59,7 +59,7 @@
     "pre-commit": "pnpm check"
   },
   "knip": {
-    "entry": ["src/{index,test/index,wagmi/index}.ts!"],
+    "entry": ["src/{index,remote/index,test/index,wagmi/index}.ts!"],
     "project": ["src/**"],
     "ignore": [
       "app/**",
