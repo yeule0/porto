@@ -438,10 +438,8 @@ export declare namespace local {
 }
 
 export function dialog(parameters: dialog.Parameters = {}) {
-  const {
-    host = 'http://localhost:5174', // TODO: change
-    renderer = Dialog.iframe(),
-  } = parameters
+  const { host = 'https://exp.porto.sh', renderer = Dialog.iframe() } =
+    parameters
 
   const requestStore = RpcRequest.createStore()
 
