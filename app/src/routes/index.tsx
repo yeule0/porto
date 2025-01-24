@@ -1,20 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
+
 import LucideTriangleAlert from '~icons/lucide/triangle-alert'
 import { Button } from '../components/Button'
 import { Header } from '../components/Header'
 import { IndeterminateLoader } from '../components/IndeterminateLoader'
-import { useRequestsStore } from '../lib/requests'
+import { porto } from '../lib/porto'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const [request, reject, respond] = useRequestsStore(
-    (state) => [state.requests[0], state.reject, state.respond] as const,
-  )
   const [loading, setLoading] = React.useState(false)
+
+  const request = Hooks.useRequest(porto)
 
   if (loading)
     return (
@@ -45,7 +46,7 @@ function RouteComponent() {
         <Button
           className="flex-grow"
           type="button"
-          onClick={() => reject(request!)}
+          onClick={() => Actions.reject(porto, request!)}
         >
           Reject
         </Button>
@@ -56,7 +57,7 @@ function RouteComponent() {
           variant="warning"
           onClick={() => {
             setLoading(true)
-            respond(request!)
+            Actions.respond(porto, request!)
               .catch(() => setLoading(false))
               .then(() => setTimeout(() => setLoading(false)))
           }}

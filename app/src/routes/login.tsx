@@ -1,13 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
+
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideLogIn from '~icons/lucide/log-in'
 import { Button } from '../components/Button'
 import { Header } from '../components/Header'
 import { IndeterminateLoader } from '../components/IndeterminateLoader'
 import { useAppStore } from '../lib/app'
-import { usePortoState } from '../lib/porto'
-import { useRequestsStore } from '../lib/requests'
+import { porto } from '../lib/porto'
 import { StringFormatter } from '../utils'
 
 export const Route = createFileRoute('/login')({
@@ -16,12 +17,13 @@ export const Route = createFileRoute('/login')({
 
 function RouteComponent() {
   const hostname = useAppStore((state) => state.referrer?.hostname)
-  const address = usePortoState((state) => state.accounts[0]?.address)
+  const address = Hooks.usePortoStore(
+    porto,
+    (state) => state.accounts[0]?.address,
+  )
   const [loading, setLoading] = React.useState(false)
 
-  const [request, reject, respond] = useRequestsStore(
-    (state) => [state.requests[0], state.reject, state.respond] as const,
-  )
+  const request = Hooks.useRequest(porto)
 
   if (loading)
     return (
@@ -50,7 +52,7 @@ function RouteComponent() {
           <Button
             className="flex-grow"
             type="button"
-            onClick={() => reject(request!)}
+            onClick={() => Actions.reject(porto, request!)}
           >
             No thanks
           </Button>
@@ -61,7 +63,7 @@ function RouteComponent() {
             variant="primary"
             onClick={() => {
               setLoading(true)
-              respond(request!)
+              Actions.respond(porto, request!)
                 .catch(() => setLoading(false))
                 .then(() => setTimeout(() => setLoading(false)))
             }}

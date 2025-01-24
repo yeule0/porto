@@ -1,29 +1,24 @@
+import { Events, type Porto } from 'porto/remote'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
 import { App } from './App.js'
 import { appStore } from './lib/app.ts'
-import { messenger } from './lib/porto.js'
-import { requestsStore } from './lib/requests.js'
+import { porto } from './lib/porto.ts'
 import { router } from './lib/router.ts'
-
 import './index.css'
 
-const unsubscribe_internal = messenger.on('__internal', (payload) => {
-  if (payload.type === 'init') {
-    const { mode, referrer } = payload
-    appStore.setState({
-      mode,
-      referrer: new URL(referrer),
-    })
-  }
-})
-const unsubscribe_rpc = messenger.on('rpc-requests', (payload) => {
-  const requests = payload as requestsStore.State['requests']
-  requestsStore.setState({ requests })
-  handle_rpc(requests)
+const offInitialized = Events.onInitialized(porto, (payload) => {
+  const { mode, referrer } = payload
+  appStore.setState({
+    mode,
+    referrer: new URL(referrer),
+  })
 })
 
-messenger.ready()
+const offRequests = Events.onRequests(porto, handleRequests)
+
+porto.ready()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -33,11 +28,11 @@ createRoot(document.getElementById('root')!).render(
 
 if (import.meta.hot)
   import.meta.hot.on('vite:beforeUpdate', () => {
-    unsubscribe_internal()
-    unsubscribe_rpc()
+    offInitialized()
+    offRequests()
   })
 
-function handle_rpc(requests: requestsStore.State['requests']) {
+function handleRequests(requests: Porto.RemoteState['requests']) {
   const request = requests[0]?.request
   const search: Parameters<(typeof router)['navigate']>[0]['search'] = (prev) =>
     prev as never
