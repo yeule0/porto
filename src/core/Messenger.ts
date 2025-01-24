@@ -54,7 +54,7 @@ export type Schema = [
       | {
           type: 'init'
           mode: 'iframe' | 'popup'
-          targetOrigin: string
+          referrer: string
         }
       | {
           type: 'resize'
@@ -192,5 +192,21 @@ export declare namespace bridge {
      * `messenger.ready()`.
      */
     waitForReady?: boolean | undefined
+  }
+}
+
+export function noop(): Bridge {
+  return {
+    destroy() {},
+    on() {
+      return () => {}
+    },
+    ready() {},
+    send() {
+      return Promise.resolve(undefined as never)
+    },
+    sendAsync() {
+      return Promise.resolve(undefined as never)
+    },
   }
 }

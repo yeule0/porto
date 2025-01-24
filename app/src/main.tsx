@@ -8,15 +8,22 @@ import { router } from './lib/router.ts'
 
 import './index.css'
 
-messenger.ready()
 const unsubscribe_internal = messenger.on('__internal', (payload) => {
-  if (payload.type === 'init') appStore.setState(payload)
+  if (payload.type === 'init') {
+    const { mode, referrer } = payload
+    appStore.setState({
+      mode,
+      referrer: new URL(referrer),
+    })
+  }
 })
 const unsubscribe_rpc = messenger.on('rpc-requests', (payload) => {
   const requests = payload as requestsStore.State['requests']
   requestsStore.setState({ requests })
   handle_rpc(requests)
 })
+
+messenger.ready()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

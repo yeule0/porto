@@ -12,7 +12,7 @@ export const Route = createFileRoute('/register')({
 })
 
 function RouteComponent() {
-  const hostname = useAppStore((state) => new URL(state.targetOrigin).hostname)
+  const hostname = useAppStore((state) => state.referrer?.hostname)
   const [loading, setLoading] = React.useState(false)
 
   const [request, reject, respond] = useRequestsStore(

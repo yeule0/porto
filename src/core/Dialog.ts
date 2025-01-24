@@ -90,6 +90,13 @@ export function iframe() {
         }),
       })
 
+      messenger.on('ready', () => {
+        messenger.send('__internal', {
+          type: 'init',
+          mode: 'iframe',
+          referrer: location.origin,
+        })
+      })
       messenger.on('rpc-response', (response) =>
         handleResponse(store, response),
       )
@@ -114,7 +121,7 @@ export function iframe() {
           messenger.send('__internal', {
             type: 'init',
             mode: 'iframe',
-            targetOrigin: location.origin,
+            referrer: location.origin,
           })
 
           root.showModal()
@@ -200,7 +207,7 @@ export function popup() {
           messenger.send('__internal', {
             type: 'init',
             mode: 'popup',
-            targetOrigin: location.origin,
+            referrer: location.origin,
           })
 
           messenger.on('rpc-response', (response) =>

@@ -15,7 +15,7 @@ export const Route = createFileRoute('/login')({
 })
 
 function RouteComponent() {
-  const hostname = useAppStore((state) => new URL(state.targetOrigin).hostname)
+  const hostname = useAppStore((state) => state.referrer?.hostname)
   const address = usePortoState((state) => state.accounts[0]?.address)
   const [loading, setLoading] = React.useState(false)
 

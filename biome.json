@@ -6,7 +6,8 @@
       "src/core/internal/generated.ts",
       "tsconfig.json",
       "tsconfig.*.json",
-      "app/src/routeTree.gen.ts"
+      "app/src/routeTree.gen.ts",
+      "app/dist"
     ]
   },
   "organizeImports": {

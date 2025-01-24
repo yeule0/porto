@@ -16,7 +16,7 @@ export const Route = createRootRouteWithContext<{
 
 function RouteComponent() {
   const mode = useAppStore((state) => state.mode)
-  const hostname = useAppStore((state) => new URL(state.targetOrigin).hostname)
+  const hostname = useAppStore((state) => state.referrer?.hostname)
 
   const elementRef = React.useRef<HTMLDivElement | null>(null)
   React.useEffect(() => {
