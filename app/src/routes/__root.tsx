@@ -18,23 +18,28 @@ function RouteComponent() {
   const mode = useAppStore((state) => state.mode)
   const hostname = useAppStore((state) => state.referrer?.hostname)
 
-  const elementRef = React.useRef<HTMLDivElement | null>(null)
-  React.useEffect(() => {
-    const element = elementRef.current
+  const contentRef = React.useRef<HTMLDivElement | null>(null)
+  const titlebarRef = React.useRef<HTMLDivElement | null>(null)
+  React.useLayoutEffect(() => {
+    const element = contentRef.current
     if (!element) return
 
     const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { height, width } = entry.contentRect
-        if (mode === 'popup')
-          window.resizeTo(width, height + 30) // add 30px to account for title bar
-        else
-          porto.messenger.send('__internal', {
-            type: 'resize',
-            height: height + 2,
-            width: width + 2,
-          })
-      }
+      requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const { height, width } = entry.contentRect
+          const titlebarHeight = titlebarRef.current?.clientHeight ?? 0
+          if (mode === 'popup') {
+            const topbarHeight = 30
+            window.resizeTo(width, height + titlebarHeight + topbarHeight)
+          } else if (mode === 'iframe')
+            porto.messenger.send('__internal', {
+              type: 'resize',
+              height: height + titlebarHeight + 2,
+              width: width + 2,
+            })
+        }
+      })
     })
 
     resizeObserver.observe(element)
@@ -44,12 +49,12 @@ function RouteComponent() {
   }, [mode])
 
   return (
-    <div
-      ref={elementRef}
-      {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-      className="flex h-fit min-w-dialog flex-col overflow-hidden border-blackA1 bg-gray1 data-iframe:max-w-dialog data-iframe:rounded-[14px] data-iframe:border dark:border-whiteA1 dark:bg-gray2"
-    >
-      <header className="flex items-center justify-between border-blackA1 border-b bg-blackA1 px-3 pt-2 pb-1.5 dark:border-whiteA1 dark:bg-whiteA1">
+    <>
+      <header
+        ref={titlebarRef}
+        {...{ [`data-${mode}`]: '' }}
+        className="fixed flex h-navbar w-full items-center justify-between border border-gray4 bg-gray2 px-3 pt-2 pb-1.5 data-iframe:rounded-t-[14px]"
+      >
         <div className="flex items-center gap-2">
           <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
             <LucideGlobe className="size-3.5 text-black dark:text-white" />
@@ -68,12 +73,18 @@ function RouteComponent() {
         </button>
       </header>
 
-      <Outlet />
+      <div
+        ref={contentRef}
+        {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
+        className="flex min-w-dialog flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:max-w-dialog data-iframe:rounded-[14px] data-iframe:border [:not(data-popup-standalone)]:h-fit"
+      >
+        <Outlet />
+      </div>
 
       <React.Suspense>
         <TanStackRouterDevtools position="bottom-right" />
       </React.Suspense>
-    </div>
+    </>
   )
 }
 

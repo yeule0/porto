@@ -45,3 +45,9 @@ function handleRequests(requests: Porto.RemoteState['requests']) {
     router.navigate({ to: '/', search })
   }
 }
+
+declare module 'react' {
+  interface CSSProperties {
+    [key: `--${string}`]: string | number
+  }
+}

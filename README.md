@@ -645,13 +645,20 @@ Currently full control over the account is granted, but in the future this can b
 
 ## Development
 
+### Playground
+
 ```bash
+# (Optional) Set up SSL for localhost
+# Install: https://github.com/FiloSottile/mkcert?tab=readme-ov-file#installation
+$ mkcert -install
+$ mkcert localhost
+
 # Install pnpm
 $ curl -fsSL https://get.pnpm.io/install.sh | sh - 
 
 $ pnpm install # Install modules
 $ pnpm wagmi generate # get ABIs, etc.
-$ pnpm dev # Run playground
+$ pnpm dev # Run playground + iframe embed
 ```
 
 ### Contracts

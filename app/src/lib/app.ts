@@ -9,7 +9,7 @@ export const appStore = createStore<appStore.State>(() => ({
 
 export declare namespace appStore {
   type State = {
-    mode: 'iframe' | 'popup'
+    mode: 'iframe' | 'popup' | 'popup-standalone'
     referrer: URL | undefined
   }
 }

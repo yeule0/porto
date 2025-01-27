@@ -13,7 +13,9 @@ import { verifyMessage, verifyTypedData } from 'viem/actions'
 import { ExperimentERC20 } from './contracts'
 
 const porto = Porto.create({
-  implementation: Implementation.dialog(),
+  implementation: Implementation.dialog({
+    host: import.meta.env.VITE_HOST ?? 'https://exp.porto.sh',
+  }),
 })
 
 const client = createClient({
