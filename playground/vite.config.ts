@@ -13,11 +13,14 @@ const enableHttps = existsSync(https.cert) && existsSync(https.key)
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  define: {
-    'import.meta.env.VITE_HOST': JSON.stringify(
-      (enableHttps ? 'https' : 'http') + '://localhost:5174',
-    ),
-  },
+  define:
+    process.env.NODE_ENV === 'development'
+      ? {
+          'import.meta.env.VITE_HOST': JSON.stringify(
+            (enableHttps ? 'https' : 'http') + '://localhost:5174',
+          ),
+        }
+      : undefined,
   plugins: [
     react(),
     {
