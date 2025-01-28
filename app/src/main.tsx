@@ -1,4 +1,4 @@
-import { Events, type Porto } from 'porto/remote'
+import { Events } from 'porto/remote'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
