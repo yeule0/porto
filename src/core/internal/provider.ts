@@ -410,7 +410,11 @@ export function from<
             const address = account?.address
             const credentialId = (() => {
               for (const key of account?.keys ?? []) {
-                if (key.expiry < BigInt(Math.floor(Date.now() / 1000))) continue
+                if (
+                  key.expiry > 0 &&
+                  key.expiry < BigInt(Math.floor(Date.now() / 1000))
+                )
+                  continue
                 if (!key.credential) continue
                 return key.credential.id
               }
