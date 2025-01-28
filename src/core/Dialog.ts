@@ -118,7 +118,13 @@ export function iframe() {
         messenger.send('__internal', {
           type: 'init',
           mode: 'iframe',
-          referrer: location.origin,
+          referrer: {
+            icon: (
+              document.querySelector('link[rel="icon"]') as HTMLLinkElement
+            )?.href,
+            origin: location.origin,
+            title: document.title,
+          },
         })
       })
       messenger.on('rpc-response', (response) =>
@@ -145,7 +151,13 @@ export function iframe() {
           messenger.send('__internal', {
             type: 'init',
             mode: 'iframe',
-            referrer: location.origin,
+            referrer: {
+              icon: (
+                document.querySelector('link[rel="icon"]') as HTMLLinkElement
+              )?.href,
+              origin: location.origin,
+              title: document.title,
+            },
           })
 
           root.showModal()
@@ -228,7 +240,13 @@ export function popup() {
           messenger.send('__internal', {
             type: 'init',
             mode: isMobile() ? 'popup-standalone' : 'popup',
-            referrer: location.origin,
+            referrer: {
+              icon: (
+                document.querySelector('link[rel="icon"]') as HTMLLinkElement
+              )?.href,
+              origin: location.origin,
+              title: document.title,
+            },
           })
 
           messenger.on('rpc-response', (response) =>

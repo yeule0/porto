@@ -3,14 +3,20 @@ import { useShallow } from 'zustand/shallow'
 import { createStore } from 'zustand/vanilla'
 
 export const appStore = createStore<appStore.State>(() => ({
-  mode: undefined as never,
+  mode: 'popup-standalone',
   referrer: undefined,
 }))
 
 export declare namespace appStore {
   type State = {
     mode: 'iframe' | 'popup' | 'popup-standalone'
-    referrer: URL | undefined
+    referrer:
+      | {
+          icon?: string | undefined
+          origin: URL
+          title: string
+        }
+      | undefined
   }
 }
 

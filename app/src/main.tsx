@@ -12,22 +12,19 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
   const { mode, referrer } = payload
   appStore.setState({
     mode,
-    referrer: new URL(referrer),
+    referrer: {
+      ...referrer,
+      origin: new URL(referrer.origin),
+    },
   })
 })
 
 const offRequests = Events.onRequests(porto, (requests) => {
   const request = requests[0]?.request
-  const search: Parameters<(typeof router)['navigate']>[0]['search'] = (prev) =>
-    prev as never
-
-  if (request?.method === 'wallet_connect') {
-    const capabilities = request.params?.[0]?.capabilities ?? {}
-    if (capabilities.createAccount) router.navigate({ to: '/register', search })
-    else router.navigate({ to: '/login', search })
-  } else {
-    router.navigate({ to: '/', search })
-  }
+  router.navigate({
+    to: request?.method ? `/${request.method}` : '/',
+    search: request?.params as never,
+  })
 })
 
 porto.ready()

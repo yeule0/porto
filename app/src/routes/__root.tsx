@@ -6,17 +6,20 @@ import LucideGlobe from '~icons/lucide/globe'
 import LucideX from '~icons/lucide/x'
 import { type appStore, useAppStore } from '../lib/app'
 import { porto } from '../lib/porto'
+import { NotFound } from './-components/NotFound'
 
 export const Route = createRootRouteWithContext<{
   appState: appStore.State
   portoState: Porto.State
 }>()({
   component: RouteComponent,
+  notFoundComponent: NotFound,
 })
 
 function RouteComponent() {
   const mode = useAppStore((state) => state.mode)
-  const hostname = useAppStore((state) => state.referrer?.hostname)
+  const hostname = useAppStore((state) => state.referrer?.origin.hostname)
+  const icon = useAppStore((state) => state.referrer?.icon)
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const titlebarRef = React.useRef<HTMLDivElement | null>(null)
@@ -56,7 +59,13 @@ function RouteComponent() {
       >
         <div className="flex items-center gap-2">
           <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
-            <LucideGlobe className="size-3.5 text-black dark:text-white" />
+            {icon ? (
+              <div className="p-[3px]">
+                <img src={icon} alt={hostname} className="size-full" />
+              </div>
+            ) : (
+              <LucideGlobe className="size-3.5 text-black dark:text-white" />
+            )}
           </div>
           <div className="font-normal text-[14px] text-gray9 leading-[22px]">
             {hostname}
@@ -75,7 +84,7 @@ function RouteComponent() {
       <div
         ref={contentRef}
         {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-        className="flex flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border [:not(data-popup-standalone)]:h-fit"
+        className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border"
       >
         <Outlet />
       </div>

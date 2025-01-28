@@ -54,7 +54,11 @@ export type Schema = [
       | {
           type: 'init'
           mode: 'iframe' | 'popup' | 'popup-standalone'
-          referrer: string
+          referrer: {
+            icon?: string | undefined
+            origin: string
+            title: string
+          }
         }
       | {
           type: 'resize'

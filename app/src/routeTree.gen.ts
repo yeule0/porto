@@ -11,27 +11,13 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as RegisterImport } from './routes/register'
-import { Route as LoginImport } from './routes/login'
-import { Route as IndexImport } from './routes/index'
+import { Route as WalletconnectImport } from './routes/wallet_connect'
 
 // Create/Update Routes
 
-const RegisterRoute = RegisterImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LoginRoute = LoginImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexRoute = IndexImport.update({
-  id: '/',
-  path: '/',
+const WalletconnectRoute = WalletconnectImport.update({
+  id: '/wallet_connect',
+  path: '/wallet_connect',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -39,25 +25,11 @@ const IndexRoute = IndexImport.update({
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterImport
+    '/wallet_connect': {
+      id: '/wallet_connect'
+      path: '/wallet_connect'
+      fullPath: '/wallet_connect'
+      preLoaderRoute: typeof WalletconnectImport
       parentRoute: typeof rootRoute
     }
   }
@@ -66,43 +38,33 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register'
+  fullPaths: '/wallet_connect'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register'
-  id: '__root__' | '/' | '/login' | '/register'
+  to: '/wallet_connect'
+  id: '__root__' | '/wallet_connect'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
+  WalletconnectRoute: typeof WalletconnectRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
+  WalletconnectRoute: WalletconnectRoute,
 }
 
 export const routeTree = rootRoute
@@ -115,19 +77,11 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/login",
-        "/register"
+        "/wallet_connect"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
-    },
-    "/login": {
-      "filePath": "login.tsx"
-    },
-    "/register": {
-      "filePath": "register.tsx"
+    "/wallet_connect": {
+      "filePath": "wallet_connect.tsx"
     }
   }
 }
