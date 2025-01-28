@@ -1050,22 +1050,22 @@ async function getAuthorizedExecuteKey(parameters: {
     if (key.role !== 'session') return false
     if (key.expiry < BigInt(Math.floor(Date.now() / 1000))) return false
 
-    const hasInvalidScope = key.permissions?.calls?.some((scope) =>
+    const hasValidScope = key.permissions?.calls?.some((scope) =>
       calls.some((call) => {
-        if (scope.to && scope.to !== call.to) return true
+        if (scope.to && scope.to !== call.to) return false
         if (scope.signature) {
-          if (!call.data) return true
+          if (!call.data) return false
           const selector = Hex.slice(call.data, 0, 4)
           if (Hex.validate(scope.signature) && scope.signature !== selector)
-            return true
-          if (AbiItem.getSelector(scope.signature) !== selector) return true
+            return false
+          if (AbiItem.getSelector(scope.signature) !== selector) return false
         }
-        return false
+        return true
       }),
     )
-    if (hasInvalidScope) return false
+    if (hasValidScope) return true
 
-    return true
+    return false
   })
 
   // Fall back to an admin key.
