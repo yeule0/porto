@@ -262,7 +262,7 @@ export function popup() {
   })
 }
 
-const width = 282
+const width = 360
 const height = 282
 
 const styles = {

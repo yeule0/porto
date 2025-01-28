@@ -38,7 +38,7 @@ function RouteComponent() {
         variant="warning"
       />
 
-      <pre className="my-2.5 overflow-x-scroll rounded-lg border border-blackA1 bg-blackA1 p-3 text-[14px] text-gray12 leading-[22px] dark:border-whiteA1 dark:bg-whiteA1">
+      <pre className="my-2.5 max-h-[600px] overflow-scroll rounded-lg border border-blackA1 bg-blackA1 p-3 text-[14px] text-gray12 leading-[22px] dark:border-whiteA1 dark:bg-whiteA1">
         {JSON.stringify(request?.request ?? {}, null, 2)}
       </pre>
 

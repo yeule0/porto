@@ -107,6 +107,6 @@
   --color-amberA11: light-dark(#ab6400, #ffca16);
   --color-amberA12: light-dark(#341500dd, #ffe7b3);
 
-  --spacing-dialog: 282px;
+  --spacing-dialog: 360px;
   --spacing-titlebar: 36px;
 }
