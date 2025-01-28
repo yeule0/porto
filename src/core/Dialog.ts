@@ -127,7 +127,7 @@ export function iframe() {
       messenger.on('__internal', (payload) => {
         if (payload.type === 'resize') {
           iframe.style.height = `${payload.height}px`
-          iframe.style.width = `${payload.width}px`
+          if (!isMobile()) iframe.style.width = `${payload.width}px`
         }
       })
 
