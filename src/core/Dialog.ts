@@ -71,8 +71,32 @@ export function iframe() {
           background-color: rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes porto-fade-in {
+        @media (min-width: 460px) {
+          dialog iframe {
+            animation: porto-fade-in-from-top 0.1s ease-in-out;
+            top: 16px;
+            inset-inline-end: calc(50% - ${width}px / 2);
+            width: ${width}px;
+          }
+        }
+
+        @media (max-width: 460px) {
+          dialog iframe {
+            animation: porto-fade-in-from-bottom 0.1s ease-in-out;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100% !important;
+          }
+        }
+
+        @keyframes porto-fade-in-from-top {
           from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes porto-fade-in-from-bottom {
+          from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `
@@ -179,9 +203,6 @@ export function popup() {
 
       let messenger: Messenger.Messenger | undefined
 
-      const width = 282
-      const height = 282
-
       return {
         open() {
           const left = (window.innerWidth - width) / 2 + window.screenX
@@ -241,6 +262,9 @@ export function popup() {
   })
 }
 
+const width = 282
+const height = 282
+
 const styles = {
   backdrop: {
     display: 'none',
@@ -251,12 +275,9 @@ const styles = {
     zIndex: '2147483647',
   },
   iframe: {
-    animation: 'porto-fade-in 0.1s ease-in-out',
     display: 'none',
     border: 'none',
     position: 'fixed',
-    top: '16px',
-    insetInlineEnd: 'calc(50% - 282px / 2)',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
 

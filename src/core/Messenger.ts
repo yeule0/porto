@@ -58,8 +58,8 @@ export type Schema = [
         }
       | {
           type: 'resize'
-          height: number
-          width: number
+          height?: number | undefined
+          width?: number | undefined
         }
     response: undefined
   },

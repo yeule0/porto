@@ -36,7 +36,6 @@ function RouteComponent() {
             porto.messenger.send('__internal', {
               type: 'resize',
               height: height + titlebarHeight + 2,
-              width: width + 2,
             })
         }
       })
@@ -76,7 +75,7 @@ function RouteComponent() {
       <div
         ref={contentRef}
         {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-        className="flex min-w-dialog flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:max-w-dialog data-iframe:rounded-[14px] data-iframe:border [:not(data-popup-standalone)]:h-fit"
+        className="flex flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border [:not(data-popup-standalone)]:h-fit"
       >
         <Outlet />
       </div>
