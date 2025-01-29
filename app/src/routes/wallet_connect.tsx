@@ -24,6 +24,7 @@ function RouteComponent() {
     (state) => state.accounts[0]?.address,
   )
 
-  if (address) return <SignIn address={address} />
+  if (address && !capabilities?.createAccount)
+    return <SignIn address={address} />
   return <SignUp enableSignIn={!capabilities?.createAccount} />
 }
