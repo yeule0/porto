@@ -28,6 +28,8 @@ export namespace Button {
           default:
             'text-gray12 bg-blackA1 dark:bg-whiteA1 border border-blackA1 dark:border-whiteA1',
           primary: 'text-white bg-blue10',
+          destructive: 'text-white bg-red10',
+          success: 'text-white bg-green10',
           warning: 'text-white bg-amber8',
         },
         size: {

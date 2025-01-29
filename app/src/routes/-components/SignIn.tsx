@@ -13,13 +13,12 @@ export function SignIn(props: Authenticate.Props) {
 
   const hostname = useAppStore((state) => state.referrer?.origin.hostname)
 
+  const request = Hooks.useRequest(porto)
   const respond = useMutation({
     mutationFn() {
       return Actions.respond(porto, request!)
     },
   })
-
-  const request = Hooks.useRequest(porto)
 
   return (
     <Layout loading={respond.isPending} loadingTitle="Signing in">

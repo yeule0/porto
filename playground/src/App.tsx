@@ -25,17 +25,16 @@ const client = createClient({
 const permissions = {
   calls: [
     {
-      signature: 'mint(address,uint256)',
       to: ExperimentERC20.address,
     },
   ],
-  // spend: [
-  //   {
-  //     limit: Hex.fromNumber(Value.fromEther('50')),
-  //     period: 'minute',
-  //     token: ExperimentERC20.address,
-  //   },
-  // ],
+  spend: [
+    {
+      limit: Hex.fromNumber(Value.fromEther('50')),
+      period: 'minute',
+      token: ExperimentERC20.address,
+    },
+  ],
 } as const
 
 export function App() {

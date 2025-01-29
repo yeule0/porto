@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as WalletconnectImport } from './routes/wallet_connect'
+import { Route as ExperimentalauthorizeKeyImport } from './routes/experimental_authorizeKey'
 
 // Create/Update Routes
 
@@ -21,10 +22,23 @@ const WalletconnectRoute = WalletconnectImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const ExperimentalauthorizeKeyRoute = ExperimentalauthorizeKeyImport.update({
+  id: '/experimental_authorizeKey',
+  path: '/experimental_authorizeKey',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/experimental_authorizeKey': {
+      id: '/experimental_authorizeKey'
+      path: '/experimental_authorizeKey'
+      fullPath: '/experimental_authorizeKey'
+      preLoaderRoute: typeof ExperimentalauthorizeKeyImport
+      parentRoute: typeof rootRoute
+    }
     '/wallet_connect': {
       id: '/wallet_connect'
       path: '/wallet_connect'
@@ -38,32 +52,37 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
+  '/experimental_authorizeKey': typeof ExperimentalauthorizeKeyRoute
   '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRoutesByTo {
+  '/experimental_authorizeKey': typeof ExperimentalauthorizeKeyRoute
   '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/experimental_authorizeKey': typeof ExperimentalauthorizeKeyRoute
   '/wallet_connect': typeof WalletconnectRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/wallet_connect'
+  fullPaths: '/experimental_authorizeKey' | '/wallet_connect'
   fileRoutesByTo: FileRoutesByTo
-  to: '/wallet_connect'
-  id: '__root__' | '/wallet_connect'
+  to: '/experimental_authorizeKey' | '/wallet_connect'
+  id: '__root__' | '/experimental_authorizeKey' | '/wallet_connect'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
+  ExperimentalauthorizeKeyRoute: typeof ExperimentalauthorizeKeyRoute
   WalletconnectRoute: typeof WalletconnectRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  ExperimentalauthorizeKeyRoute: ExperimentalauthorizeKeyRoute,
   WalletconnectRoute: WalletconnectRoute,
 }
 
@@ -77,8 +96,12 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/experimental_authorizeKey",
         "/wallet_connect"
       ]
+    },
+    "/experimental_authorizeKey": {
+      "filePath": "experimental_authorizeKey.tsx"
     },
     "/wallet_connect": {
       "filePath": "wallet_connect.tsx"
