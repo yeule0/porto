@@ -596,15 +596,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 {
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: {
-                      ...authorizeKey_rpc,
-                      key: authorizeKey_rpc?.publicKey
-                        ? {
+                    authorizeKey: (authorizeKey_rpc?.publicKey
+                      ? {
+                          ...authorizeKey_rpc,
+                          key: {
                             publicKey: authorizeKey_rpc?.publicKey,
                             type: authorizeKey_rpc?.type,
-                          }
-                        : undefined,
-                    } as never,
+                          },
+                        }
+                      : undefined) as never,
                   },
                 },
               ],

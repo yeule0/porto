@@ -296,9 +296,6 @@ function AuthorizeKey() {
       <form
         onSubmit={async (e) => {
           e.preventDefault()
-          const formData = new FormData(e.target as HTMLFormElement)
-          const expiry = Number(formData.get('expiry'))
-
           const [account] = await porto.provider.request({
             method: 'eth_accounts',
           })
@@ -307,7 +304,6 @@ function AuthorizeKey() {
             params: [
               {
                 address: account,
-                expiry: Math.floor(Date.now() / 1000) + expiry,
                 permissions,
               },
             ],
@@ -315,12 +311,6 @@ function AuthorizeKey() {
           setResult(result)
         }}
       >
-        <input
-          required
-          placeholder="expiry (seconds)"
-          name="expiry"
-          type="number"
-        />
         <button type="submit">Authorize a Session Key</button>
       </form>
       {result && <pre>key: {JSON.stringify(result, null, 2)}</pre>}
