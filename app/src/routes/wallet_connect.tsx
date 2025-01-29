@@ -1,8 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { Hooks } from 'porto/remote'
 
-import { Authenticate } from './-components/Authenticate'
+import { porto } from '../lib/porto'
+import { SignIn } from './-components/SignIn'
+import { SignUp } from './-components/SignUp'
 
 export const Route = createFileRoute('/wallet_connect')({
   component: RouteComponent,
@@ -16,7 +19,11 @@ function RouteComponent() {
   const { 0: parameters } = Route.useSearch() ?? {}
   const { capabilities } = parameters ?? {}
 
-  const mode = capabilities?.createAccount ? 'register' : 'login'
+  const address = Hooks.usePortoStore(
+    porto,
+    (state) => state.accounts[0]?.address,
+  )
 
-  return <Authenticate mode={mode} />
+  if (address) return <SignIn address={address} />
+  return <SignUp enableSignIn={!capabilities?.createAccount} />
 }

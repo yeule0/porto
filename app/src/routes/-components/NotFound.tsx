@@ -1,5 +1,5 @@
+import { useMutation } from '@tanstack/react-query'
 import { Actions, Hooks } from 'porto/remote'
-import * as React from 'react'
 
 import LucideTriangleAlert from '~icons/lucide/triangle-alert'
 import { Button } from '../../components/Button'
@@ -7,12 +7,16 @@ import { Layout } from '../../components/Layout'
 import { porto } from '../../lib/porto'
 
 export function NotFound() {
-  const [loading, setLoading] = React.useState(false)
-
   const request = Hooks.useRequest(porto)
 
+  const respond = useMutation({
+    mutationFn() {
+      return Actions.respond(porto, request!)
+    },
+  })
+
   return (
-    <Layout loading={loading} loadingTitle="Responding">
+    <Layout loading={respond.isPending} loadingTitle="Responding">
       <Layout.Header
         title="Method Not implemented"
         icon={LucideTriangleAlert}
@@ -25,12 +29,12 @@ export function NotFound() {
         variant="warning"
       />
       <Layout.Content>
-        <pre className="my-2.5 max-h-[600px] overflow-scroll rounded-lg border border-blackA1 bg-blackA1 p-3 text-[14px] text-gray12 leading-[22px] dark:border-whiteA1 dark:bg-whiteA1">
+        <pre className="max-h-[600px] overflow-scroll rounded-lg border border-blackA1 bg-blackA1 p-3 text-[14px] text-gray12 leading-[22px] dark:border-whiteA1 dark:bg-whiteA1">
           {JSON.stringify(request?.request ?? {}, null, 2)}
         </pre>
       </Layout.Content>
       <Layout.Footer>
-        <div className="flex gap-2">
+        <div className="flex gap-2 px-3">
           <Button
             className="flex-grow"
             type="button"
@@ -43,10 +47,7 @@ export function NotFound() {
             className="flex-grow"
             type="button"
             variant="warning"
-            onClick={() => {
-              setLoading(true)
-              Actions.respond(porto, request!).finally(() => setLoading(false))
-            }}
+            onClick={() => respond.mutate()}
           >
             Respond
           </Button>
