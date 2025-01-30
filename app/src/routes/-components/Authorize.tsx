@@ -1,7 +1,5 @@
-import { useMutation } from '@tanstack/react-query'
 import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
-import { Actions, Hooks } from 'porto/remote'
 import { useMemo } from 'react'
 import { erc20Abi } from 'viem'
 import { useReadContract } from 'wagmi'
@@ -10,79 +8,98 @@ import LucideKey from '~icons/lucide/key-round'
 import { Button } from '../../components/Button'
 import { Layout } from '../../components/Layout'
 import { useAppStore } from '../../lib/app'
-import { porto } from '../../lib/porto'
-import { ValueFormatter } from '../../utils'
+import { StringFormatter, ValueFormatter } from '../../utils'
 import { NotFound } from './NotFound'
 
-type Permissions = NonNullable<
-  RpcSchema.ExtractParams<
-    porto_RpcSchema.Schema,
-    'experimental_authorizeKey'
-  >['0']['permissions']
->
+export function Authorize(props: Authorize.Props) {
+  const { address, permissions, role, loading, onApprove, onReject } = props
 
-export function AuthorizeKey(props: AuthorizeKey.Props) {
-  const { permissions } = props
+  if (role === 'admin') return <NotFound />
+  if (!permissions?.spend) return <NotFound />
+  if (!permissions.spend[0]) return <NotFound />
 
-  const request = Hooks.useRequest(porto)
+  return (
+    <Layout loading={loading} loadingTitle="Authorizing">
+      <AuthorizeSpendPermission {...permissions.spend[0]} />
+      <Layout.Footer className="space-y-3">
+        <div className="flex gap-2 px-3">
+          <Button
+            className="flex-1"
+            type="button"
+            variant="destructive"
+            onClick={onReject}
+          >
+            Deny
+          </Button>
 
-  const respond = useMutation({
-    mutationFn() {
-      return Actions.respond(porto, request!)
-    },
-  })
+          <Button
+            className="flex-1"
+            type="button"
+            variant="success"
+            onClick={onApprove}
+          >
+            Approve
+          </Button>
+        </div>
+        {address && (
+          <div className="flex justify-between border-blackA1 border-t px-3 pt-3 dark:border-whiteA1">
+            <div className="text-[13px] text-gray9 leading-[22px]">Wallet</div>
 
-  // TODO: Handle set of permissions.
-  const [permission] = permissions!.spend ?? []
-
-  if (permission)
-    return (
-      <AuthorizeSpendPermission
-        loading={respond.isPending}
-        permission={permission}
-        onApprove={() => respond.mutate()}
-        onReject={() => Actions.reject(porto, request!)}
-      />
-    )
-  return <NotFound />
+            <div className="flex items-center gap-1.5">
+              <div className="font-medium text-[14px] text-gray12">
+                {StringFormatter.truncate(address, { start: 6, end: 4 })}
+              </div>
+            </div>
+          </div>
+        )}
+      </Layout.Footer>
+    </Layout>
+  )
 }
 
-export declare namespace AuthorizeKey {
-  type Props = {
-    permissions: Permissions
+export declare namespace Authorize {
+  type Props = RpcSchema.ExtractParams<
+    porto_RpcSchema.Schema,
+    'experimental_authorizeKey'
+  >['0'] & {
+    loading: boolean
+    onApprove: () => void
+    onReject: () => void
   }
 }
 
-function AuthorizeSpendPermission(props: AuthorizeSpendPermission.Props) {
-  const { loading, permission, onApprove, onReject } = props
+export function AuthorizeSpendPermission(
+  props: AuthorizeSpendPermission.Props,
+) {
+  const { limit, period, token } = props
 
   const hostname = useAppStore((state) => state.referrer?.origin.hostname)
 
   // TODO: handle errors
   const symbol = useReadContract({
     abi: erc20Abi,
-    address: permission.token,
+    address: token,
     functionName: 'symbol',
     query: {
-      enabled: !!permission.token,
+      enabled: !!token,
     },
   })
   const decimals = useReadContract({
     abi: erc20Abi,
-    address: permission.token,
+    address: token,
     functionName: 'decimals',
     query: {
-      enabled: !!permission.token,
+      enabled: !!token,
     },
   })
 
   const displayAmount = useMemo(() => {
-    if (!decimals.data && permission.token) return null
-    return ValueFormatter.format(Hex.toBigInt(permission.limit), decimals.data)
-  }, [permission.limit, decimals.data, permission.token])
+    if (!decimals.data && token) return null
+    return ValueFormatter.format(Hex.toBigInt(limit), decimals.data)
+  }, [limit, decimals.data, token])
 
   return (
-    <Layout loading={loading} loadingTitle="Authorizing">
+    <>
       <Layout.Header
         icon={LucideKey}
         title="Authorize Spending"
@@ -95,14 +112,14 @@ function AuthorizeSpendPermission(props: AuthorizeSpendPermission.Props) {
       />
       <Layout.Content>
         <div className="flex h-[40px] items-center justify-center gap-2 rounded-lg bg-gray3 p-2">
-          {displayAmount || !permission.token ? (
+          {displayAmount || !token ? (
             <>
               <div className="mt-[2px]">
                 <code>
                   {displayAmount} {symbol.data ?? 'ETH'}
                 </code>
               </div>
-              <div className="opacity-50">per {permission.period}</div>
+              <div className="opacity-50">per {period}</div>
             </>
           ) : (
             <svg
@@ -126,36 +143,12 @@ function AuthorizeSpendPermission(props: AuthorizeSpendPermission.Props) {
           )}
         </div>
       </Layout.Content>
-      <Layout.Footer className="space-y-3">
-        <div className="flex gap-2 px-3">
-          <Button
-            className="flex-1"
-            type="button"
-            variant="destructive"
-            onClick={onReject}
-          >
-            Deny
-          </Button>
-
-          <Button
-            className="flex-1"
-            type="button"
-            variant="success"
-            onClick={onApprove}
-          >
-            Approve
-          </Button>
-        </div>
-      </Layout.Footer>
-    </Layout>
+    </>
   )
 }
 
 export declare namespace AuthorizeSpendPermission {
-  type Props = {
-    loading: boolean
-    onApprove: () => void
-    onReject: () => void
-    permission: NonNullable<Permissions['spend']>[number]
-  }
+  type Props = NonNullable<
+    NonNullable<Authorize.Props['permissions']>['spend']
+  >[number]
 }

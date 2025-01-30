@@ -1,6 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
-import { Actions, Hooks } from 'porto/remote'
-
+import { Hooks } from 'porto/remote'
 import LucideLogIn from '~icons/lucide/log-in'
 import { Button } from '../../components/Button'
 import { Layout } from '../../components/Layout'
@@ -8,21 +6,19 @@ import { useAppStore } from '../../lib/app'
 import { porto } from '../../lib/porto'
 import { StringFormatter } from '../../utils'
 
-export function SignIn(props: Authenticate.Props) {
-  const { address } = props
+export function SignIn(props: SignIn.Props) {
+  const { loading, onApprove, onReject } = props
 
+  const address = Hooks.usePortoStore(
+    porto,
+    (state) => state.accounts[0]?.address,
+  )
   const hostname = useAppStore((state) => state.referrer?.origin.hostname)
 
-  const request = Hooks.useRequest(porto)
-  const respond = useMutation({
-    mutationFn() {
-      return Actions.respond(porto, request!)
-    },
-  })
-
   return (
-    <Layout loading={respond.isPending} loadingTitle="Signing in">
+    <Layout loading={loading} loadingTitle="Signing in">
       <Layout.Header
+        className="flex-grow"
         title="Sign in"
         icon={LucideLogIn}
         content={
@@ -35,7 +31,7 @@ export function SignIn(props: Authenticate.Props) {
 
       <Layout.Footer className="space-y-3">
         <div className="flex gap-2 px-3">
-          <Button type="button" onClick={() => Actions.reject(porto, request!)}>
+          <Button type="button" onClick={onReject}>
             No thanks
           </Button>
 
@@ -43,7 +39,7 @@ export function SignIn(props: Authenticate.Props) {
             className="flex-grow"
             type="button"
             variant="primary"
-            onClick={() => respond.mutate()}
+            onClick={onApprove}
           >
             Sign in
           </Button>
@@ -65,8 +61,10 @@ export function SignIn(props: Authenticate.Props) {
   )
 }
 
-export declare namespace Authenticate {
+export declare namespace SignIn {
   type Props = {
-    address?: string
+    loading: boolean
+    onApprove: () => void
+    onReject: () => void
   }
 }

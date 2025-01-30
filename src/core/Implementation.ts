@@ -701,7 +701,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 : undefined,
               defaultExpiry,
             })
-            if (!authorizeKey) throw new Error('key not found.')
 
             // Convert the key into RPC format.
             const authorizeKey_rpc = authorizeKey
@@ -716,15 +715,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
                   ...request.params?.[0],
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: {
-                      ...authorizeKey_rpc,
-                      key: authorizeKey_rpc?.publicKey
-                        ? {
+                    authorizeKey: (authorizeKey_rpc?.publicKey
+                      ? {
+                          ...authorizeKey_rpc,
+                          key: {
                             publicKey: authorizeKey_rpc?.publicKey,
                             type: authorizeKey_rpc?.type,
-                          }
-                        : undefined,
-                    } as never,
+                          },
+                        }
+                      : undefined) as never,
                   },
                 },
               ],
