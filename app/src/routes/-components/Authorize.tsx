@@ -1,6 +1,6 @@
 import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { erc20Abi } from 'viem'
 import { useReadContract } from 'wagmi'
 
@@ -14,13 +14,15 @@ import { NotFound } from './NotFound'
 export function Authorize(props: Authorize.Props) {
   const { address, permissions, role, loading, onApprove, onReject } = props
 
+  const [index, setIndex] = useState(0)
+
   if (role === 'admin') return <NotFound />
   if (!permissions?.spend) return <NotFound />
-  if (!permissions.spend[0]) return <NotFound />
+  if (permissions.spend.length === 0) return <NotFound />
 
   return (
     <Layout loading={loading} loadingTitle="Authorizing">
-      <AuthorizeSpendPermission {...permissions.spend[0]} />
+      <AuthorizeSpendPermission {...permissions.spend[index]!} />
       <Layout.Footer className="space-y-3">
         <div className="flex gap-2 px-3">
           <Button
@@ -36,7 +38,10 @@ export function Authorize(props: Authorize.Props) {
             className="flex-1"
             type="button"
             variant="success"
-            onClick={onApprove}
+            onClick={() => {
+              if (index < permissions!.spend!.length - 1) setIndex(index + 1)
+              else onApprove()
+            }}
           >
             Approve
           </Button>
