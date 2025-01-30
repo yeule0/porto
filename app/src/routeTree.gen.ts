@@ -14,7 +14,9 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as DialogImport } from './routes/_dialog'
 import { Route as IndexImport } from './routes/index'
 import { Route as DialogDialogWalletconnectImport } from './routes/_dialog.dialog/wallet_connect'
+import { Route as DialogDialogExperimentalcreateAccountImport } from './routes/_dialog.dialog/experimental_createAccount'
 import { Route as DialogDialogExperimentalauthorizeKeyImport } from './routes/_dialog.dialog/experimental_authorizeKey'
+import { Route as DialogDialogEthrequestAccountsImport } from './routes/_dialog.dialog/eth_requestAccounts'
 import { Route as DialogDialogSplatImport } from './routes/_dialog.dialog/$'
 
 // Create/Update Routes
@@ -36,10 +38,24 @@ const DialogDialogWalletconnectRoute = DialogDialogWalletconnectImport.update({
   getParentRoute: () => DialogRoute,
 } as any)
 
+const DialogDialogExperimentalcreateAccountRoute =
+  DialogDialogExperimentalcreateAccountImport.update({
+    id: '/dialog/experimental_createAccount',
+    path: '/dialog/experimental_createAccount',
+    getParentRoute: () => DialogRoute,
+  } as any)
+
 const DialogDialogExperimentalauthorizeKeyRoute =
   DialogDialogExperimentalauthorizeKeyImport.update({
     id: '/dialog/experimental_authorizeKey',
     path: '/dialog/experimental_authorizeKey',
+    getParentRoute: () => DialogRoute,
+  } as any)
+
+const DialogDialogEthrequestAccountsRoute =
+  DialogDialogEthrequestAccountsImport.update({
+    id: '/dialog/eth_requestAccounts',
+    path: '/dialog/eth_requestAccounts',
     getParentRoute: () => DialogRoute,
   } as any)
 
@@ -74,11 +90,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DialogDialogSplatImport
       parentRoute: typeof DialogImport
     }
+    '/_dialog/dialog/eth_requestAccounts': {
+      id: '/_dialog/dialog/eth_requestAccounts'
+      path: '/dialog/eth_requestAccounts'
+      fullPath: '/dialog/eth_requestAccounts'
+      preLoaderRoute: typeof DialogDialogEthrequestAccountsImport
+      parentRoute: typeof DialogImport
+    }
     '/_dialog/dialog/experimental_authorizeKey': {
       id: '/_dialog/dialog/experimental_authorizeKey'
       path: '/dialog/experimental_authorizeKey'
       fullPath: '/dialog/experimental_authorizeKey'
       preLoaderRoute: typeof DialogDialogExperimentalauthorizeKeyImport
+      parentRoute: typeof DialogImport
+    }
+    '/_dialog/dialog/experimental_createAccount': {
+      id: '/_dialog/dialog/experimental_createAccount'
+      path: '/dialog/experimental_createAccount'
+      fullPath: '/dialog/experimental_createAccount'
+      preLoaderRoute: typeof DialogDialogExperimentalcreateAccountImport
       parentRoute: typeof DialogImport
     }
     '/_dialog/dialog/wallet_connect': {
@@ -95,14 +125,19 @@ declare module '@tanstack/react-router' {
 
 interface DialogRouteChildren {
   DialogDialogSplatRoute: typeof DialogDialogSplatRoute
+  DialogDialogEthrequestAccountsRoute: typeof DialogDialogEthrequestAccountsRoute
   DialogDialogExperimentalauthorizeKeyRoute: typeof DialogDialogExperimentalauthorizeKeyRoute
+  DialogDialogExperimentalcreateAccountRoute: typeof DialogDialogExperimentalcreateAccountRoute
   DialogDialogWalletconnectRoute: typeof DialogDialogWalletconnectRoute
 }
 
 const DialogRouteChildren: DialogRouteChildren = {
   DialogDialogSplatRoute: DialogDialogSplatRoute,
+  DialogDialogEthrequestAccountsRoute: DialogDialogEthrequestAccountsRoute,
   DialogDialogExperimentalauthorizeKeyRoute:
     DialogDialogExperimentalauthorizeKeyRoute,
+  DialogDialogExperimentalcreateAccountRoute:
+    DialogDialogExperimentalcreateAccountRoute,
   DialogDialogWalletconnectRoute: DialogDialogWalletconnectRoute,
 }
 
@@ -113,7 +148,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '': typeof DialogRouteWithChildren
   '/dialog/$': typeof DialogDialogSplatRoute
+  '/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
+  '/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
 }
 
@@ -121,7 +158,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '': typeof DialogRouteWithChildren
   '/dialog/$': typeof DialogDialogSplatRoute
+  '/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
+  '/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
 }
 
@@ -130,7 +169,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dialog': typeof DialogRouteWithChildren
   '/_dialog/dialog/$': typeof DialogDialogSplatRoute
+  '/_dialog/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/_dialog/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
+  '/_dialog/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
   '/_dialog/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
 }
 
@@ -140,21 +181,27 @@ export interface FileRouteTypes {
     | '/'
     | ''
     | '/dialog/$'
+    | '/dialog/eth_requestAccounts'
     | '/dialog/experimental_authorizeKey'
+    | '/dialog/experimental_createAccount'
     | '/dialog/wallet_connect'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | ''
     | '/dialog/$'
+    | '/dialog/eth_requestAccounts'
     | '/dialog/experimental_authorizeKey'
+    | '/dialog/experimental_createAccount'
     | '/dialog/wallet_connect'
   id:
     | '__root__'
     | '/'
     | '/_dialog'
     | '/_dialog/dialog/$'
+    | '/_dialog/dialog/eth_requestAccounts'
     | '/_dialog/dialog/experimental_authorizeKey'
+    | '/_dialog/dialog/experimental_createAccount'
     | '/_dialog/dialog/wallet_connect'
   fileRoutesById: FileRoutesById
 }
@@ -190,7 +237,9 @@ export const routeTree = rootRoute
       "filePath": "_dialog.tsx",
       "children": [
         "/_dialog/dialog/$",
+        "/_dialog/dialog/eth_requestAccounts",
         "/_dialog/dialog/experimental_authorizeKey",
+        "/_dialog/dialog/experimental_createAccount",
         "/_dialog/dialog/wallet_connect"
       ]
     },
@@ -198,8 +247,16 @@ export const routeTree = rootRoute
       "filePath": "_dialog.dialog/$.tsx",
       "parent": "/_dialog"
     },
+    "/_dialog/dialog/eth_requestAccounts": {
+      "filePath": "_dialog.dialog/eth_requestAccounts.tsx",
+      "parent": "/_dialog"
+    },
     "/_dialog/dialog/experimental_authorizeKey": {
       "filePath": "_dialog.dialog/experimental_authorizeKey.tsx",
+      "parent": "/_dialog"
+    },
+    "/_dialog/dialog/experimental_createAccount": {
+      "filePath": "_dialog.dialog/experimental_createAccount.tsx",
       "parent": "/_dialog"
     },
     "/_dialog/dialog/wallet_connect": {
