@@ -2,9 +2,9 @@ import { useMutation } from '@tanstack/react-query'
 import { Actions, Hooks } from 'porto/remote'
 
 import LucideTriangleAlert from '~icons/lucide/triangle-alert'
-import { Button } from '../../components/Button'
-import { Layout } from '../../components/Layout'
-import { porto } from '../../lib/porto'
+import { Button } from '../../../components/Button'
+import { Layout } from '../../../components/Layout'
+import { porto } from '../../../lib/porto'
 
 export function NotFound() {
   const request = Hooks.useRequest(porto)

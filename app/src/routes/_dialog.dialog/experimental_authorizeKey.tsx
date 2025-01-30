@@ -4,10 +4,12 @@ import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
-import { porto } from '../lib/porto'
+import { porto } from '../../lib/porto'
 import { Authorize } from './-components/Authorize'
 
-export const Route = createFileRoute('/experimental_authorizeKey')({
+export const Route = createFileRoute(
+  '/_dialog/dialog/experimental_authorizeKey',
+)({
   component: RouteComponent,
   validateSearch(
     search,
