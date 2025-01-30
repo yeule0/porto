@@ -1,5 +1,5 @@
 import { Hooks } from 'porto/wagmi'
-import { type Hex, formatEther, parseEther } from 'viem'
+import { type Hex, formatEther, parseEther, toHex } from 'viem'
 import {
   type BaseError,
   useAccount,
@@ -19,8 +19,14 @@ import { ExperimentERC20 } from './contracts.js'
 const permissions = {
   calls: [
     {
-      signature: 'mint(address,uint256)',
       to: ExperimentERC20.address,
+    },
+  ],
+  spend: [
+    {
+      limit: toHex(parseEther('50')),
+      period: 'minute',
+      token: ExperimentERC20.address,
     },
   ],
 } as const
