@@ -47,14 +47,19 @@ export async function rejectAll(
  * @param porto - Porto instance.
  * @param request - Request to respond to.
  */
-export async function respond(
+export async function respond<result>(
   porto: Pick<Remote.Porto<any>, 'messenger' | 'provider'>,
   request: Porto.QueuedRequest,
+  options?: {
+    selector?: (result: result) => unknown
+  },
 ) {
   const { messenger, provider } = porto
+  const { selector } = options ?? {}
   const shared = { id: request.request.id, jsonrpc: '2.0' } as const
   try {
-    const result = await provider.request(request.request)
+    let result = await provider.request(request.request)
+    if (selector) result = selector(result as never)
     messenger.send('rpc-response', RpcResponse.from({ ...shared, result }))
   } catch (e) {
     const error = e as RpcResponse.BaseError

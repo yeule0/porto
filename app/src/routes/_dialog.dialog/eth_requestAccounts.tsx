@@ -24,9 +24,32 @@ function RouteComponent() {
 
   const queued = Hooks.useRequest(porto)
   const respond = useMutation({
-    mutationFn() {
+    mutationFn({ signIn }: { signIn?: boolean }) {
       if (!queued) throw new Error('no request queued.')
-      return Actions.respond(porto, queued)
+      return Actions.respond<
+        RpcSchema.ExtractReturnType<porto_RpcSchema.Schema, 'wallet_connect'>
+      >(
+        porto,
+        {
+          ...queued,
+          request: {
+            ...queued.request,
+            method: 'wallet_connect',
+            params: [
+              {
+                capabilities: {
+                  createAccount: !signIn,
+                },
+              },
+            ],
+          },
+        },
+        {
+          selector(result) {
+            return result.accounts.map((x) => x.address)
+          },
+        },
+      )
     },
   })
 
@@ -34,7 +57,7 @@ function RouteComponent() {
     return (
       <SignIn
         loading={respond.isPending}
-        onApprove={() => respond.mutate()}
+        onApprove={() => respond.mutate({})}
         onReject={() => Actions.reject(porto, queued!)}
       />
     )
@@ -42,7 +65,7 @@ function RouteComponent() {
     <SignUp
       enableSignIn={true}
       loading={respond.isPending}
-      onApprove={() => respond.mutate()}
+      onApprove={({ signIn }) => respond.mutate({ signIn })}
       onReject={() => Actions.reject(porto, queued!)}
     />
   )

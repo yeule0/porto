@@ -1,6 +1,7 @@
 packages:
   - 'app'
   - 'examples/*'
+  - 'extension'
   - 'playground'
   - 'src'
 
