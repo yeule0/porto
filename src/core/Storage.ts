@@ -51,6 +51,28 @@ export function localStorage() {
   })
 }
 
+export function cookie() {
+  return from({
+    async getItem(name) {
+      const value = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${name}=`))
+      if (!value) return null
+      try {
+        return Json.parse(value.substring(name.length + 1))
+      } catch {
+        return null
+      }
+    },
+    async removeItem(name) {
+      document.cookie = `${name}=;max-age=-1;path=/`
+    },
+    async setItem(name, value) {
+      document.cookie = `${name}=${Json.stringify(value)};path=/;samesite=None;secure`
+    },
+  })
+}
+
 export function memory() {
   const store = new Map<string, any>()
   return from({
