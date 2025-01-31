@@ -3,6 +3,8 @@
   "files": {
     "ignore": [
       "contracts/lib",
+      "extension/.output",
+      "extension/.wxt",
       "src/core/internal/generated.ts",
       "tsconfig.json",
       "tsconfig.*.json",
