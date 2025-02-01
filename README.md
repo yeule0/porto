@@ -188,7 +188,7 @@ type Request = {
     expiry?: number
     // Key to authorize.
     key?: {
-      // Public key. Accepts an address for `contract` type.
+      // Public key. Accepts an address for `contract` & `secp256k1` types.
       publicKey?: `0x${string}`,
       // Key type.
       type?: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256', 
