@@ -526,6 +526,8 @@ export function dialog(parameters: dialog.Parameters = {}) {
         })
         if (!key) throw new Error('key not found.')
 
+        const rpc = Key.toRpc(key)
+
         // Send a request off to the dialog to authorize the key.
         const provider = getProvider(store)
         await provider.request({
@@ -533,7 +535,13 @@ export function dialog(parameters: dialog.Parameters = {}) {
           params: [
             {
               address,
-              ...(Key.toRpc(key) as any),
+              expiry: rpc.expiry,
+              key: {
+                publicKey: rpc.publicKey,
+                type: rpc.type,
+              },
+              permissions: rpc.permissions,
+              role: rpc.role,
             },
           ],
         })
@@ -585,9 +593,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
             })
 
             // Convert the key into RPC format.
-            const authorizeKey_rpc = authorizeKey
-              ? Key.toRpc(authorizeKey)
-              : undefined
+            const rpc = authorizeKey ? Key.toRpc(authorizeKey) : undefined
 
             // Send a request off to the dialog to create an account.
             const { accounts } = await provider.request({
@@ -596,15 +602,17 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 {
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: (authorizeKey_rpc?.publicKey
+                    authorizeKey: rpc?.publicKey
                       ? {
-                          ...authorizeKey_rpc,
+                          expiry: rpc.expiry,
                           key: {
-                            publicKey: authorizeKey_rpc?.publicKey,
-                            type: authorizeKey_rpc?.type,
+                            publicKey: rpc.publicKey,
+                            type: rpc.type,
                           },
+                          permissions: rpc.permissions,
+                          role: rpc.role,
                         }
-                      : undefined) as never,
+                      : undefined,
                   },
                 },
               ],
@@ -703,9 +711,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
             })
 
             // Convert the key into RPC format.
-            const authorizeKey_rpc = authorizeKey
-              ? Key.toRpc(authorizeKey)
-              : undefined
+            const rpc = authorizeKey ? Key.toRpc(authorizeKey) : undefined
 
             // Send a request to the dialog.
             const result = await provider.request({
@@ -715,15 +721,17 @@ export function dialog(parameters: dialog.Parameters = {}) {
                   ...request.params?.[0],
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: (authorizeKey_rpc?.publicKey
+                    authorizeKey: rpc?.publicKey
                       ? {
-                          ...authorizeKey_rpc,
+                          expiry: rpc.expiry,
                           key: {
-                            publicKey: authorizeKey_rpc?.publicKey,
-                            type: authorizeKey_rpc?.type,
+                            publicKey: rpc.publicKey,
+                            type: rpc.type,
                           },
+                          permissions: rpc.permissions,
+                          role: rpc.role,
                         }
-                      : undefined) as never,
+                      : undefined,
                   },
                 },
               ],
