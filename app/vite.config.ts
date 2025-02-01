@@ -5,6 +5,7 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import React from '@vitejs/plugin-react'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
+import TsconfigPaths from 'vite-tsconfig-paths'
 
 const https = {
   key: resolve(import.meta.dirname, '../localhost-key.pem'),
@@ -22,5 +23,6 @@ export default defineConfig({
     TanStackRouterVite(),
     React(),
     Icons({ compiler: 'jsx', jsx: 'react' }),
+    TsconfigPaths(),
   ],
 })

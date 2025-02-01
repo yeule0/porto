@@ -1,13 +1,13 @@
-import { useStore } from 'zustand'
+import * as Zustand from 'zustand'
 import { useShallow } from 'zustand/shallow'
 import { createStore } from 'zustand/vanilla'
 
-export const appStore = createStore<appStore.State>(() => ({
+export const store = createStore<store.State>(() => ({
   mode: 'popup-standalone',
   referrer: undefined,
 }))
 
-export declare namespace appStore {
+export declare namespace store {
   type State = {
     mode: 'iframe' | 'popup' | 'popup-standalone'
     referrer:
@@ -20,9 +20,10 @@ export declare namespace appStore {
   }
 }
 
-export function useAppStore<slice = appStore.State>(
-  selector: Parameters<typeof useStore<typeof appStore, slice>>[1] = (state) =>
-    state as slice,
+export function useStore<slice = store.State>(
+  selector: Parameters<typeof Zustand.useStore<typeof store, slice>>[1] = (
+    state,
+  ) => state as slice,
 ) {
-  return useStore(appStore, useShallow(selector))
+  return Zustand.useStore(store, useShallow(selector))
 }

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { PortoLogo } from '../components/PortoLogo'
+import { PortoLogo } from '~/components/PortoLogo'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,

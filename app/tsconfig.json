@@ -22,6 +22,9 @@
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
 
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "types": ["unplugin-icons/types/react"]
   }
 }

@@ -4,11 +4,11 @@ import { useMemo, useState } from 'react'
 import { erc20Abi } from 'viem'
 import { useReadContract } from 'wagmi'
 
+import { Button } from '~/components/Button'
+import { Layout } from '~/components/Layout'
+import * as Dialog from '~/lib/Dialog'
+import { StringFormatter, ValueFormatter } from '~/utils'
 import LucideKey from '~icons/lucide/key-round'
-import { Button } from '../../../components/Button'
-import { Layout } from '../../../components/Layout'
-import { useAppStore } from '../../../lib/app'
-import { StringFormatter, ValueFormatter } from '../../../utils'
 import { NotFound } from './NotFound'
 
 export function Authorize(props: Authorize.Props) {
@@ -78,7 +78,7 @@ export function AuthorizeSpendPermission(
 ) {
   const { limit, period, token } = props
 
-  const hostname = useAppStore((state) => state.referrer?.origin.hostname)
+  const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
   // TODO: handle errors
   const symbol = useReadContract({

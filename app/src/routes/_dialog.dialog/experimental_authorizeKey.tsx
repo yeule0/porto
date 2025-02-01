@@ -4,7 +4,7 @@ import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
-import { porto } from '../../lib/porto'
+import { porto } from '~/lib/Porto'
 import { Authorize } from './-components/Authorize'
 
 export const Route = createFileRoute(

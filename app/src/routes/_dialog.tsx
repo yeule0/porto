@@ -2,19 +2,19 @@ import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { Actions } from 'porto/remote'
 import * as React from 'react'
 
+import * as Dialog from '~/lib/Dialog'
+import { porto } from '~/lib/Porto'
 import LucideGlobe from '~icons/lucide/globe'
 import LucideX from '~icons/lucide/x'
-import { useAppStore } from '../lib/app'
-import { porto } from '../lib/porto'
 
 export const Route = createFileRoute('/_dialog')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const mode = useAppStore((state) => state.mode)
-  const hostname = useAppStore((state) => state.referrer?.origin.hostname)
-  const icon = useAppStore((state) => state.referrer?.icon)
+  const mode = Dialog.useStore((state) => state.mode)
+  const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
+  const icon = Dialog.useStore((state) => state.referrer?.icon)
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const titlebarRef = React.useRef<HTMLDivElement | null>(null)

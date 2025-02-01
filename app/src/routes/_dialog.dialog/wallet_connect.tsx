@@ -5,7 +5,7 @@ import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 import { useEffect, useState } from 'react'
 
-import { porto } from '../../lib/porto'
+import { porto } from '~/lib/Porto'
 import { Authorize } from './-components/Authorize'
 import { SignIn } from './-components/SignIn'
 import { SignUp } from './-components/SignUp'

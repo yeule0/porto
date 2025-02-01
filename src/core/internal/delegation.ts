@@ -118,12 +118,23 @@ export async function execute<
     const getAbiError = (error: BaseError) => {
       const cause = error.walk((e) => 'data' in (e as BaseError))
       if (!cause) return undefined
-      if (!('data' in cause)) return undefined
-      if (cause.data instanceof BaseError) return getAbiError(cause.data)
-      if (typeof cause.data !== 'string') return undefined
-      if (cause.data === '0x') return undefined
+
+      let data: Hex.Hex | undefined
+      if (cause instanceof BaseError) {
+        const [, match] = cause.details.match(/"(0x[0-9a-f]{8})"/) || []
+        if (match) data = match as Hex.Hex
+      }
+
+      if (!data) {
+        if (!('data' in cause)) return undefined
+        if (cause.data instanceof BaseError) return getAbiError(cause.data)
+        if (typeof cause.data !== 'string') return undefined
+        if (cause.data === '0x') return undefined
+        data = cause.data as Hex.Hex
+      }
+
       try {
-        return AbiError.fromAbi(delegationAbi, cause.data as Hex.Hex)
+        return AbiError.fromAbi(delegationAbi, data)
       } catch {
         return undefined
       }

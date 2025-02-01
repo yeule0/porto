@@ -2,18 +2,18 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { RouterProvider } from '@tanstack/react-router'
 import { WagmiProvider } from 'wagmi'
 
-import { persister, queryClient } from './lib/query.ts'
-import { router } from './lib/router.ts'
-import { config } from './lib/wagmi.ts'
+import * as Query from './lib/Query.ts'
+import * as Router from './lib/Router.ts'
+import * as Wagmi from './lib/Wagmi.ts'
 
 export function App() {
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={Wagmi.config}>
       <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister }}
+        client={Query.client}
+        persistOptions={{ persister: Query.persister }}
       >
-        <RouterProvider router={router} />
+        <RouterProvider router={Router.router} />
       </PersistQueryClientProvider>
     </WagmiProvider>
   )

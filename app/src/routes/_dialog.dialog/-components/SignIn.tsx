@@ -1,10 +1,11 @@
 import { Hooks } from 'porto/remote'
+
+import { Button } from '~/components/Button'
+import { Layout } from '~/components/Layout'
+import * as Dialog from '~/lib/Dialog'
+import { porto } from '~/lib/Porto'
+import { StringFormatter } from '~/utils'
 import LucideLogIn from '~icons/lucide/log-in'
-import { Button } from '../../../components/Button'
-import { Layout } from '../../../components/Layout'
-import { useAppStore } from '../../../lib/app'
-import { porto } from '../../../lib/porto'
-import { StringFormatter } from '../../../utils'
 
 export function SignIn(props: SignIn.Props) {
   const { loading, onApprove, onReject } = props
@@ -13,7 +14,7 @@ export function SignIn(props: SignIn.Props) {
     porto,
     (state) => state.accounts[0]?.address,
   )
-  const hostname = useAppStore((state) => state.referrer?.origin.hostname)
+  const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
   return (
     <Layout loading={loading} loadingTitle="Signing in">

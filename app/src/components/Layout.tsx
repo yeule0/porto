@@ -1,6 +1,6 @@
+import { cx } from 'cva'
 import type * as React from 'react'
 
-import { cx } from 'cva'
 import { Header as Header_ } from './Header'
 import { IndeterminateLoader } from './IndeterminateLoader'
 
