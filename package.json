@@ -63,6 +63,7 @@
     "project": ["src/**"],
     "ignore": [
       "app/**",
+      "extension/**",
       "**/internal/**",
       "playground/**",
       "src/core/internal/generated.ts"
