@@ -31,8 +31,10 @@ export function SignMessage({ message }: SignMessage.Props) {
           <div className="px-3 pt-2 font-medium text-[14px] text-gray10">
             Message
           </div>
-          <div className="max-h-[300px] overflow-scroll px-3 pb-2">
-            <p className="text-[14px] text-gray12">{message}</p>
+          <div className="max-h-[160px] overflow-scroll px-3 pb-2">
+            <pre className="whitespace-pre-wrap font-sans text-[14px] text-gray12">
+              {message}
+            </pre>
           </div>
         </div>
       </Layout.Content>

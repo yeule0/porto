@@ -1,4 +1,4 @@
-import { AbiFunction, Hex, Json, TypedData, Value } from 'ox'
+import { AbiFunction, Hex, Json, Siwe, TypedData, Value } from 'ox'
 import { Porto } from 'porto'
 import { Implementation } from 'porto'
 import { useEffect, useState, useSyncExternalStore } from 'react'
@@ -620,6 +620,8 @@ function SignMessage() {
 
   return (
     <>
+      <h3>personal_sign</h3>
+
       <form
         onSubmit={async (e) => {
           e.preventDefault()
@@ -637,22 +639,52 @@ function SignMessage() {
           setSignature(result)
         }}
       >
-        <h3>personal_sign</h3>
         <div style={{ display: 'flex', gap: '10px' }}>
           <input defaultValue="hello world" name="message" />
           <button type="submit">Sign</button>
         </div>
-        <pre
-          style={{
-            maxWidth: '500px',
-            overflowWrap: 'anywhere',
-            // @ts-expect-error
-            textWrapMode: 'wrap',
-          }}
-        >
-          {signature}
-        </pre>
       </form>
+
+      <div style={{ height: '8px' }} />
+
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const [account] = await porto.provider.request({
+            method: 'eth_accounts',
+          })
+          const chainId = await porto.provider.request({
+            method: 'eth_chainId',
+          })
+          const message = Siwe.createMessage({
+            address: account,
+            chainId: Number(chainId),
+            domain: 'localhost',
+            nonce: 'deadbeef',
+            uri: 'https://localhost:5173/',
+            version: '1',
+          })
+          const signature = await porto.provider.request({
+            method: 'personal_sign',
+            params: [Hex.fromString(message), account],
+          })
+          setSignature(signature)
+        }}
+      >
+        <button type="submit">Sign in with Ethereum</button>
+      </form>
+
+      <pre
+        style={{
+          maxWidth: '500px',
+          overflowWrap: 'anywhere',
+          // @ts-expect-error
+          textWrapMode: 'wrap',
+        }}
+      >
+        {signature}
+      </pre>
+
       <form
         onSubmit={async (e) => {
           e.preventDefault()
