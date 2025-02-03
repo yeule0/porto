@@ -343,7 +343,7 @@ export function local(parameters: local.Parameters = {}) {
         })
 
         // If there are any extra keys to authorize, we need to authorize them.
-        if (extraKeys)
+        if (extraKeys.length > 0)
           // TODO: wait for tx to be included?
           await Delegation.execute(client, {
             account,
