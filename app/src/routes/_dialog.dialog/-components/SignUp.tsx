@@ -10,21 +10,22 @@ export function SignUp(props: SignUp.Props) {
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
   return (
-    <Layout loading={loading} loadingTitle="Signing up">
-      <Layout.Header
-        className="flex-grow"
-        title="Sign up"
-        icon={LucideLogIn}
-        content={
-          <>
-            Create a new passkey wallet to start using{' '}
-            <span className="font-medium">{hostname}</span>.
-          </>
-        }
-      />
+    <Layout loading={loading} loadingTitle="Signing up...">
+      <Layout.Header className="flex-grow">
+        <Layout.Header.Default
+          title="Sign up"
+          icon={LucideLogIn}
+          content={
+            <>
+              Create a new passkey wallet to start using{' '}
+              <span className="font-medium">{hostname}</span>.
+            </>
+          }
+        />
+      </Layout.Header>
 
-      <Layout.Footer className="space-y-3">
-        <div className="flex gap-2 px-3">
+      <Layout.Footer>
+        <Layout.Footer.Actions>
           {enableSignIn ? (
             <Button type="button" onClick={() => onApprove({ signIn: true })}>
               Sign in
@@ -43,7 +44,7 @@ export function SignUp(props: SignUp.Props) {
           >
             Sign up
           </Button>
-        </div>
+        </Layout.Footer.Actions>
       </Layout.Footer>
     </Layout>
   )

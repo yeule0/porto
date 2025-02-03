@@ -62,6 +62,14 @@ export function from<
         }
 
         case 'eth_requestAccounts': {
+          if (state.accounts.length > 0)
+            return state.accounts.map(
+              (account) => account.address,
+            ) satisfies RpcSchema.ExtractReturnType<
+              Schema.Schema,
+              'eth_requestAccounts'
+            >
+
           const client = getClient()
 
           const { accounts } = await implementation.actions.loadAccounts({

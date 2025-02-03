@@ -4,9 +4,9 @@ import { Actions, Hooks } from 'porto/remote'
 import { Button } from '~/components/Button'
 import { Layout } from '~/components/Layout'
 import { porto } from '~/lib/Porto'
-import LucideTriangleAlert from '~icons/lucide/triangle-alert'
+import LucideLogIn from '~icons/lucide/log-in'
 
-export function NotFound() {
+export function SignMessage({ message }: SignMessage.Props) {
   const request = Hooks.useRequest(porto)
 
   const respond = useMutation({
@@ -16,47 +16,55 @@ export function NotFound() {
   })
 
   return (
-    <Layout loading={respond.isPending} loadingTitle="Responding...">
+    <Layout loading={respond.isPending} loadingTitle="Signing...">
       <Layout.Header>
         <Layout.Header.Default
-          title="Method Not implemented"
-          icon={LucideTriangleAlert}
-          content={
-            <>
-              UI support for method "{request?.request?.method}" is not
-              implemented yet. You may still proceed by rejecting or responding.
-            </>
-          }
-          variant="warning"
+          title="Sign Message"
+          icon={LucideLogIn}
+          content={<>Review the message to sign below.</>}
+          variant="default"
         />
       </Layout.Header>
 
       <Layout.Content>
-        <pre className="max-h-[400px] overflow-scroll rounded-lg border border-blackA1 bg-blackA1 p-3 text-[14px] text-gray12 leading-[22px] dark:border-whiteA1 dark:bg-whiteA1">
-          {JSON.stringify(request?.request ?? {}, null, 2)}
-        </pre>
+        <div className="rounded-lg bg-gray3">
+          <div className="px-3 pt-2 font-medium text-[14px] text-gray10">
+            Message
+          </div>
+          <div className="max-h-[300px] overflow-scroll px-3 pb-2">
+            <p className="text-[14px] text-gray12">{message}</p>
+          </div>
+        </div>
       </Layout.Content>
 
       <Layout.Footer>
-        <div className="flex gap-2 px-3">
+        <Layout.Footer.Actions>
           <Button
             className="flex-grow"
             type="button"
             onClick={() => Actions.reject(porto, request!)}
           >
-            Reject
+            No thanks
           </Button>
 
           <Button
             className="flex-grow"
             type="button"
-            variant="warning"
+            variant="primary"
             onClick={() => respond.mutate()}
           >
-            Respond
+            Sign message
           </Button>
-        </div>
+        </Layout.Footer.Actions>
+
+        <Layout.Footer.Wallet />
       </Layout.Footer>
     </Layout>
   )
+}
+
+export namespace SignMessage {
+  export type Props = {
+    message: string
+  }
 }

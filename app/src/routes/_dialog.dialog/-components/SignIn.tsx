@@ -1,37 +1,30 @@
-import { Hooks } from 'porto/remote'
-
 import { Button } from '~/components/Button'
 import { Layout } from '~/components/Layout'
 import * as Dialog from '~/lib/Dialog'
-import { porto } from '~/lib/Porto'
-import { StringFormatter } from '~/utils'
 import LucideLogIn from '~icons/lucide/log-in'
 
 export function SignIn(props: SignIn.Props) {
   const { loading, onApprove, onReject } = props
 
-  const address = Hooks.usePortoStore(
-    porto,
-    (state) => state.accounts[0]?.address,
-  )
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
   return (
-    <Layout loading={loading} loadingTitle="Signing in">
-      <Layout.Header
-        className="flex-grow"
-        title="Sign in"
-        icon={LucideLogIn}
-        content={
-          <>
-            Authenticate with your passkey wallet to start using{' '}
-            <span className="font-medium">{hostname}</span>.
-          </>
-        }
-      />
+    <Layout loading={loading} loadingTitle="Signing in...">
+      <Layout.Header className="flex-grow">
+        <Layout.Header.Default
+          title="Sign in"
+          icon={LucideLogIn}
+          content={
+            <>
+              Authenticate with your passkey wallet to start using{' '}
+              <span className="font-medium">{hostname}</span>.
+            </>
+          }
+        />
+      </Layout.Header>
 
-      <Layout.Footer className="space-y-3">
-        <div className="flex gap-2 px-3">
+      <Layout.Footer>
+        <Layout.Footer.Actions>
           <Button type="button" onClick={onReject}>
             No thanks
           </Button>
@@ -44,19 +37,9 @@ export function SignIn(props: SignIn.Props) {
           >
             Sign in
           </Button>
-        </div>
+        </Layout.Footer.Actions>
 
-        {address && (
-          <div className="flex justify-between border-blackA1 border-t px-3 pt-3 dark:border-whiteA1">
-            <div className="text-[13px] text-gray9 leading-[22px]">Wallet</div>
-
-            <div className="flex items-center gap-1.5">
-              <div className="font-medium text-[14px] text-gray12">
-                {StringFormatter.truncate(address, { start: 6, end: 4 })}
-              </div>
-            </div>
-          </div>
-        )}
+        <Layout.Footer.Wallet />
       </Layout.Footer>
     </Layout>
   )

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
-import { Actions } from 'porto/remote'
+import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
 
 import * as Dialog from '~/lib/Dialog'
@@ -15,6 +15,7 @@ function RouteComponent() {
   const mode = Dialog.useStore((state) => state.mode)
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
   const icon = Dialog.useStore((state) => state.referrer?.icon)
+  const request = Hooks.useRequest(porto)
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const titlebarRef = React.useRef<HTMLDivElement | null>(null)
@@ -44,6 +45,8 @@ function RouteComponent() {
       resizeObserver.unobserve(element)
     }
   }, [mode])
+
+  const id = request?.request.id ? request.request.id.toString() : '-1'
 
   return (
     <>
@@ -81,7 +84,11 @@ function RouteComponent() {
         {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
         className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-gray4 bg-gray1 pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border"
       >
-        <Outlet />
+        <div
+          key={id} // rehydrate on id changes
+        >
+          <Outlet />
+        </div>
       </div>
     </>
   )

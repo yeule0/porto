@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { porto } from '~/lib/Porto'
 import { Authorize } from './-components/Authorize'
@@ -14,12 +14,14 @@ export const Route = createFileRoute('/_dialog/dialog/wallet_connect')({
   component: RouteComponent,
   validateSearch: (
     search,
-  ): RpcSchema.ExtractParams<porto_RpcSchema.Schema, 'wallet_connect'> =>
-    search as never,
+  ): RpcSchema.ExtractParams<porto_RpcSchema.Schema, 'wallet_connect'> & {
+    step?: 'authorize' | 'signIn' | 'signUp'
+  } => search as never,
 })
 
 function RouteComponent() {
-  const { 0: parameters } = Route.useSearch() ?? {}
+  const navigate = Route.useNavigate()
+  const { 0: parameters, step } = Route.useSearch() ?? {}
   const { capabilities } = parameters ?? {}
 
   const address = Hooks.usePortoStore(
@@ -30,15 +32,24 @@ function RouteComponent() {
   const signIn = address && !capabilities?.createAccount
   const shouldAuthorize = capabilities?.authorizeKey
 
-  const [step, setStep] = useState<
-    'authorize' | 'signIn' | 'signUp' | undefined
-  >()
   useEffect(() => {
     if (signIn) {
-      if (shouldAuthorize) setStep('authorize')
-      else setStep('signIn')
-    } else setStep('signUp')
-  }, [signIn, shouldAuthorize])
+      if (shouldAuthorize)
+        navigate({
+          search: (prev) => ({ ...prev, step: 'authorize' }),
+          replace: true,
+        })
+      else
+        navigate({
+          search: (prev) => ({ ...prev, step: 'signIn' }),
+          replace: true,
+        })
+    } else
+      navigate({
+        search: (prev) => ({ ...prev, step: 'signUp' }),
+        replace: true,
+      })
+  }, [navigate, signIn, shouldAuthorize])
 
   const queued = Hooks.useRequest(porto)
   const respond = useMutation({
@@ -90,7 +101,11 @@ function RouteComponent() {
     return (
       <SignUp
         enableSignIn={!capabilities?.createAccount}
-        onApprove={() => setStep('authorize')}
+        onApprove={() =>
+          navigate({
+            search: (prev) => ({ ...prev, step: 'authorize' }),
+          })
+        }
         onReject={() => Actions.reject(porto, queued!)}
       />
     )
