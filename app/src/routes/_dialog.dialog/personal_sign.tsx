@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Hex, type RpcSchema } from 'ox'
+import { Hex, type RpcSchema, Siwe } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { useMemo } from 'react'
 
 import { SignMessage } from './-components/SignMessage'
 
@@ -14,6 +15,9 @@ export const Route = createFileRoute('/_dialog/dialog/personal_sign')({
 })
 
 function RouteComponent() {
-  const { 0: message } = Route.useSearch() ?? {}
-  return <SignMessage message={Hex.toString(message)} />
+  const { 0: hex } = Route.useSearch() ?? {}
+  const message = useMemo(() => Hex.toString(hex), [hex])
+  const siwe = useMemo(() => Siwe.parseMessage(message), [message])
+  if (Object.keys(siwe).length > 0) return <SignMessage.Siwe />
+  return <SignMessage message={message} />
 }

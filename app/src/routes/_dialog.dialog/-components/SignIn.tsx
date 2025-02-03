@@ -16,7 +16,7 @@ export function SignIn(props: SignIn.Props) {
           icon={LucideLogIn}
           content={
             <>
-              Authenticate with your passkey wallet to start using{' '}
+              Sign in with your wallet to continue using{' '}
               <span className="font-medium">{hostname}</span>.
             </>
           }
