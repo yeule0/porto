@@ -172,7 +172,11 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, ...keyToAuthorize }] = request.params ?? [{}]
+          const [{ address, chainId, ...keyToAuthorize }] = request.params ?? [
+            {},
+          ]
+
+          assertKeys([keyToAuthorize])
 
           const account = address
             ? state.accounts.find((account) =>
@@ -181,7 +185,7 @@ export function from<
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const client = getClient()
+          const client = getClient(chainId)
 
           const { key } = await implementation.actions.authorizeKey({
             account,
@@ -256,13 +260,16 @@ export function from<
         }
 
         case 'experimental_prepareCreateAccount': {
-          const [{ address, capabilities, label }] = request.params ?? [{}]
+          const [{ address, capabilities, chainId, label }] =
+            request.params ?? [{}]
 
           const { authorizeKey } = capabilities ?? {}
 
           const authorizeKeys = authorizeKey ? [authorizeKey] : undefined
 
-          const client = getClient()
+          assertKeys(authorizeKeys)
+
+          const client = getClient(chainId)
 
           const { context, signPayloads } =
             await implementation.actions.prepareCreateAccount({
@@ -396,6 +403,9 @@ export function from<
           const { createAccount, authorizeKey } = capabilities ?? {}
 
           const authorizeKeys = authorizeKey ? [authorizeKey] : undefined
+
+          assertKeys(authorizeKeys)
+
           const internal = {
             client,
             config,
@@ -646,4 +656,15 @@ function requireParameter(
     throw new RpcResponse.InvalidParamsError({
       message: `Missing required parameter: ${details}`,
     })
+}
+
+function assertKeys(
+  keys: readonly Schema.AuthorizeKeyParameters[] | undefined,
+) {
+  if (!keys) return
+  for (const key of keys) {
+    if (!key.expiry) throw new Error('expiry is required.')
+    if (!key.permissions || Object.keys(key.permissions).length === 0)
+      throw new Error('permissions are required.')
+  }
 }

@@ -157,22 +157,11 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 
 Authorizes a key that can perform actions on behalf of the account.
 
-If the `key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
-
-The following `role` values are supported:
-
-- `admin`: 
-  - MUST specify a `key`
-  - MAY have an infinite expiry 
-  - MAY OPTIONALLY have permissions (`permissions`)
-  - MAY execute calls (e.g. `eth_sendTransaction`, `wallet_sendCalls`)
-  - MAY sign arbitrary data (e.g. `personal_sign`, `eth_signTypedData_v4`)
-- `session`: 
-  - MAY specify a `key` - if absent, a new arbitrary key will be generated
-  - MUST have a limited expiry
-  - MUST have permissions (`permissions`)
-  - MAY only execute calls
-  - MUST NOT sign arbitrary data
+- Consumers MAY specify a `key` - if absent, Porto will generate and manage a new arbitrary key
+- Keys MUST have a limited expiry
+- Keys MUST have permissions (`permissions`)
+- Keys MAY only execute calls
+- Keys MUST NOT sign arbitrary data
 
 > Minimal alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
 
@@ -185,7 +174,7 @@ type Request = {
     // Address of the account to authorize a key on.
     address?: `0x${string}`
     // Expiry of the key.
-    expiry?: number
+    expiry: number
     // Key to authorize.
     key?: {
       // Public key. Accepts an address for `contract` & `secp256k1` types.
@@ -194,7 +183,7 @@ type Request = {
       type?: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256', 
     }
     // Key permissions.
-    permissions?: {
+    permissions: {
       // Call permissions to authorize on the key.
       calls?: {
         // Function signature or 4-byte selector.
@@ -213,8 +202,6 @@ type Request = {
         token?: `0x${string}`
       }[]
     }
-    // Role of key.
-    role?: 'admin' | 'session',
   }]
 }
 ```
@@ -225,7 +212,7 @@ type Request = {
 type Response = {
   expiry: number,
   publicKey: `0x${string}`,
-  permissions?: {
+  permissions: {
     calls?: {
       signature?: string,
       to?: `0x${string}`,
@@ -334,12 +321,12 @@ type Request = {
     capabilities: {
       // Whether to authorize a key with an optional expiry.
       authorizeKey?: { 
-        expiry?: number,
+        expiry: number,
         key?: {
           publicKey?: `0x${string}`,
           type?: 'p256' | 'secp256k1' | 'webauthn-p256'
         },
-        permissions?: {
+        permissions: {
           calls?: {
             signature?: string
             to?: `0x${string}`
@@ -350,7 +337,6 @@ type Request = {
             token?: `0x${string}`
           }[]
         }
-        role?: 'admin' | 'session'
       },
     } 
   }]
@@ -413,7 +399,7 @@ type Request = {
 ```ts
 type Response = { 
   expiry: number, 
-  permissions?: {
+  permissions: {
     calls?: {
       signature?: string
       to?: `0x${string}`

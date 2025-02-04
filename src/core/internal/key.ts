@@ -71,7 +71,7 @@ export type Permissions<bigintType = bigint> = {
 
 export type Rpc = {
   expiry: number
-  permissions?: Permissions<Hex.Hex> | undefined
+  permissions: Permissions<Hex.Hex>
   publicKey: Hex.Hex
   role: 'admin' | 'session'
   type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256'
@@ -473,15 +473,15 @@ export function fromRpc(rpc: Rpc): Key {
           limit: BigInt(spend.limit ?? 0),
         })),
       }
-    : undefined
+    : {}
 
   return {
     canSign: false,
     expiry: rpc.expiry,
+    permissions,
     publicKey: rpc.publicKey,
     role: rpc.role,
     type: rpc.type === 'contract' ? 'secp256k1' : rpc.type,
-    ...(permissions ? { permissions } : {}),
   }
 }
 
@@ -830,14 +830,14 @@ export function toRpc(key: Key): Rpc {
           limit: Hex.fromNumber(spend.limit),
         })),
       }
-    : undefined
+    : {}
 
   return {
     expiry: key.expiry,
+    permissions,
     publicKey: key.publicKey,
     role: key.role,
     type: key.type,
-    ...(permissions ? { permissions } : {}),
   }
 }
 

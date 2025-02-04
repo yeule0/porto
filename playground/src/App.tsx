@@ -22,20 +22,24 @@ const client = createClient({
   transport: custom(porto.provider),
 })
 
-const permissions = {
-  calls: [
-    {
-      to: ExperimentERC20.address,
+const key = () =>
+  ({
+    expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+    permissions: {
+      calls: [
+        {
+          to: ExperimentERC20.address,
+        },
+      ],
+      spend: [
+        {
+          limit: Hex.fromNumber(Value.fromEther('50')),
+          period: 'minute',
+          token: ExperimentERC20.address,
+        },
+      ],
     },
-  ],
-  spend: [
-    {
-      limit: Hex.fromNumber(Value.fromEther('50')),
-      period: 'minute',
-      token: ExperimentERC20.address,
-    },
-  ],
-} as const
+  }) as const
 
 export function App() {
   return (
@@ -159,7 +163,7 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? { permissions } : undefined,
+                      authorizeKey: authorizeKey ? key() : undefined,
                     },
                   },
                 ],
@@ -178,7 +182,7 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? { permissions } : undefined,
+                      authorizeKey: authorizeKey ? key() : undefined,
                       createAccount: true,
                     },
                   },
@@ -296,17 +300,9 @@ function AuthorizeKey() {
       <form
         onSubmit={async (e) => {
           e.preventDefault()
-          const [account] = await porto.provider.request({
-            method: 'eth_accounts',
-          })
           const result = await porto.provider.request({
             method: 'experimental_authorizeKey',
-            params: [
-              {
-                address: account,
-                permissions,
-              },
-            ],
+            params: [key()],
           })
           setResult(result)
         }}
@@ -422,7 +418,7 @@ function UpgradeAccount() {
                 {
                   address: account.address,
                   capabilities: {
-                    authorizeKey: authorizeKey ? { permissions } : undefined,
+                    authorizeKey: authorizeKey ? key() : undefined,
                   },
                 },
               ],

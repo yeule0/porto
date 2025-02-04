@@ -64,30 +64,16 @@ export type Schema = RpcSchema.From<
 
 export type AuthorizeKeyParameters = {
   address?: Address.Address | undefined
-} & OneOf<
-  | {
-      permissions: Key.Rpc['permissions']
-      expiry?: Key.Rpc['expiry'] | undefined
-    }
-  | {
-      permissions: Key.Rpc['permissions']
-      expiry?: Key.Rpc['expiry'] | undefined
-      key: {
+  chainId?: Hex.Hex | undefined
+  expiry: Key.Rpc['expiry']
+  permissions: Key.Rpc['permissions']
+  key?:
+    | {
         publicKey: Key.Rpc['publicKey']
         type: Key.Rpc['type']
       }
-      role?: 'session' | undefined
-    }
-  | {
-      expiry?: Key.Rpc['expiry'] | undefined
-      permissions?: Key.Rpc['permissions'] | undefined
-      key: {
-        publicKey: Key.Rpc['publicKey']
-        type: Key.Rpc['type']
-      }
-      role: 'admin'
-    }
->
+    | undefined
+}
 
 export type AuthorizeKeyReturnType = GetKeysReturnType[number]
 
@@ -140,6 +126,7 @@ export type GetKeysReturnType = readonly Key.Rpc[]
 
 export type PrepareCreateAccountParameters = {
   address: Address.Address
+  chainId?: Hex.Hex | undefined
   capabilities?:
     | {
         authorizeKey?: AuthorizeKeyParameters | undefined

@@ -15,6 +15,7 @@ export type Porto<
     ...Chains.Chain[],
   ],
 > = Porto_.Porto<chains> & {
+  implementation: Implementation.Implementation
   messenger: Messenger.Bridge
   ready: () => void
   _internal: Porto_.Porto<chains>['_internal'] & {
@@ -97,6 +98,7 @@ export function create(
 
   return {
     ...porto,
+    implementation,
     messenger,
     ready: messenger.ready,
     _internal: {

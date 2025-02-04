@@ -126,6 +126,7 @@ describe('experimental_authorizeKey', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ signature: 'mint()' }],
           },
@@ -196,7 +197,6 @@ describe('experimental_authorizeKey', () => {
             permissions: {
               calls: [{ signature: 'mint()' }],
             },
-            role: 'session',
           },
         ],
       }),
@@ -222,19 +222,36 @@ describe('experimental_authorizeKey', () => {
         method: 'experimental_authorizeKey',
         params: [
           {
+            expiry: 9999999999,
             key: {
               publicKey: '0x0000000000000000000000000000000000000000',
               type: 'contract',
             },
-            role: 'admin',
+            permissions: {
+              spend: [
+                {
+                  limit: Hex.fromNumber(Value.fromEther('1.5')),
+                  period: 'day',
+                },
+              ],
+            },
           },
         ],
       }),
     ).toMatchInlineSnapshot(`
       {
-        "expiry": 0,
+        "expiry": 9999999999,
+        "permissions": {
+          "calls": undefined,
+          "spend": [
+            {
+              "limit": "0x14d1120d7b160000",
+              "period": "day",
+            },
+          ],
+        },
         "publicKey": "0x0000000000000000000000000000000000000000",
-        "role": "admin",
+        "role": "session",
         "type": "secp256k1",
       }
     `)
@@ -273,8 +290,17 @@ describe('experimental_authorizeKey', () => {
         {
           "canSign": false,
           "expiry": null,
+          "permissions": {
+            "calls": undefined,
+            "spend": [
+              {
+                "limit": 1500000000000000000n,
+                "period": "day",
+              },
+            ],
+          },
           "publicKey": null,
-          "role": "admin",
+          "role": "session",
           "type": "secp256k1",
         },
       ]
@@ -293,19 +319,46 @@ describe('experimental_authorizeKey', () => {
       porto.provider.request({
         method: 'experimental_authorizeKey',
         params: [
-          // @ts-expect-error: testing
           {
+            expiry: 9999999999,
             key: {
               publicKey:
                 '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
               type: 'p256',
             },
-            role: 'session',
+            permissions: {},
           },
         ],
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '[RpcResponse.InternalError: session key must have at least one permission (`permissions`).]',
+      '[RpcResponse.InternalError: permissions are required.]',
+    )
+  })
+
+  test('behavior: unlimited expiry', async () => {
+    const porto = createPorto()
+    await porto.provider.request({
+      method: 'experimental_createAccount',
+    })
+    await expect(
+      porto.provider.request({
+        method: 'experimental_authorizeKey',
+        params: [
+          {
+            expiry: 0,
+            key: {
+              publicKey:
+                '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
+              type: 'p256',
+            },
+            permissions: {
+              calls: [{ signature: 'mint()' }],
+            },
+          },
+        ],
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '[RpcResponse.InternalError: expiry is required.]',
     )
   })
 })
@@ -330,6 +383,7 @@ describe('experimental_keys', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ signature: 'mint()' }],
           },
@@ -340,6 +394,7 @@ describe('experimental_keys', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             spend: [
               {
@@ -361,6 +416,7 @@ describe('experimental_keys', () => {
       [
         {
           "expiry": null,
+          "permissions": {},
           "publicKey": null,
           "role": "admin",
           "type": "p256",
@@ -413,6 +469,7 @@ describe('experimental_revokeKey', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ signature: 'mint()' }],
           },
@@ -617,6 +674,7 @@ describe('wallet_connect', () => {
           capabilities: {
             createAccount: true,
             authorizeKey: {
+              expiry: 9999999999,
               permissions: {
                 calls: [{ signature: 'mint()' }],
               },
@@ -682,6 +740,7 @@ describe('wallet_connect', () => {
           capabilities: {
             createAccount: true,
             authorizeKey: {
+              expiry: 9999999999,
               key: {
                 publicKey,
                 type: 'p256',
@@ -689,7 +748,6 @@ describe('wallet_connect', () => {
               permissions: {
                 calls: [{ signature: 'mint()' }],
               },
-              role: 'session',
             },
           },
         },
@@ -717,7 +775,7 @@ describe('wallet_connect', () => {
         },
         {
           "canSign": false,
-          "expiry": 694206942069,
+          "expiry": 9999999999,
           "permissions": {
             "calls": [
               {
@@ -734,6 +792,52 @@ describe('wallet_connect', () => {
     `)
 
     expect(messages[0].chainId).toBe(Hex.fromNumber(1))
+  })
+
+  test('behavior: `authorizeKey` capability (unlimited expiry)', async () => {
+    const porto = createPorto()
+    await expect(() =>
+      porto.provider.request({
+        method: 'wallet_connect',
+        params: [
+          {
+            capabilities: {
+              createAccount: true,
+              authorizeKey: {
+                expiry: 0,
+                permissions: {
+                  calls: [{ signature: 'mint()' }],
+                },
+              },
+            },
+          },
+        ],
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '[RpcResponse.InternalError: expiry is required.]',
+    )
+  })
+
+  test('behavior: `authorizeKey` capability (no permissions)', async () => {
+    const porto = createPorto()
+    await expect(() =>
+      porto.provider.request({
+        method: 'wallet_connect',
+        params: [
+          {
+            capabilities: {
+              createAccount: true,
+              authorizeKey: {
+                expiry: 9999999,
+                permissions: {},
+              },
+            },
+          },
+        ],
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '[RpcResponse.InternalError: permissions are required.]',
+    )
   })
 })
 
@@ -818,6 +922,7 @@ describe('wallet_sendCalls', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ to: alice }],
           },
@@ -867,6 +972,7 @@ describe('wallet_sendCalls', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ to: '0x0000000000000000000000000000000000000000' }],
           },
@@ -915,6 +1021,7 @@ describe('wallet_sendCalls', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             spend: [
               {
@@ -988,6 +1095,7 @@ describe('wallet_sendCalls', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           permissions: {
             calls: [{ to: alice }],
           },
@@ -1062,6 +1170,7 @@ describe('wallet_sendCalls', () => {
       method: 'experimental_authorizeKey',
       params: [
         {
+          expiry: 9999999999,
           key: {
             publicKey:
               '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
@@ -1070,7 +1179,6 @@ describe('wallet_sendCalls', () => {
           permissions: {
             calls: [{ to: alice }],
           },
-          role: 'session',
         },
       ],
     })

@@ -140,8 +140,6 @@ export type Implementation = {
   }) => () => void
 }
 
-const defaultExpiry = Math.floor(Date.now() / 1000) + 60 * 60 // 1 hour
-
 /**
  * Instantiates an implementation.
  *
@@ -188,7 +186,6 @@ export function local(parameters: local.Parameters = {}) {
         // Parse provided (RPC) keys into a list of structured keys (`Key.Key`).
         const keys = await getKeysToAuthorize({
           authorizeKeys: keyToAuthorize ? [keyToAuthorize] : undefined,
-          defaultExpiry,
         })
 
         // TODO: wait for tx to be included?
@@ -228,7 +225,6 @@ export function local(parameters: local.Parameters = {}) {
             address,
             authorizeKeys,
             client,
-            defaultExpiry,
             keystoreHost,
             label,
           })
@@ -315,7 +311,6 @@ export function local(parameters: local.Parameters = {}) {
           }),
           getKeysToAuthorize({
             authorizeKeys,
-            defaultExpiry,
           }),
         ])
         const keys = await Promise.all(
@@ -362,7 +357,6 @@ export function local(parameters: local.Parameters = {}) {
           address,
           authorizeKeys,
           client,
-          defaultExpiry,
           keystoreHost,
           label,
         })
@@ -522,7 +516,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
         // Parse provided (RPC) key into a structured key (`Key.Key`).
         const [key] = await getKeysToAuthorize({
           authorizeKeys: keyToAuthorize ? [keyToAuthorize] : undefined,
-          defaultExpiry,
         })
         if (!key) throw new Error('key not found.')
 
@@ -541,7 +534,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 type: rpc.type,
               },
               permissions: rpc.permissions,
-              role: rpc.role,
             },
           ],
         })
@@ -589,7 +581,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
               authorizeKeys: capabilities?.authorizeKey
                 ? [capabilities.authorizeKey]
                 : undefined,
-              defaultExpiry,
             })
 
             // Convert the key into RPC format.
@@ -610,7 +601,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
-                          role: rpc.role,
                         }
                       : undefined,
                   },
@@ -707,7 +697,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
               authorizeKeys: capabilities?.authorizeKey
                 ? [capabilities.authorizeKey]
                 : undefined,
-              defaultExpiry,
             })
 
             // Convert the key into RPC format.
@@ -729,7 +718,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
-                          role: rpc.role,
                         }
                       : undefined,
                   },
@@ -891,7 +879,6 @@ export function mock() {
 
         const extraKeys = await getKeysToAuthorize({
           authorizeKeys,
-          defaultExpiry: 694206942069,
         })
 
         const account = Account.fromPrivateKey(privateKey, {
@@ -948,12 +935,10 @@ async function prepareCreateAccount(parameters: {
   address: Address.Address
   authorizeKeys: readonly RpcSchema_porto.AuthorizeKeyParameters[] | undefined
   client: Client
-  defaultExpiry: number
   label?: string | undefined
   keystoreHost?: string | undefined
 }) {
-  const { address, authorizeKeys, client, defaultExpiry, keystoreHost } =
-    parameters
+  const { address, authorizeKeys, client, keystoreHost } = parameters
 
   const label =
     parameters.label ?? `${address.slice(0, 8)}\u2026${address.slice(-6)}`
@@ -967,7 +952,6 @@ async function prepareCreateAccount(parameters: {
 
   const extraKeys = await getKeysToAuthorize({
     authorizeKeys,
-    defaultExpiry,
   })
 
   const keys = [key, ...(extraKeys ?? [])]
@@ -990,14 +974,6 @@ async function prepareCreateAccount(parameters: {
 function getAuthorizeCalls(keys: readonly Key.Key[]): readonly Call.Call[] {
   return keys.flatMap((key) => {
     const { permissions } = key
-    if (
-      key.role === 'session' &&
-      (permissions?.calls ?? []).length === 0 &&
-      !permissions?.spend
-    )
-      throw new Error(
-        'session key must have at least one permission (`permissions`).',
-      )
 
     const permissionCalls: Call.Call[] = []
 
@@ -1085,9 +1061,8 @@ async function getAuthorizedExecuteKey(parameters: {
 
 async function getKeysToAuthorize(parameters: {
   authorizeKeys: readonly RpcSchema_porto.AuthorizeKeyParameters[] | undefined
-  defaultExpiry: number
 }): Promise<readonly Key.Key[]> {
-  const { authorizeKeys, defaultExpiry } = parameters
+  const { authorizeKeys } = parameters
 
   // Don't need to authorize extra keys if none are provided.
   if (!authorizeKeys) return []
@@ -1096,11 +1071,9 @@ async function getKeysToAuthorize(parameters: {
   return await Promise.all(
     authorizeKeys
       .map(async (k) => {
-        const role = k?.role ?? 'session'
-        const type = k?.key?.type ?? 'secp256k1'
-        const expiry = k?.expiry ?? (role === 'admin' ? 0 : defaultExpiry)
+        const type = k.key?.type ?? 'secp256k1'
 
-        let publicKey = k?.key?.publicKey ?? '0x'
+        let publicKey = k.key?.publicKey ?? '0x'
         // If the public key is not an address for secp256k1, convert it to an address.
         if (
           type === 'secp256k1' &&
@@ -1111,17 +1084,13 @@ async function getKeysToAuthorize(parameters: {
 
         const key = Key.fromRpc({
           ...k,
-          expiry,
           publicKey,
-          role,
+          role: 'session',
           type,
         })
         if (k.key) return key
-        if (role === 'admin')
-          throw new Error('must provide `key` to authorize admin keys.')
         return await Key.createWebCryptoP256({
           ...key,
-          expiry,
           role: 'session',
         })
       })

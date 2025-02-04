@@ -16,20 +16,24 @@ import {
 } from 'viem/accounts'
 import { ExperimentERC20 } from './contracts.js'
 
-const permissions = {
-  calls: [
-    {
-      to: ExperimentERC20.address,
+const key = () =>
+  ({
+    expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+    permissions: {
+      calls: [
+        {
+          to: ExperimentERC20.address,
+        },
+      ],
+      spend: [
+        {
+          limit: toHex(parseEther('50')),
+          period: 'minute',
+          token: ExperimentERC20.address,
+        },
+      ],
     },
-  ],
-  spend: [
-    {
-      limit: toHex(parseEther('50')),
-      period: 'minute',
-      token: ExperimentERC20.address,
-    },
-  ],
-} as const
+  }) as const
 
 export function App() {
   const { isConnected } = useAccount()
@@ -106,7 +110,7 @@ function Connect() {
               onClick={() =>
                 connect.mutate({
                   connector,
-                  authorizeKey: authorizeKey ? { permissions } : undefined,
+                  authorizeKey: authorizeKey ? key() : undefined,
                 })
               }
               type="button"
@@ -118,7 +122,7 @@ function Connect() {
                 connect.mutate({
                   connector,
                   createAccount: true,
-                  authorizeKey: authorizeKey ? { permissions } : undefined,
+                  authorizeKey: authorizeKey ? key() : undefined,
                 })
               }
               type="button"
@@ -191,7 +195,7 @@ function UpgradeAccount() {
               upgradeAccount.mutate({
                 account: privateKeyToAccount(privateKey as Hex),
                 connector,
-                authorizeKey: authorizeKey ? { permissions } : undefined,
+                authorizeKey: authorizeKey ? key() : undefined,
               })
             }
             type="button"
@@ -233,14 +237,7 @@ function AuthorizeKey() {
   return (
     <div>
       <h2>Authorize Key</h2>
-      <button
-        onClick={() =>
-          authorizeKey.mutate({
-            permissions,
-          })
-        }
-        type="button"
-      >
+      <button onClick={() => authorizeKey.mutate(key())} type="button">
         Authorize Key
       </button>
       {authorizeKey.data && <div>Key authorized.</div>}
