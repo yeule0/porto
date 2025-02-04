@@ -121,7 +121,7 @@ export async function execute<
 
       let data: Hex.Hex | undefined
       if (cause instanceof BaseError) {
-        const [, match] = cause.details.match(/"(0x[0-9a-f]{8})"/) || []
+        const [, match] = cause.details.match(/(0x[0-9a-f]{8})/) || []
         if (match) data = match as Hex.Hex
       }
 
@@ -134,6 +134,7 @@ export async function execute<
       }
 
       try {
+        if (data === '0xd0d5039b') return AbiError.from('error Unauthorized()')
         return AbiError.fromAbi(delegationAbi, data)
       } catch {
         return undefined
@@ -273,6 +274,8 @@ export async function getExecuteSignPayload<
     getEip712Domain(client, { account }),
   ])
 
+  const multichain = nonce & 1n
+
   if (!client.chain) throw new Error('chain is required.')
   return TypedData.getSignPayload({
     domain: {
@@ -288,12 +291,14 @@ export async function getExecuteSignPayload<
         { name: 'data', type: 'bytes' },
       ],
       Execute: [
+        { name: 'multichain', type: 'bool' },
         { name: 'calls', type: 'Call[]' },
         { name: 'nonce', type: 'uint256' },
         { name: 'nonceSalt', type: 'uint256' },
       ],
     },
     message: {
+      multichain: Boolean(multichain),
       calls,
       nonce,
       nonceSalt,
@@ -381,19 +386,16 @@ export async function prepareExecute<
   client: Client<Transport, chain>,
   parameters: prepareExecute.Parameters<calls, chain, account>,
 ): Promise<prepareExecute.ReturnType<calls, chain>> {
-  const {
-    account,
-    delegation,
-    executor,
-    nonce = Hex.toBigInt(Hex.random(32)),
-    ...rest
-  } = parameters
+  const { account, delegation, executor, ...rest } = parameters
 
   const calls = parameters.calls.map((call: any) => ({
     data: call.data ?? '0x',
     to: call.to === Call.self ? account.address : call.to,
     value: call.value ?? 0n,
   }))
+
+  let nonce = Hex.toBigInt(Hex.random(32))
+  if (nonce & 1n) nonce += 1n // even nonce (no chain replay) // TODO: enable replay for `authorize` calls
 
   // Compute the signing payloads for execution and EIP-7702 authorization (optional).
   const [executePayload, [authorization, authorizationPayload]] =
@@ -464,10 +466,6 @@ export declare namespace prepareExecute {
      * - `undefined`: the transaction will be filled by the JSON-RPC server.
      */
     executor?: Account | undefined
-    /**
-     * Nonce to use for execution that will be invalidated by the delegated account.
-     */
-    nonce?: bigint | undefined
   }
 
   export type ReturnType<

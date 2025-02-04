@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x71048c9277e63087ba6390174691be1bea2c4985)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xabe148edaa9046303c9b9d42243c23b9599484cd)
  */
 export const delegationAbi = [
   { type: 'fallback', stateMutability: 'payable' },
@@ -62,6 +62,20 @@ export const delegationAbi = [
     inputs: [],
     name: 'EXECUTE_TYPEHASH',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'approvedImplementations',
+    outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'keyHash', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'approvedSignatureCheckers',
+    outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
     stateMutability: 'view',
   },
   {
@@ -270,9 +284,10 @@ export const delegationAbi = [
     inputs: [
       { name: 'paymentToken', internalType: 'address', type: 'address' },
       { name: 'paymentAmount', internalType: 'uint256', type: 'uint256' },
+      { name: '', internalType: 'address', type: 'address' },
     ],
     name: 'payEntryPoint',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    outputs: [],
     stateMutability: 'nonpayable',
   },
   {
@@ -311,8 +326,29 @@ export const delegationAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'isApproved', internalType: 'bool', type: 'bool' },
+    ],
+    name: 'setImplementationApproval',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [{ name: 'newLabel', internalType: 'string', type: 'string' }],
     name: 'setLabel',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'keyHash', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'checker', internalType: 'address', type: 'address' },
+      { name: 'isApproved', internalType: 'bool', type: 'bool' },
+    ],
+    name: 'setSignatureCheckerApproval',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -374,7 +410,7 @@ export const delegationAbi = [
     type: 'function',
     inputs: [{ name: 'mode', internalType: 'bytes32', type: 'bytes32' }],
     name: 'supportsExecutionMode',
-    outputs: [{ name: 'result', internalType: 'bool', type: 'bool' }],
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -445,6 +481,25 @@ export const delegationAbi = [
     anonymous: false,
     inputs: [
       {
+        name: 'implementation',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'isApproved',
+        internalType: 'bool',
+        type: 'bool',
+        indexed: false,
+      },
+    ],
+    name: 'ImplementationApprovalSet',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
         name: 'newLabel',
         internalType: 'string',
         type: 'string',
@@ -491,6 +546,31 @@ export const delegationAbi = [
       },
     ],
     name: 'Revoked',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'keyHash',
+        internalType: 'bytes32',
+        type: 'bytes32',
+        indexed: true,
+      },
+      {
+        name: 'checker',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'isApproved',
+        internalType: 'bool',
+        type: 'bool',
+        indexed: false,
+      },
+    ],
+    name: 'SignatureCheckerApprovalSet',
   },
   {
     type: 'event',
@@ -548,31 +628,35 @@ export const delegationAbi = [
     ],
     name: 'SpendLimitSet',
   },
+  { type: 'error', inputs: [], name: 'BatchOfBatchesDecodingError' },
   { type: 'error', inputs: [], name: 'CannotSelfExecute' },
+  {
+    type: 'error',
+    inputs: [],
+    name: 'ExceededApprovedImplementationsCapacity',
+  },
+  { type: 'error', inputs: [], name: 'ExceededSignatureCheckersCapacity' },
   { type: 'error', inputs: [], name: 'ExceededSpendLimit' },
   { type: 'error', inputs: [], name: 'ExceededSpendsCapacity' },
   { type: 'error', inputs: [], name: 'FnSelectorNotRecognized' },
   { type: 'error', inputs: [], name: 'IndexOutOfBounds' },
   { type: 'error', inputs: [], name: 'InvalidNonce' },
-  { type: 'error', inputs: [], name: 'InvalidSignature' },
   { type: 'error', inputs: [], name: 'KeyDoesNotExist' },
-  { type: 'error', inputs: [], name: 'KeyExpiredOrUnauthorized' },
   { type: 'error', inputs: [], name: 'KeyHashIsZero' },
   { type: 'error', inputs: [], name: 'OpDataTooShort' },
   { type: 'error', inputs: [], name: 'Unauthorized' },
-  { type: 'error', inputs: [], name: 'Unimplemented' },
   { type: 'error', inputs: [], name: 'UnsupportedExecutionMode' },
 ] as const
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x71048c9277e63087ba6390174691be1bea2c4985)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xabe148edaa9046303c9b9d42243c23b9599484cd)
  */
 export const delegationAddress = {
-  911867: '0x71048C9277E63087BA6390174691bE1beA2c4985',
+  911867: '0xaBE148Edaa9046303c9B9d42243c23b9599484CD',
 } as const
 
 /**
- * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0x71048c9277e63087ba6390174691be1bea2c4985)
+ * [__View Contract on Odyssey Testnet Odyssey Explorer__](https://odyssey-explorer.ithaca.xyz/address/0xabe148edaa9046303c9b9d42243c23b9599484cd)
  */
 export const delegationConfig = {
   address: delegationAddress,
@@ -607,6 +691,176 @@ export const eip712Abi = [
     ],
     stateMutability: 'view',
   },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ERC1967Factory
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const erc1967FactoryAbi = [
+  {
+    type: 'function',
+    inputs: [{ name: 'proxy', internalType: 'address', type: 'address' }],
+    name: 'adminOf',
+    outputs: [{ name: 'admin', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'proxy', internalType: 'address', type: 'address' },
+      { name: 'admin', internalType: 'address', type: 'address' },
+    ],
+    name: 'changeAdmin',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'admin', internalType: 'address', type: 'address' },
+    ],
+    name: 'deploy',
+    outputs: [{ name: 'proxy', internalType: 'address', type: 'address' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'admin', internalType: 'address', type: 'address' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'deployAndCall',
+    outputs: [{ name: 'proxy', internalType: 'address', type: 'address' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'admin', internalType: 'address', type: 'address' },
+      { name: 'salt', internalType: 'bytes32', type: 'bytes32' },
+    ],
+    name: 'deployDeterministic',
+    outputs: [{ name: 'proxy', internalType: 'address', type: 'address' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'admin', internalType: 'address', type: 'address' },
+      { name: 'salt', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'deployDeterministicAndCall',
+    outputs: [{ name: 'proxy', internalType: 'address', type: 'address' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'initCodeHash',
+    outputs: [{ name: 'result', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'salt', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'predictDeterministicAddress',
+    outputs: [{ name: 'predicted', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'proxy', internalType: 'address', type: 'address' },
+      { name: 'implementation', internalType: 'address', type: 'address' },
+    ],
+    name: 'upgrade',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'proxy', internalType: 'address', type: 'address' },
+      { name: 'implementation', internalType: 'address', type: 'address' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'upgradeAndCall',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'proxy',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'admin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'AdminChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'proxy',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'implementation',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'admin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'Deployed',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'proxy',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'implementation',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'Upgraded',
+  },
+  { type: 'error', inputs: [], name: 'DeploymentFailed' },
+  { type: 'error', inputs: [], name: 'SaltDoesNotStartWithCaller' },
+  { type: 'error', inputs: [], name: 'Unauthorized' },
+  { type: 'error', inputs: [], name: 'UpgradeFailed' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -793,6 +1047,7 @@ export const erc7821Abi = [
     outputs: [{ name: 'result', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
+  { type: 'error', inputs: [], name: 'BatchOfBatchesDecodingError' },
   { type: 'error', inputs: [], name: 'FnSelectorNotRecognized' },
   { type: 'error', inputs: [], name: 'UnsupportedExecutionMode' },
 ] as const
@@ -858,17 +1113,18 @@ export const entryPointAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'encodedUserOp', internalType: 'bytes', type: 'bytes' }],
+    name: 'execute',
+    outputs: [{ name: 'err', internalType: 'bytes4', type: 'bytes4' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'encodedUserOps', internalType: 'bytes[]', type: 'bytes[]' },
     ],
     name: 'execute',
-    outputs: [
-      {
-        name: 'statuses',
-        internalType: 'enum EntryPoint.UserOpStatus[]',
-        type: 'uint8[]',
-      },
-    ],
+    outputs: [{ name: 'errs', internalType: 'bytes4[]', type: 'bytes4[]' }],
     stateMutability: 'payable',
   },
   {
@@ -879,9 +1135,7 @@ export const entryPointAbi = [
       { name: '', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'fill',
-    outputs: [
-      { name: '', internalType: 'enum EntryPoint.UserOpStatus', type: 'uint8' },
-    ],
+    outputs: [{ name: '', internalType: 'bytes4', type: 'bytes4' }],
     stateMutability: 'payable',
   },
   {
@@ -946,6 +1200,17 @@ export const entryPointAbi = [
     stateMutability: 'payable',
   },
   {
+    type: 'function',
+    inputs: [
+      { name: 'token', internalType: 'address', type: 'address' },
+      { name: 'recipient', internalType: 'address', type: 'address' },
+      { name: 'amount', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'withdrawTokens',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -1004,19 +1269,19 @@ export const entryPointAbi = [
     name: 'Upgraded',
   },
   { type: 'error', inputs: [], name: 'AlreadyInitialized' },
-  { type: 'error', inputs: [], name: 'EntryPointPaymentFailed' },
+  { type: 'error', inputs: [], name: 'CallError' },
   { type: 'error', inputs: [], name: 'FnSelectorNotRecognized' },
   { type: 'error', inputs: [], name: 'InsufficientGas' },
   { type: 'error', inputs: [], name: 'NewOwnerIsZeroAddress' },
   { type: 'error', inputs: [], name: 'NoHandoverRequest' },
   { type: 'error', inputs: [], name: 'OrderAlreadyFilled' },
-  { type: 'error', inputs: [], name: 'OriginDataDecodeError' },
+  { type: 'error', inputs: [], name: 'PaymentError' },
   { type: 'error', inputs: [], name: 'Reentrancy' },
-  { type: 'error', inputs: [], name: 'SelfCallUnauthorized' },
   { type: 'error', inputs: [], name: 'Unauthorized' },
   { type: 'error', inputs: [], name: 'UnauthorizedCallContext' },
   { type: 'error', inputs: [], name: 'UpgradeFailed' },
-  { type: 'error', inputs: [], name: 'UserOpDecodeError' },
+  { type: 'error', inputs: [], name: 'VerificationError' },
+  { type: 'error', inputs: [], name: 'VerifiedCallError' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1269,6 +1534,7 @@ export const guardedExecutorAbi = [
     ],
     name: 'SpendLimitSet',
   },
+  { type: 'error', inputs: [], name: 'BatchOfBatchesDecodingError' },
   { type: 'error', inputs: [], name: 'CannotSelfExecute' },
   { type: 'error', inputs: [], name: 'ExceededSpendLimit' },
   { type: 'error', inputs: [], name: 'ExceededSpendsCapacity' },
@@ -1545,7 +1811,6 @@ export const libErc7579Abi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const mockEntryPointAbi = [
-  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
   { type: 'fallback', stateMutability: 'payable' },
   { type: 'receive', stateMutability: 'payable' },
   {
@@ -1596,6 +1861,7 @@ export const mockEntryPointAbi = [
           { name: 'eoa', internalType: 'address', type: 'address' },
           { name: 'executionData', internalType: 'bytes', type: 'bytes' },
           { name: 'nonce', internalType: 'uint256', type: 'uint256' },
+          { name: 'payer', internalType: 'address', type: 'address' },
           { name: 'paymentToken', internalType: 'address', type: 'address' },
           {
             name: 'paymentRecipient',
@@ -1608,9 +1874,8 @@ export const mockEntryPointAbi = [
             internalType: 'uint256',
             type: 'uint256',
           },
-          { name: 'paymentGas', internalType: 'uint256', type: 'uint256' },
-          { name: 'verificationGas', internalType: 'uint256', type: 'uint256' },
-          { name: 'callGas', internalType: 'uint256', type: 'uint256' },
+          { name: 'paymentPerGas', internalType: 'uint256', type: 'uint256' },
+          { name: 'combinedGas', internalType: 'uint256', type: 'uint256' },
           { name: 'signature', internalType: 'bytes', type: 'bytes' },
         ],
       },
@@ -1636,17 +1901,18 @@ export const mockEntryPointAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'encodedUserOp', internalType: 'bytes', type: 'bytes' }],
+    name: 'execute',
+    outputs: [{ name: 'err', internalType: 'bytes4', type: 'bytes4' }],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'encodedUserOps', internalType: 'bytes[]', type: 'bytes[]' },
     ],
     name: 'execute',
-    outputs: [
-      {
-        name: 'statuses',
-        internalType: 'enum EntryPoint.UserOpStatus[]',
-        type: 'uint8[]',
-      },
-    ],
+    outputs: [{ name: 'errs', internalType: 'bytes4[]', type: 'bytes4[]' }],
     stateMutability: 'payable',
   },
   {
@@ -1657,9 +1923,7 @@ export const mockEntryPointAbi = [
       { name: '', internalType: 'bytes', type: 'bytes' },
     ],
     name: 'fill',
-    outputs: [
-      { name: '', internalType: 'enum EntryPoint.UserOpStatus', type: 'uint8' },
-    ],
+    outputs: [{ name: '', internalType: 'bytes4', type: 'bytes4' }],
     stateMutability: 'payable',
   },
   {
@@ -1724,6 +1988,17 @@ export const mockEntryPointAbi = [
     stateMutability: 'payable',
   },
   {
+    type: 'function',
+    inputs: [
+      { name: 'token', internalType: 'address', type: 'address' },
+      { name: 'recipient', internalType: 'address', type: 'address' },
+      { name: 'amount', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'withdrawTokens',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -1782,19 +2057,19 @@ export const mockEntryPointAbi = [
     name: 'Upgraded',
   },
   { type: 'error', inputs: [], name: 'AlreadyInitialized' },
-  { type: 'error', inputs: [], name: 'EntryPointPaymentFailed' },
+  { type: 'error', inputs: [], name: 'CallError' },
   { type: 'error', inputs: [], name: 'FnSelectorNotRecognized' },
   { type: 'error', inputs: [], name: 'InsufficientGas' },
   { type: 'error', inputs: [], name: 'NewOwnerIsZeroAddress' },
   { type: 'error', inputs: [], name: 'NoHandoverRequest' },
   { type: 'error', inputs: [], name: 'OrderAlreadyFilled' },
-  { type: 'error', inputs: [], name: 'OriginDataDecodeError' },
+  { type: 'error', inputs: [], name: 'PaymentError' },
   { type: 'error', inputs: [], name: 'Reentrancy' },
-  { type: 'error', inputs: [], name: 'SelfCallUnauthorized' },
   { type: 'error', inputs: [], name: 'Unauthorized' },
   { type: 'error', inputs: [], name: 'UnauthorizedCallContext' },
   { type: 'error', inputs: [], name: 'UpgradeFailed' },
-  { type: 'error', inputs: [], name: 'UserOpDecodeError' },
+  { type: 'error', inputs: [], name: 'VerificationError' },
+  { type: 'error', inputs: [], name: 'VerifiedCallError' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2099,6 +2374,14 @@ export const receiverAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const reentrancyGuardAbi = [
+  { type: 'error', inputs: [], name: 'Reentrancy' },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ReentrancyGuardTransient
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const reentrancyGuardTransientAbi = [
   { type: 'error', inputs: [], name: 'Reentrancy' },
 ] as const
 

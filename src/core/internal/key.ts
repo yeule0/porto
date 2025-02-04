@@ -66,6 +66,7 @@ export type CallScopes = readonly [CallScope, ...CallScope[]]
 
 export type Permissions<bigintType = bigint> = {
   calls?: CallScopes | undefined
+  sign?: boolean | undefined
   spend?: SpendLimits<bigintType> | undefined
 }
 

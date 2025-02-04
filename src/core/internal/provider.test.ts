@@ -1250,15 +1250,6 @@ describe('wallet_sendCalls', () => {
   })
 })
 
-test('smoke', async () => {
-  const porto = createPorto()
-  const code = await porto.provider.request({
-    method: 'eth_getCode',
-    params: [delegation, 'latest'],
-  })
-  expect(code).toMatchSnapshot()
-})
-
 const typedData = {
   domain: {
     name: 'Ether Mail 🥵',

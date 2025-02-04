@@ -9,7 +9,7 @@ export default defineConfig({
     foundry({
       deployments: {
         Delegation: {
-          [odysseyTestnet.id]: '0x71048c9277e63087ba6390174691be1bea2c4985',
+          [odysseyTestnet.id]: '0xabe148edaa9046303c9b9d42243c23b9599484cd',
         },
       },
       project: 'contracts',
