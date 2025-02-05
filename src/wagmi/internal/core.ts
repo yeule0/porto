@@ -26,8 +26,8 @@ import type {
   CreateAccountParameters,
   GetKeysReturnType,
   RevokeKeyParameters,
-  Schema,
 } from '../../core/internal/rpcSchema.js'
+import type { Schema } from '../../core/RpcSchema.js'
 import type { ChainIdParameter, ConnectorParameter } from './types.js'
 
 export async function authorizeKey<config extends Config>(

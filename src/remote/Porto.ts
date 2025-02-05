@@ -6,7 +6,7 @@ import * as Implementation from '../core/Implementation.js'
 import * as Messenger from '../core/Messenger.js'
 import * as Porto_ from '../core/Porto.js'
 import * as Storage from '../core/Storage.js'
-import type { Schema } from '../core/internal/rpcSchema.js'
+import type { Schema } from '../core/RpcSchema.js'
 import type { ExactPartial } from '../core/internal/types.js'
 
 export type Porto<
