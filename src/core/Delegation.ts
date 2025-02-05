@@ -39,11 +39,11 @@ import {
   getExecuteError as getExecuteError_viem,
 } from 'viem/experimental/erc7821'
 
-import * as DelegatedAccount from './account.js'
-import * as Call from './call.js'
-import { delegationAbi } from './generated.js'
-import * as Key from './key.js'
-import type { Mutable, OneOf } from './types.js'
+import * as DelegatedAccount from './internal/account.js'
+import * as Call from './internal/call.js'
+import { delegationAbi } from './internal/generated.js'
+import * as Key from './internal/key.js'
+import type { Mutable, OneOf } from './internal/types.js'
 
 export const domainNameAndVersion = {
   name: 'Delegation',
@@ -471,12 +471,13 @@ export declare namespace prepareExecute {
 export async function simulate<
   const calls extends readonly unknown[],
   chain extends Chain | undefined,
-  account extends DelegatedAccount.Account,
 >(
   client: Client<Transport, chain>,
   parameters: simulate.Parameters<calls>,
-): Promise<simulate.ReturnType> {
-  const { account, stateOverrides } = parameters
+): Promise<simulate.ReturnType<calls>> {
+  const { stateOverrides } = parameters
+
+  const account = DelegatedAccount.from(parameters.account)
 
   // Derive bytecode to extract ETH balance via a contract call.
   const getBalanceData = AbiConstructor.encode(
@@ -689,7 +690,7 @@ export async function simulate<
     })
   }
 
-  return { balances, results }
+  return { balances, results: results as never }
 }
 
 export declare namespace simulate {
@@ -699,7 +700,7 @@ export declare namespace simulate {
     /**
      * The delegated account to simulate the calls on.
      */
-    account: DelegatedAccount.Account
+    account: DelegatedAccount.Account | Address.Address
     /**
      * State overrides.
      */
