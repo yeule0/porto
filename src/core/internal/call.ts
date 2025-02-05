@@ -136,6 +136,36 @@ export declare namespace setSpendLimit {
 }
 
 /**
+ * Instantiates values to populate a call to set the signature checker approval of a key.
+ *
+ * @param parameters - Parameters.
+ * @returns Instantiated values.
+ */
+export function setSignatureCheckerApproval(
+  parameters: setSignatureCheckerApproval.Parameters,
+) {
+  const { address, key, enabled } = parameters
+  return {
+    data: AbiFunction.encodeData(
+      AbiFunction.fromAbi(delegationAbi, 'setSignatureCheckerApproval'),
+      [Key.hash(key), address, enabled],
+    ),
+    to: self,
+  } as const satisfies Call
+}
+
+export declare namespace setSignatureCheckerApproval {
+  export type Parameters = {
+    /** Contract address to authorize. */
+    address: Address.Address
+    /** Whether the key can verify signatures. */
+    enabled: boolean
+    /** Key to apply the signature verification to. */
+    key: Key.Key
+  }
+}
+
+/**
  * Instantiates values to populate a call to remove the spend limit of a key.
  *
  * @param parameters - Parameters.

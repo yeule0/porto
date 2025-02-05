@@ -1004,6 +1004,20 @@ function getAuthorizeCalls(keys: readonly Key.Key[]): readonly Call.Call[] {
         ),
       )
 
+    // Set authorized contracts for signature verification.
+    if (permissions?.signatureVerification) {
+      const { addresses } = permissions.signatureVerification
+      permissionCalls.push(
+        ...addresses.map((address) =>
+          Call.setSignatureCheckerApproval({
+            address,
+            enabled: true,
+            key,
+          }),
+        ),
+      )
+    }
+
     return [...permissionCalls, Call.authorize({ key })]
   })
 }

@@ -66,7 +66,7 @@ export type CallScopes = readonly [CallScope, ...CallScope[]]
 
 export type Permissions<bigintType = bigint> = {
   calls?: CallScopes | undefined
-  sign?: boolean | undefined
+  signatureVerification?: SignatureVerification | undefined
   spend?: SpendLimits<bigintType> | undefined
 }
 
@@ -84,6 +84,10 @@ export type Serialized = {
   isSuperAdmin: boolean
   keyType: number
   publicKey: Hex.Hex
+}
+
+export type SignatureVerification = {
+  addresses: readonly Address.Address[]
 }
 
 export type SpendLimit<bigintType = bigint> = {
@@ -468,7 +472,7 @@ export declare namespace fromP256 {
 export function fromRpc(rpc: Rpc): Key {
   const permissions = rpc.permissions
     ? {
-        calls: rpc.permissions.calls,
+        ...rpc.permissions,
         spend: rpc.permissions.spend?.map((spend) => ({
           ...spend,
           limit: BigInt(spend.limit ?? 0),
