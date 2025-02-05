@@ -20,6 +20,7 @@ import {
   type PrivateKeyAccount,
 } from 'viem'
 
+import type { Schema } from '../../core/RpcSchema.js'
 import type {
   AuthorizeKeyParameters,
   AuthorizeKeyReturnType,
@@ -27,7 +28,6 @@ import type {
   GetKeysReturnType,
   RevokeKeyParameters,
 } from '../../core/internal/rpcSchema.js'
-import type { Schema } from '../../core/RpcSchema.js'
 import type { ChainIdParameter, ConnectorParameter } from './types.js'
 
 export async function authorizeKey<config extends Config>(
