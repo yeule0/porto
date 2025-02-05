@@ -157,16 +157,14 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 
 Authorizes a key that can perform actions on behalf of the account.
 
-#### Roles
-
 A Key has two types of roles: `"admin"` and `"session"`.
 
-- A `"session"` Key a temporary permissioned & scoped key
+- A `"session"` Key is a temporary permissioned & scoped key
   - Consumers MAY specify a `key` - if absent, Porto will generate and manage a new arbitrary WebCrypto Key
   - MUST have a limited expiry
   - MUST have permissions (`permissions`)
   - By default, signatures CANNOT be verified via [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271) (to avoid signature abuse such as Permit2-based transfers).
-    - However, a Key MAY authorize a contract address to verify signatures via the `signatureVerification` permission.
+  - However, a Key MAY authorize a contract address to verify signatures via the `signatureVerification` permission.
 - An `"admin"` key has authority over the account
   - Consumers MUST specify a `key`
   - Keys MAY OPTIONALLY have an expiry
