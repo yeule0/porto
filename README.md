@@ -251,22 +251,17 @@ type Response = {
 #### Example
 
 ```ts
-// Generate and authorize a session key with two call scopes.
+// Generate and authorize a session key with a spend limit.
 const key = await porto.provider.request({
   method: 'experimental_authorizeKey',
-  params: [{ 
+  params: [{
     permissions: {
-      calls: [
-        { 
-          signature: 'mint()', 
-          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' 
-        },
-        { 
-          signature: 'transfer(address,uint256)', 
-          to: '0xcafebabecafebabecafebabecafebabecafebabe' 
-        },
-      ] 
-    } 
+      spend: [{
+        limit: 100_000_000n, // 100 USDC
+        period: 'day',
+        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      }]
+    },
   }],
 })
 
@@ -282,7 +277,7 @@ const key = await porto.provider.request({
   }],
 })
 
-// Provide and authorize a P256 session key with a spend limit.
+// Provide and authorize a session key with call scopes.
 const key = await porto.provider.request({
   method: 'experimental_authorizeKey',
   params: [{
@@ -291,11 +286,16 @@ const key = await porto.provider.request({
       type: 'p256',
     },
     permissions: {
-      spend: [{
-        limit: 100_000_000n, // 100 USDC
-        period: 'day',
-        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-      }]
+      calls: [
+        { 
+          signature: 'mint()', 
+          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' 
+        },
+        { 
+          signature: 'transfer(address,uint256)', 
+          to: '0xcafebabecafebabecafebabecafebabecafebabe' 
+        },
+      ] 
     },
   }],
 })
