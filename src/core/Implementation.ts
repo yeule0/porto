@@ -535,6 +535,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 type: rpc.type,
               },
               permissions: rpc.permissions,
+              role: rpc.role,
             },
           ],
         })
@@ -602,6 +603,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
+                          role: rpc.role,
                         }
                       : undefined,
                   },
@@ -719,6 +721,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
+                          role: rpc.role,
                         }
                       : undefined,
                   },
