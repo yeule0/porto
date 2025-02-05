@@ -1,79 +1,35 @@
 import type * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
-import type * as RpcSchema from 'ox/RpcSchema'
 import type * as Key from './key.js'
 import type { OneOf } from './types.js'
-
-export type Schema = RpcSchema.From<
-  | RpcSchema.Default
-  | {
-      Request: {
-        method: 'porto_ping'
-      }
-      ReturnType: string
-    }
-  | {
-      Request: {
-        method: 'experimental_authorizeKey'
-        params: [AuthorizeKeyParameters]
-      }
-      ReturnType: AuthorizeKeyReturnType
-    }
-  | {
-      Request: {
-        method: 'experimental_createAccount'
-        params?: [CreateAccountParameters] | undefined
-      }
-      ReturnType: CreateAccountReturnType
-    }
-  | {
-      Request: {
-        method: 'experimental_prepareCreateAccount'
-        params: [PrepareCreateAccountParameters]
-      }
-      ReturnType: PrepareCreateAccountReturnType
-    }
-  | {
-      Request: {
-        method: 'experimental_keys'
-        params?: [GetKeysParameters] | undefined
-      }
-      ReturnType: GetKeysReturnType
-    }
-  | {
-      Request: {
-        method: 'experimental_revokeKey'
-        params: [RevokeKeyParameters]
-      }
-      ReturnType: undefined
-    }
-  | {
-      Request: {
-        method: 'wallet_connect'
-        params?: [ConnectParameters] | undefined
-      }
-      ReturnType: ConnectReturnType
-    }
-  | {
-      Request: {
-        method: 'wallet_disconnect'
-      }
-      ReturnType: undefined
-    }
->
 
 export type AuthorizeKeyParameters = {
   address?: Address.Address | undefined
   chainId?: Hex.Hex | undefined
-  expiry: Key.Rpc['expiry']
-  permissions: Key.Rpc['permissions']
-  key?:
-    | {
-        publicKey: Key.Rpc['publicKey']
-        type: Key.Rpc['type']
-      }
-    | undefined
-}
+} & OneOf<
+  | {
+      expiry: Key.Rpc['expiry']
+      permissions: Key.Rpc['permissions']
+      key?:
+        | {
+            publicKey: Key.Rpc['publicKey']
+            type: Key.Rpc['type']
+          }
+        | undefined
+      role?: 'session' | undefined
+    }
+  | {
+      expiry?: Key.Rpc['expiry'] | undefined
+      permissions?: Key.Rpc['permissions'] | undefined
+      key:
+        | {
+            publicKey: Key.Rpc['publicKey']
+            type: Key.Rpc['type']
+          }
+        | undefined
+      role: 'admin'
+    }
+>
 
 export type AuthorizeKeyReturnType = GetKeysReturnType[number]
 

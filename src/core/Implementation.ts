@@ -16,12 +16,13 @@ import { readContract } from 'viem/actions'
 import * as Delegation from './Delegation.js'
 import * as Dialog from './Dialog.js'
 import type { Client, QueuedRequest } from './Porto.js'
+import type * as RpcSchema_porto from './RpcSchema.js'
 import * as Account from './internal/account.js'
 import * as Call from './internal/call.js'
 import { delegationAbi } from './internal/generated.js'
 import * as Key from './internal/key.js'
 import type * as Porto from './internal/porto.js'
-import type * as RpcSchema_porto from './internal/rpcSchema.js'
+import type * as RpcSchema_internal from './internal/rpcSchema.js'
 import type { Compute, PartialBy } from './internal/types.js'
 
 type Request = RpcSchema.ExtractRequest<RpcSchema_porto.Schema>
@@ -39,7 +40,7 @@ export type Implementation = {
       /** Account to authorize the keys for. */
       account: Account.Account
       /** Key to authorize. */
-      key?: RpcSchema_porto.AuthorizeKeyParameters | undefined
+      key?: RpcSchema_internal.AuthorizeKeyParameters | undefined
       /** Internal properties. */
       internal: ActionsInternal
     }) => Promise<{ key: Key.Key }>
@@ -47,7 +48,7 @@ export type Implementation = {
     createAccount: (parameters: {
       /** Extra keys to authorize. */
       authorizeKeys?:
-        | readonly RpcSchema_porto.AuthorizeKeyParameters[]
+        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
         | undefined
       /** Preparation context (from `prepareCreateAccount`). */
       context?: unknown | undefined
@@ -78,7 +79,7 @@ export type Implementation = {
       address?: Address.Address | undefined
       /** Extra keys to authorize. */
       authorizeKeys?:
-        | readonly RpcSchema_porto.AuthorizeKeyParameters[]
+        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
         | undefined
       /** Credential ID to use to load an existing account. */
       credentialId?: string | undefined
@@ -94,7 +95,7 @@ export type Implementation = {
       address: Address.Address
       /** Extra keys to authorize. */
       authorizeKeys?:
-        | readonly RpcSchema_porto.AuthorizeKeyParameters[]
+        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
         | undefined
       /** Label to associate with the account. */
       label?: string | undefined
@@ -933,7 +934,9 @@ export function mock() {
 
 async function prepareCreateAccount(parameters: {
   address: Address.Address
-  authorizeKeys: readonly RpcSchema_porto.AuthorizeKeyParameters[] | undefined
+  authorizeKeys:
+    | readonly RpcSchema_internal.AuthorizeKeyParameters[]
+    | undefined
   client: Client
   label?: string | undefined
   keystoreHost?: string | undefined
@@ -1074,7 +1077,9 @@ async function getAuthorizedExecuteKey(parameters: {
 }
 
 async function getKeysToAuthorize(parameters: {
-  authorizeKeys: readonly RpcSchema_porto.AuthorizeKeyParameters[] | undefined
+  authorizeKeys:
+    | readonly RpcSchema_internal.AuthorizeKeyParameters[]
+    | undefined
 }): Promise<readonly Key.Key[]> {
   const { authorizeKeys } = parameters
 
@@ -1085,6 +1090,9 @@ async function getKeysToAuthorize(parameters: {
   return await Promise.all(
     authorizeKeys
       .map(async (k) => {
+        const expiry = k?.expiry ?? 0
+        const permissions = k.permissions ?? {}
+        const role = k?.role ?? 'session'
         const type = k.key?.type ?? 'secp256k1'
 
         let publicKey = k.key?.publicKey ?? '0x'
@@ -1097,9 +1105,10 @@ async function getKeysToAuthorize(parameters: {
           publicKey = Address.fromPublicKey(publicKey)
 
         const key = Key.fromRpc({
-          ...k,
+          permissions,
+          expiry,
           publicKey,
-          role: 'session',
+          role,
           type,
         })
         if (k.key) return key

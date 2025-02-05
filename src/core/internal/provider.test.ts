@@ -256,54 +256,93 @@ describe('experimental_authorizeKey', () => {
       }
     `)
 
-    const accounts = porto._internal.store.getState().accounts
-    expect(accounts.length).toBe(1)
-    expect(accounts![0]!.keys?.length).toBe(3)
     expect(
-      accounts![0]!.keys?.map((x) => ({ ...x, expiry: null, publicKey: null })),
+      await porto.provider.request({
+        method: 'experimental_authorizeKey',
+        params: [
+          {
+            key: {
+              publicKey: '0x0000000000000000000000000000000000000001',
+              type: 'contract',
+            },
+            role: 'admin',
+          },
+        ],
+      }),
     ).toMatchInlineSnapshot(`
-      [
         {
-          "canSign": true,
-          "expiry": null,
-          "permissions": undefined,
-          "privateKey": [Function],
-          "publicKey": null,
-          "role": "admin",
-          "type": "p256",
-        },
-        {
-          "canSign": false,
-          "expiry": null,
+          "expiry": 0,
           "permissions": {
-            "calls": [
-              {
-                "signature": "mint()",
-              },
-            ],
             "spend": undefined,
           },
-          "publicKey": null,
-          "role": "session",
-          "type": "p256",
-        },
-        {
-          "canSign": false,
-          "expiry": null,
-          "permissions": {
-            "spend": [
-              {
-                "limit": 1500000000000000000n,
-                "period": "day",
-              },
-            ],
-          },
-          "publicKey": null,
-          "role": "session",
+          "publicKey": "0x0000000000000000000000000000000000000001",
+          "role": "admin",
           "type": "secp256k1",
-        },
-      ]
-    `)
+        }
+      `)
+
+    const accounts = porto._internal.store.getState().accounts
+    expect(accounts.length).toBe(1)
+    expect(accounts![0]!.keys?.length).toBe(4)
+    expect(
+      accounts![0]!.keys?.map((x) => ({
+        ...x,
+        expiry: null,
+        publicKey: null,
+      })),
+    ).toMatchInlineSnapshot(`
+        [
+          {
+            "canSign": true,
+            "expiry": null,
+            "permissions": undefined,
+            "privateKey": [Function],
+            "publicKey": null,
+            "role": "admin",
+            "type": "p256",
+          },
+          {
+            "canSign": false,
+            "expiry": null,
+            "permissions": {
+              "calls": [
+                {
+                  "signature": "mint()",
+                },
+              ],
+              "spend": undefined,
+            },
+            "publicKey": null,
+            "role": "session",
+            "type": "p256",
+          },
+          {
+            "canSign": false,
+            "expiry": null,
+            "permissions": {
+              "spend": [
+                {
+                  "limit": 1500000000000000000n,
+                  "period": "day",
+                },
+              ],
+            },
+            "publicKey": null,
+            "role": "session",
+            "type": "secp256k1",
+          },
+          {
+            "canSign": false,
+            "expiry": null,
+            "permissions": {
+              "spend": undefined,
+            },
+            "publicKey": null,
+            "role": "admin",
+            "type": "secp256k1",
+          },
+        ]
+      `)
 
     expect(messages[0].type).toBe('keysChanged')
     expect(messages[0].data.length).toBe(2)
@@ -407,6 +446,26 @@ describe('experimental_authorizeKey', () => {
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       '[RpcResponse.InternalError: expiry is required.]',
+    )
+  })
+
+  test('behavior: no key (admin)', async () => {
+    const porto = createPorto()
+    await porto.provider.request({
+      method: 'experimental_createAccount',
+    })
+    await expect(
+      porto.provider.request({
+        method: 'experimental_authorizeKey',
+        params: [
+          // @ts-expect-error
+          {
+            role: 'admin',
+          },
+        ],
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      '[RpcResponse.InternalError: key is required.]',
     )
   })
 })

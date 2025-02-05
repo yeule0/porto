@@ -7,9 +7,10 @@ import * as RpcResponse from 'ox/RpcResponse'
 
 import type * as Chains from '../Chains.js'
 import * as Porto from '../Porto.js'
+import type * as Schema from '../RpcSchema.js'
 import type * as Call from './call.js'
 import * as Key from './key.js'
-import type * as Schema from './rpcSchema.js'
+import type * as RpcSchema_internal from './rpcSchema.js'
 
 export type Provider = ox_Provider.Provider<{
   includeEvents: true
@@ -659,12 +660,16 @@ function requireParameter(
 }
 
 function assertKeys(
-  keys: readonly Schema.AuthorizeKeyParameters[] | undefined,
+  keys: readonly RpcSchema_internal.AuthorizeKeyParameters[] | undefined,
 ) {
   if (!keys) return
   for (const key of keys) {
-    if (!key.expiry) throw new Error('expiry is required.')
-    if (!key.permissions || Object.keys(key.permissions).length === 0)
-      throw new Error('permissions are required.')
+    if (key.role === 'admin') {
+      if (!key.key) throw new Error('key is required.')
+    } else {
+      if (!key.expiry) throw new Error('expiry is required.')
+      if (!key.permissions || Object.keys(key.permissions).length === 0)
+        throw new Error('permissions are required.')
+    }
   }
 }

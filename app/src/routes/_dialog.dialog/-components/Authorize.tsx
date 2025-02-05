@@ -13,10 +13,11 @@ import LucideKey from '~icons/lucide/key-round'
 import { NotFound } from './NotFound'
 
 export function Authorize(props: Authorize.Props) {
-  const { address, permissions, loading, onApprove, onReject } = props
+  const { address, permissions, role, loading, onApprove, onReject } = props
 
   const [index, setIndex] = useState(0)
 
+  if (role === 'admin') return <NotFound />
   if (!permissions?.spend) return <NotFound />
   if (permissions.spend.length === 0) return <NotFound />
 
