@@ -210,7 +210,7 @@ type Request = {
     // Expiry of the permissions.
     expiry: number
 
-    // Key to grant permissions to. Defaults to a provider-managed key.
+    // Key to grant permissions to. Defaults to a wallet-managed key.
     key?: {
       // Public key. Accepts an address for `contract` & `secp256k1` types.
       publicKey?: `0x${string}`,
