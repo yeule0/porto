@@ -1,12 +1,12 @@
 import { useState } from 'react'
 
-import LucideLogIn from '~icons/lucide/log-in'
-import Question from '~icons/mingcute/question-line'
-import ChevronRight from '~icons/lucide/chevron-right'
 import { Button } from '~/components/Button'
 import { Layout } from '~/components/Layout'
-import * as Dialog from '~/lib/Dialog'
 import { PasskeyDiagramCard } from '~/components/PasskeyDiagramCard'
+import * as Dialog from '~/lib/Dialog'
+import ChevronRight from '~icons/lucide/chevron-right'
+import LucideLogIn from '~icons/lucide/log-in'
+import Question from '~icons/mingcute/question-line'
 
 export function SignUp(props: SignUp.Props) {
   const { enableSignIn, loading, onApprove, onReject } = props
