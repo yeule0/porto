@@ -6,30 +6,15 @@ import type { OneOf } from './types.js'
 export type AuthorizeKeyParameters = {
   address?: Address.Address | undefined
   chainId?: Hex.Hex | undefined
-} & OneOf<
-  | {
-      expiry: Key.Rpc['expiry']
-      permissions: Key.Rpc['permissions']
-      key?:
-        | {
-            publicKey: Key.Rpc['publicKey']
-            type: Key.Rpc['type']
-          }
-        | undefined
-      role?: 'session' | undefined
-    }
-  | {
-      expiry?: Key.Rpc['expiry'] | undefined
-      permissions?: Key.Rpc['permissions'] | undefined
-      key:
-        | {
-            publicKey: Key.Rpc['publicKey']
-            type: Key.Rpc['type']
-          }
-        | undefined
-      role: 'admin'
-    }
->
+  expiry: Key.Rpc['expiry']
+  key?:
+    | {
+        publicKey: Key.Rpc['publicKey']
+        type: Key.Rpc['type']
+      }
+    | undefined
+  permissions: Key.Rpc['permissions']
+}
 
 export type AuthorizeKeyReturnType = GetKeysReturnType[number]
 

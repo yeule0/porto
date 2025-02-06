@@ -664,12 +664,8 @@ function assertKeys(
 ) {
   if (!keys) return
   for (const key of keys) {
-    if (key.role === 'admin') {
-      if (!key.key) throw new Error('key is required.')
-    } else {
-      if (!key.expiry) throw new Error('expiry is required.')
-      if (!key.permissions || Object.keys(key.permissions).length === 0)
-        throw new Error('permissions are required.')
-    }
+    if (!key.expiry) throw new Error('expiry is required.')
+    if (!key.permissions || Object.keys(key.permissions).length === 0)
+      throw new Error('permissions are required.')
   }
 }

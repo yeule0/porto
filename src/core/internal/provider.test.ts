@@ -256,34 +256,9 @@ describe('experimental_authorizeKey', () => {
       }
     `)
 
-    expect(
-      await porto.provider.request({
-        method: 'experimental_authorizeKey',
-        params: [
-          {
-            key: {
-              publicKey: '0x0000000000000000000000000000000000000001',
-              type: 'contract',
-            },
-            role: 'admin',
-          },
-        ],
-      }),
-    ).toMatchInlineSnapshot(`
-        {
-          "expiry": 0,
-          "permissions": {
-            "spend": undefined,
-          },
-          "publicKey": "0x0000000000000000000000000000000000000001",
-          "role": "admin",
-          "type": "secp256k1",
-        }
-      `)
-
     const accounts = porto._internal.store.getState().accounts
     expect(accounts.length).toBe(1)
-    expect(accounts![0]!.keys?.length).toBe(4)
+    expect(accounts![0]!.keys?.length).toBe(3)
     expect(
       accounts![0]!.keys?.map((x) => ({
         ...x,
@@ -329,16 +304,6 @@ describe('experimental_authorizeKey', () => {
             },
             "publicKey": null,
             "role": "session",
-            "type": "secp256k1",
-          },
-          {
-            "canSign": false,
-            "expiry": null,
-            "permissions": {
-              "spend": undefined,
-            },
-            "publicKey": null,
-            "role": "admin",
             "type": "secp256k1",
           },
         ]
@@ -446,26 +411,6 @@ describe('experimental_authorizeKey', () => {
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       '[RpcResponse.InternalError: expiry is required.]',
-    )
-  })
-
-  test('behavior: no key (admin)', async () => {
-    const porto = createPorto()
-    await porto.provider.request({
-      method: 'experimental_createAccount',
-    })
-    await expect(
-      porto.provider.request({
-        method: 'experimental_authorizeKey',
-        params: [
-          // @ts-expect-error
-          {
-            role: 'admin',
-          },
-        ],
-      }),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '[RpcResponse.InternalError: key is required.]',
     )
   })
 })

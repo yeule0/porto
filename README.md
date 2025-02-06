@@ -157,20 +157,12 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 
 Authorizes a key that can perform actions on behalf of the account.
 
-A Key has two types of roles: `"admin"` and `"session"`.
-
-- A `"session"` Key is a temporary permissioned & scoped key
-  - Consumers MAY specify a `key` - if absent, Porto will generate and manage a new arbitrary WebCrypto Key
-  - MUST have a limited expiry
-  - MUST have permissions (`permissions`)
-  - By default, signatures CANNOT be verified via [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271) (to avoid signature abuse such as Permit2-based transfers).
-  - However, a Key MAY authorize a contract address to verify signatures via the `signatureVerification` permission.
-- An `"admin"` key has authority over the account
-  - Consumers MUST specify a `key`
-  - Keys MAY OPTIONALLY have an expiry
-  - Keys MAY OPTIONALLY have permissions (`permissions`)
-  - By default, signatures CAN be verified via [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271).
-  - An example of an Admin Key is the Passkey credential when a user creates a Porto Account.
+Keys authorized are given a `"session"` role, which have the following characteristics:
+- Consumers MAY specify a `key` - if absent, Porto will generate and manage a new arbitrary WebCrypto Key
+- MUST have a limited expiry
+- MUST have permissions (`permissions`)
+- By default, signatures CANNOT be verified via [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271) (to avoid signature abuse such as Permit2-based transfers).
+- However, a Key MAY authorize a contract address to verify signatures via the `signatureVerification` permission.
 
 > Minimal alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
 
@@ -217,8 +209,6 @@ type Request = {
         token?: `0x${string}`
       }[]
     },
-    // Role of the key. Defaults to `session`.
-    role?: 'admin' | 'session'
   }]
 }
 ```
@@ -243,7 +233,6 @@ type Response = {
       token?: `0x${string}`,
     }[],
   },
-  role: 'admin' | 'session',
   type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
 }
 ```
@@ -449,7 +438,6 @@ type Response = {
     }[]
   }
   publicKey: `0x${string}`, 
-  role: 'admin' | 'session', 
   type: 'p256' | 'secp256k1' | 'webauthn-p256' 
 }[]
 ```

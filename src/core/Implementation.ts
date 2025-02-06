@@ -535,7 +535,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 type: rpc.type,
               },
               permissions: rpc.permissions,
-              role: rpc.role,
             },
           ],
         })
@@ -603,7 +602,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
-                          role: rpc.role,
                         }
                       : undefined,
                   },
@@ -721,7 +719,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
                             type: rpc.type,
                           },
                           permissions: rpc.permissions,
-                          role: rpc.role,
                         }
                       : undefined,
                   },
@@ -1095,7 +1092,6 @@ async function getKeysToAuthorize(parameters: {
       .map(async (k) => {
         const expiry = k?.expiry ?? 0
         const permissions = k.permissions ?? {}
-        const role = k?.role ?? 'session'
         const type = k.key?.type ?? 'secp256k1'
 
         let publicKey = k.key?.publicKey ?? '0x'
@@ -1111,7 +1107,7 @@ async function getKeysToAuthorize(parameters: {
           permissions,
           expiry,
           publicKey,
-          role,
+          role: 'session',
           type,
         })
         if (k.key) return key
