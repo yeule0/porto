@@ -57,9 +57,11 @@ export namespace Layout {
       return (
         <div>
           <div className="flex items-center gap-2">
-            <div className={Default.className({ variant })}>
-              <Icon className="size-[18px] text-current" />
-            </div>
+            {Icon && (
+              <div className={Default.className({ variant })}>
+                <Icon className="size-[18px] text-current" />
+              </div>
+            )}
             <div className="font-medium text-[18px] text-gray12">{title}</div>
           </div>
 
@@ -73,7 +75,7 @@ export namespace Layout {
     // Default Header
     export namespace Default {
       export interface Props extends VariantProps<typeof className> {
-        icon: React.FC<React.SVGProps<SVGSVGElement>>
+        icon?: React.FC<React.SVGProps<SVGSVGElement>> | undefined
         title: string
         content: React.ReactNode
       }

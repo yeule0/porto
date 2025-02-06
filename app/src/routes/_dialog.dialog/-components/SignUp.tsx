@@ -1,14 +1,21 @@
-import LucideLogIn from '~icons/lucide/log-in'
+import { useState } from 'react'
 
+import LucideLogIn from '~icons/lucide/log-in'
+import Question from '~icons/mingcute/question-line'
+import ChevronRight from '~icons/lucide/chevron-right'
 import { Button } from '~/components/Button'
 import { Layout } from '~/components/Layout'
 import * as Dialog from '~/lib/Dialog'
+import { PasskeyDiagramCard } from '~/components/PasskeyDiagramCard'
 
 export function SignUp(props: SignUp.Props) {
   const { enableSignIn, loading, onApprove, onReject } = props
 
+  const [showLearn, setShowLearn] = useState(false)
+
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
+  if (showLearn) return <SignUp.Learn onDone={() => setShowLearn(false)} />
   return (
     <Layout loading={loading} loadingTitle="Signing up...">
       <Layout.Header className="flex-grow">
@@ -45,16 +52,66 @@ export function SignUp(props: SignUp.Props) {
             Sign up
           </Button>
         </Layout.Footer.Actions>
+
+        <button
+          className="flex w-full cursor-pointer items-center justify-between border-blackA1 border-t px-3 pt-3 dark:border-whiteA1"
+          onClick={() => setShowLearn(true)}
+          type="button"
+        >
+          <div className="flex items-center gap-1">
+            <Question />
+            <span className="font-medium text-[14px]">
+              Learn about passkeys
+            </span>
+          </div>
+          <div className="text-gray10">
+            <ChevronRight />
+          </div>
+        </button>
       </Layout.Footer>
     </Layout>
   )
 }
 
-export declare namespace SignUp {
+export namespace SignUp {
   export type Props = {
     enableSignIn?: boolean
     loading?: boolean
     onApprove: (p: { signIn?: boolean }) => void
     onReject: () => void
+  }
+
+  export function Learn({ onDone }: { onDone: () => void }) {
+    return (
+      <Layout>
+        <Layout.Header className="flex-grow space-y-2">
+          <PasskeyDiagramCard />
+
+          <Layout.Header.Default
+            title="About Passkeys"
+            content={
+              <div className="space-y-2">
+                <div>
+                  Passkeys let you sign in to your wallet in seconds. Passkeys
+                  are the safest way to authenticate on the internet.
+                </div>
+                <div className="text-gray10">
+                  Your passkeys are protected by your device, browser, or
+                  password manager like 1Password.
+                </div>
+              </div>
+            }
+          />
+        </Layout.Header>
+
+        <Layout.Footer>
+          <Layout.Footer.Actions>
+            <Button className="flex-grow" type="button" onClick={onDone}>
+              Back
+            </Button>
+          </Layout.Footer.Actions>
+        </Layout.Footer>
+      </Layout>
+    )
   }
 }
