@@ -1,8 +1,9 @@
 export {
-  useAuthorizeKey,
   useConnect,
   useCreateAccount,
   useDisconnect,
+  useGrantPermissions,
+  usePermissions,
+  useRevokePermissions,
   useUpgradeAccount,
-  useKeys,
 } from './internal/react.js'

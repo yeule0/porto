@@ -34,15 +34,15 @@ Experimental Next-gen Account for Ethereum.
 - [Usage](#usage)
   - [Usage with Wagmi](#usage-with-wagmi)
 - [JSON-RPC Reference](#json-rpc-reference)
-  - [`experimental_authorizeKey`](#experimental_authorizeKey)
   - [`experimental_createAccount`](#experimental_createaccount)
-  - [`experimental_prepareCreateAccount`](#experimental_prepareCreateAccount)
-  - [`experimental_keys`](#experimental_keys)
-  - [`experimental_revokeKey`](#experimental_revokeKey)
+  - [`experimental_grantPermissions`](#experimental_grantpermissions)
+  - [`experimental_permissions`](#experimental_permissions)
+  - [`experimental_revokePermissions`](#experimental_revokepermissions)
+  - [`experimental_prepareCreateAccount`](#experimental_preparecreateaccount)
 - [Available ERC-5792 Capabilities](#available-erc-5792-capabilities)
   - [`atomicBatch`](#atomicbatch)
   - [`createAccount`](#createaccount)
-  - [`keys`](#keys)
+  - [`permissions`](#permissions)
 - [Wagmi Reference](#wagmi-reference)
 - [FAQs](#faqs)
 - [Development](#development)
@@ -153,143 +153,6 @@ In addition to the above, Porto implements the following **experimental** JSON-R
 > [!NOTE]
 > These JSON-RPC methods intend to be upstreamed as an ERC (or deprecated in favor of upcoming/existing ERCs) in the near future. They are purposefully minimalistic and intend to be iterated on.
 
-### `experimental_authorizeKey`
-
-Authorizes a key that can perform actions on behalf of the account.
-
-Keys authorized are given a `"session"` role, which have the following characteristics:
-- Consumers MAY specify a `key` - if absent, Porto will generate and manage a new arbitrary WebCrypto Key
-- MUST have a limited expiry
-- MUST have permissions (`permissions`)
-- By default, signatures CANNOT be verified via [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271) (to avoid signature abuse such as Permit2-based transfers).
-- However, a Key MAY authorize a contract address to verify signatures via the `signatureVerification` permission.
-
-> Minimal alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
-
-#### Request
-
-```ts
-type Request = {
-  method: 'experimental_authorizeKey',
-  params: [{
-    // Address of the account to authorize a key on.
-    address?: `0x${string}`
-    // Expiry of the key.
-    expiry: number
-    // Key to authorize.
-    key?: {
-      // Public key. Accepts an address for `contract` & `secp256k1` types.
-      publicKey?: `0x${string}`,
-      // Key type.
-      type?: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256', 
-    }
-    // Permissions to authorize.
-    permissions: {
-      // Call permissions.
-      calls?: {
-        // Function signature or 4-byte selector.
-        signature?: string
-        // Authorized target address.
-        to?: `0x${string}`
-      }[],
-      // ERC-1271 verification permissions.
-      signatureVerification?: {
-        // Authorized contract addresses that can call the
-        // account's ERC-1271 `isValidSignature` function.
-        addresses: readonly `0x${string}`[]
-      },
-      // Spend permissions.
-      spend?: {
-        // Spending limit (in wei) per period.
-        limit: `0x${string}`,
-        // Period of the spend limit.
-        period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-        // ERC20 token to set the limit on. 
-        // If not provided, the limit will be set on the native token (e.g. ETH).
-        token?: `0x${string}`
-      }[]
-    },
-  }]
-}
-```
-
-#### Response
-
-```ts
-type Response = {
-  expiry: number,
-  publicKey: `0x${string}`,
-  permissions: {
-    calls?: {
-      signature?: string,
-      to?: `0x${string}`,
-    }[],
-    signatureVerification?: {
-      addresses: `0x${string}`[]
-    },
-    spend?: {
-      limit: `0x${string}`,
-      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year',
-      token?: `0x${string}`,
-    }[],
-  },
-  type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
-}
-```
-
-#### Example
-
-```ts
-// Generate and authorize a session key with a spend limit.
-const key = await porto.provider.request({
-  method: 'experimental_authorizeKey',
-  params: [{
-    permissions: {
-      spend: [{
-        limit: 100_000_000n, // 100 USDC
-        period: 'day',
-        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
-      }]
-    },
-  }],
-})
-
-// Authorize a contract address to verify signatures (via ERC-1271).
-const key = await porto.provider.request({
-  method: 'experimental_authorizeKey',
-  params: [{
-    permissions: {
-      signatureVerification: {
-        addresses: ['0xb3030d74b87321d620f2d0cdf3f97cc4598b9248'],
-      },
-    },
-  }],
-})
-
-// Provide and authorize a session key with call scopes.
-const key = await porto.provider.request({
-  method: 'experimental_authorizeKey',
-  params: [{
-    key: {
-      publicKey: '0x...',
-      type: 'p256',
-    },
-    permissions: {
-      calls: [
-        { 
-          signature: 'mint()', 
-          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' 
-        },
-        { 
-          signature: 'transfer(address,uint256)', 
-          to: '0xcafebabecafebabecafebabecafebabecafebabe' 
-        },
-      ] 
-    },
-  }],
-})
-```
-
 ### `experimental_createAccount`
 
 Creates (and connects) a new account.
@@ -326,6 +189,231 @@ const address = await porto.provider.request({
 })
 ```
 
+### `experimental_grantPermissions`
+
+Grants permissions for an Application to perform actions on behalf of the account.
+
+> Alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification with a tighter API. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
+
+#### Request
+
+```ts
+type Request = {
+  method: 'experimental_grantPermissions',
+  params: [{
+    // Address of the account to grant permissions on. Defaults to the current account.
+    address?: `0x${string}`
+
+    // Chain ID to grant permissions on.
+    chainId?: `0x${string}`
+
+    // Expiry of the permissions.
+    expiry: number
+
+    // Key to grant permissions to. Defaults to a provider-managed key.
+    key?: {
+      // Public key. Accepts an address for `contract` & `secp256k1` types.
+      publicKey?: `0x${string}`,
+      // Key type.
+      type?: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256', 
+    }
+    
+    // Permissions to grant.
+    permissions: {
+      // Call permissions.
+      calls?: {
+        // Function signature or 4-byte selector.
+        signature?: string
+        // Authorized target address.
+        to?: `0x${string}`
+      }[],
+
+      // ERC-1271 verification permissions.
+      signatureVerification?: {
+        // Authorized contract addresses that can call the
+        // account's ERC-1271 `isValidSignature` function.
+        addresses: readonly `0x${string}`[]
+      },
+
+      // Spend permissions.
+      spend?: {
+        // Spending limit (in wei) per period.
+        limit: `0x${string}`,
+        // Period of the spend limit.
+        period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+        // ERC20 token to set the limit on. 
+        // If not provided, the limit will be set on the native token (e.g. ETH).
+        token?: `0x${string}`
+      }[]
+    },
+  }]
+}
+```
+
+#### Response
+
+```ts
+type Response = {
+  address: `0x${string}`,
+  chainId: `0x${string}`,
+  expiry: number,
+  id: `0x${string}`,
+  key: {
+    publicKey: `0x${string}`,
+    type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
+  },
+  permissions: {
+    calls?: {
+      signature?: string,
+      to?: `0x${string}`,
+    }[],
+    signatureVerification?: {
+      addresses: `0x${string}`[]
+    },
+    spend?: {
+      limit: `0x${string}`,
+      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year',
+      token?: `0x${string}`,
+    }[],
+  },
+}
+```
+
+#### Example
+
+```ts
+// Grant a spend limit permission.
+const permissions = await porto.provider.request({
+  method: 'experimental_grantPermissions',
+  params: [{
+    permissions: {
+      spend: [{
+        limit: '0x5f5e100', // 100 USDC,
+        period: 'day',
+        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      }]
+    },
+  }],
+})
+
+// Grant a contract address to verify signatures (via ERC-1271).
+const permissions = await porto.provider.request({
+  method: 'experimental_grantPermissions',
+  params: [{
+    permissions: {
+      signatureVerification: {
+        addresses: ['0xb3030d74b87321d620f2d0cdf3f97cc4598b9248'],
+      },
+    },
+  }],
+})
+
+// Grant spend & call scope permissions to a specific key.
+const permissions = await porto.provider.request({
+  method: 'experimental_grantPermissions',
+  params: [{
+    key: {
+      publicKey: '0x...',
+      type: 'p256',
+    },
+    permissions: {
+      calls: [{ 
+        signature: 'transfer(address,uint256)', 
+        to: '0xcafebabecafebabecafebabecafebabecafebabe' 
+      }],
+      spend: [{
+        limit: '0x5f5e100', // 100 USDC,
+        period: 'day',
+        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+      }]
+    },
+  }],
+})
+```
+
+
+### `experimental_permissions`
+
+Lists active permissions of the account.
+
+#### Request
+
+```ts
+type Request = {
+  method: 'experimental_permissions',
+  params: [{
+    // Address of the account to list permissions on.
+    address?: `0x${string}`
+  }]
+}
+```
+
+#### Response
+
+```ts
+type Response = { 
+  address: `0x${string}`,
+  chainId: `0x${string}`,
+  expiry: number, 
+  id: `0x${string}`,
+  key: {
+    publicKey: `0x${string}`,
+    type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
+  },
+  permissions: {
+    calls?: {
+      signature?: string
+      to?: `0x${string}`
+    }[]
+    signatureVerification?: {
+      addresses: `0x${string}`[]
+    },
+    spend?: {
+      limit: bigint
+      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+      token?: `0x${string}`
+    }[]
+  }
+  publicKey: `0x${string}`, 
+  type: 'p256' | 'secp256k1' | 'webauthn-p256' 
+}[]
+```
+
+#### Example
+
+```ts
+const permissions = await porto.provider.request({
+  method: 'experimental_permissions',
+})
+```
+
+### `experimental_revokePermissions`
+
+Revokes a permission.
+
+#### Request
+
+```ts
+type Request = {
+  method: 'experimental_revokePermissions',
+  params: [{ 
+    // Address of the account to revoke a permission on.
+    address?: `0x${string}`
+    // ID of the permission to revoke.
+    id: `0x${string}` 
+  }]
+}
+```
+
+#### Example
+
+```ts
+await porto.provider.request({
+  method: 'experimental_revokePermissions',
+  params: [{ id: '0x...' }],
+})
+```
+
 ### `experimental_prepareCreateAccount`
 
 Returns a set of hex payloads to sign over to upgrade an existing EOA to a Porto Account. Additionally, it will prepare values needed to fill context for the `experimental_createAccount` JSON-RPC method.
@@ -340,8 +428,8 @@ type Request = {
     address?: `0x${string}`,
     // ERC-5792 capabilities to define extended behavior.
     capabilities: {
-      // Whether to authorize a key with an optional expiry.
-      authorizeKey?: { 
+      // Whether to grant permissions with an optional expiry.
+      grantPermissions?: { 
         expiry: number,
         key?: {
           publicKey?: `0x${string}`,
@@ -402,81 +490,6 @@ const { address, capabilities } = await porto.provider.request({
 })
 ```
 
-### `experimental_keys`
-
-Lists active keys that can perform actions on behalf of the account.
-
-#### Request
-
-```ts
-type Request = {
-  method: 'experimental_keys',
-  params: [{
-    // Address of the account to list keys on.
-    address?: `0x${string}`
-  }]
-}
-```
-
-#### Response
-
-```ts
-type Response = { 
-  expiry: number, 
-  permissions: {
-    calls?: {
-      signature?: string
-      to?: `0x${string}`
-    }[]
-    signatureVerification?: {
-      addresses: `0x${string}`[]
-    },
-    spend?: {
-      limit: bigint
-      period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-      token?: `0x${string}`
-    }[]
-  }
-  publicKey: `0x${string}`, 
-  type: 'p256' | 'secp256k1' | 'webauthn-p256' 
-}[]
-```
-
-#### Example
-
-```ts
-const keys = await porto.provider.request({
-  method: 'experimental_keys',
-})
-```
-
-### `experimental_revokeKey`
-
-Revokes a key.
-
-#### Request
-
-```ts
-type Request = {
-  method: 'experimental_revokeKey',
-  params: [{ 
-    // Address of the account to revoke a key on.
-    address?: `0x${string}`
-    // Public key of the key to revoke.
-    publicKey: `0x${string}` 
-  }]
-}
-```
-
-#### Example
-
-```ts
-await porto.provider.request({
-  method: 'experimental_revokeKey',
-  params: [{ publicKey: '0x...' }],
-})
-```
-
 ## Available ERC-5792 Capabilities
 
 Porto implements the following [ERC-5792 capabilities](https://eips.ethereum.org/EIPS/eip-5792#wallet_getcapabilities) to define extended behavior:
@@ -518,23 +531,20 @@ Example:
 }
 ```
 
-### `keys`
+### `permissions`
 
-Porto supports account key management (ie. authorized keys & their scopes).
+Porto supports account permission management.
 
-#### Authorizing keys via `experimental_authorizeKey`
+#### Granting permissions via `experimental_grantPermissions`
 
-Keys may be authorized via the [`experimental_authorizeKey`](#experimental_authorizeKey) JSON-RPC method.
-
-If the `key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
+Permissions may be granted via the [`experimental_grantPermissions`](#experimental_grantPermissions) JSON-RPC method.
 
 Example:
 
 ```ts
 {
-  method: 'experimental_authorizeKey',
+  method: 'experimental_grantPermissions',
   params: [{ 
-    address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe', 
     expiry: 1727078400,
     permissions: {
       calls: [{
@@ -546,11 +556,9 @@ Example:
 }
 ```
 
-#### Authorizing keys via `wallet_connect`
+#### Granting permissions via `wallet_connect`
 
-Keys may be authorized upon connection with the `authorizeKey` capability on the [`wallet_connect`]([#wallet_connect](https://github.com/ethereum/ERCs/blob/abd1c9f4eda2d6ad06ade0e3af314637a27d1ee7/ERCS/erc-7846.md)) JSON-RPC method.
-
-If the `authorizeKey.key` property is absent, Porto will generate a new arbitrary "session" key to authorize on the account.
+Permissions may be granted upon connection with the `grantPermissions` capability on the [`wallet_connect`]([#wallet_connect](https://github.com/ethereum/ERCs/blob/abd1c9f4eda2d6ad06ade0e3af314637a27d1ee7/ERCS/erc-7846.md)) JSON-RPC method.
 
 Example:
 
@@ -559,13 +567,14 @@ Example:
   method: 'wallet_connect',
   params: [{ 
     capabilities: { 
-      authorizeKey: {
+      grantPermissions: {
         expiry: 1727078400,
         permissions: {
-          calls: [{
-            signature: 'mint()',
-            to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
-          }],
+          spend: [{
+            limit: '0x5f5e100', // 100 USDC
+            period: 'day',
+            token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+          }]
         }
       }
     } 
@@ -573,7 +582,7 @@ Example:
 }
 ```
 
-If a key is authorized upon connection, the `wallet_connect` JSON-RPC method will return the key on the `capabilities.keys` parameter of the response.
+If a permission is granted upon connection, the `wallet_connect` JSON-RPC method will return the permission on the `capabilities.permissions` parameter of the response.
 
 Example:
 
@@ -582,17 +591,19 @@ Example:
   accounts: [{
     address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
     capabilities: {
-      keys: [{ 
+      permissions: [{ 
         expiry: 1727078400,
-        permissions: {
-          calls: [{
-            signature: 'mint()',
-            to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbe',
-          }],
+        key: {
+          publicKey: '0x...', 
+          type: 'p256' 
         },
-        publicKey: '0x...', 
-        role: 'session', 
-        type: 'p256' 
+        permissions: {
+          spend: [{
+            limit: '0x5f5e100', // 100 USDC
+            period: 'day',
+            token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+          }]
+        }
       }]
     }
   }],
@@ -610,12 +621,12 @@ Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS 
 
 Import via named export or `Actions` namespace (better autocomplete DX and does not impact tree shaking).
 
-- `authorizeKey`
 - `connect`
 - `createAccount`
 - `disconnect`
-- `keys`
-- `revokeKey`
+- `grantPermissions`
+- `permissions`
+- `revokePermissions`
 - `upgradeAccount`
 
 ```ts
@@ -627,33 +638,18 @@ import { connect } from 'porto/wagmi/Actions'
 
 Import via named export or `Hooks` namespace (better autocomplete DX and does not impact tree shaking).
 
-- `useAuthorizeKey`
 - `useConnect`
 - `useCreateAccount`
 - `useDisconnect`
-- `useKeys`
-- `useRevokeKey`
+- `useGrantPermissions`
+- `usePermissions`
+- `useRevokePermissions`
 - `useUpgradeAccount`
 
 ```ts
 import { Hooks } from 'porto/wagmi' // Hooks.useConnect()
 import { useConnect } from 'porto/wagmi/Hooks'
 ```
-
-## FAQs
-
-### Is Webauthn required or can any EOA be used?
-Any EOA can be used see [`experimental_prepareCreateAccount`](#experimental_prepareCreateAccount).
-
-### Can sessions be revoked?
-Yes, see [`revokable`](https://github.com/ithacaxyz/porto/blob/main/contracts/src/account/ExperimentalDelegation.sol#L132-L141) on the Account contract.
-
-### Do sessions expire?
-Yes, this can be done by calling [`experimental_authorizeKey`](#experimental_authorizekey) with an unix timestamp.
-
-### When a session is created what permissions are granted?
-Currently full control over the account is granted, but in the future this can be more restricted (see [`execute`](https://github.com/ithacaxyz/account/blob/main/src/GuardedExecutor.sol#L78-L83)).
-
 
 ## Development
 

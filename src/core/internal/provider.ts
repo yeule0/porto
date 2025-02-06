@@ -9,7 +9,8 @@ import type * as Chains from '../Chains.js'
 import * as Porto from '../Porto.js'
 import type * as Schema from '../RpcSchema.js'
 import type * as Call from './call.js'
-import * as Key from './key.js'
+import type * as Key from './key.js'
+import * as Permissions from './permissions.js'
 import type * as Schema_internal from './rpcSchema.js'
 
 export type Provider = ox_Provider.Provider<{
@@ -169,15 +170,13 @@ export function from<
           >
         }
 
-        case 'experimental_authorizeKey': {
+        case 'experimental_grantPermissions': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, chainId, ...keyToAuthorize }] = request.params ?? [
-            {},
-          ]
+          const [{ address, chainId, ...permissions }] = request.params ?? [{}]
 
-          assertKeys([keyToAuthorize])
+          assertPermissions(permissions)
 
           const account = address
             ? state.accounts.find((account) =>
@@ -188,9 +187,9 @@ export function from<
 
           const client = getClient(chainId)
 
-          const { key } = await implementation.actions.authorizeKey({
+          const { key } = await implementation.actions.grantPermissions({
             account,
-            key: keyToAuthorize,
+            permissions,
             internal: {
               client,
               config,
@@ -215,13 +214,17 @@ export function from<
           })
 
           emitter.emit('message', {
-            data: getActiveKeys([...(account.keys ?? []), key]),
-            type: 'keysChanged',
+            data: getActivePermissions([...(account.keys ?? []), key], {
+              address: account.address,
+            }),
+            type: 'permissionsChanged',
           })
 
-          return Key.toRpc(key) satisfies RpcSchema.ExtractReturnType<
+          return Permissions.fromKey(key, {
+            address: account.address,
+          }) satisfies RpcSchema.ExtractReturnType<
             Schema.Schema,
-            'experimental_authorizeKey'
+            'experimental_grantPermissions'
           >
         }
 
@@ -244,6 +247,10 @@ export function from<
             },
           })
 
+          const permissions = getActivePermissions(account.keys ?? [], {
+            address: account.address,
+          })
+
           store.setState((x) => ({ ...x, accounts: [account] }))
 
           emitter.emit('connect', {
@@ -252,7 +259,7 @@ export function from<
           return {
             address: account.address,
             capabilities: {
-              keys: account.keys ? getActiveKeys(account.keys) : [],
+              ...(permissions.length > 0 ? { permissions } : {}),
             },
           } satisfies RpcSchema.ExtractReturnType<
             Schema.Schema,
@@ -264,18 +271,16 @@ export function from<
           const [{ address, capabilities, chainId, label }] =
             request.params ?? [{}]
 
-          const { authorizeKey } = capabilities ?? {}
+          const { grantPermissions: permissions } = capabilities ?? {}
 
-          const authorizeKeys = authorizeKey ? [authorizeKey] : undefined
-
-          assertKeys(authorizeKeys)
+          if (permissions) assertPermissions(permissions)
 
           const client = getClient(chainId)
 
           const { context, signPayloads } =
             await implementation.actions.prepareCreateAccount({
               address,
-              authorizeKeys,
+              permissions,
               label,
               internal: {
                 client,
@@ -294,7 +299,7 @@ export function from<
           >
         }
 
-        case 'experimental_keys': {
+        case 'experimental_permissions': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
@@ -306,14 +311,16 @@ export function from<
               )
             : state.accounts[0]
 
-          return getActiveKeys(account?.keys ?? [])
+          return getActivePermissions(account?.keys ?? [], {
+            address: account!.address,
+          })
         }
 
-        case 'experimental_revokeKey': {
+        case 'experimental_revokePermissions': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, publicKey }] = request.params
+          const [{ address, id }] = request.params
 
           const account = address
             ? state.accounts.find((account) =>
@@ -324,9 +331,9 @@ export function from<
 
           const client = getClient()
 
-          await implementation.actions.revokeKey({
+          await implementation.actions.revokePermissions({
             account,
-            publicKey,
+            id,
             internal: {
               client,
               config,
@@ -335,9 +342,7 @@ export function from<
             },
           })
 
-          const keys = account.keys?.filter(
-            (key) => key.publicKey !== publicKey,
-          )
+          const keys = account.keys?.filter((key) => key.publicKey !== id)
 
           store.setState((x) => ({
             ...x,
@@ -352,8 +357,10 @@ export function from<
           }))
 
           emitter.emit('message', {
-            data: getActiveKeys(keys ?? []),
-            type: 'keysChanged',
+            data: getActivePermissions(keys ?? [], {
+              address: account.address,
+            }),
+            type: 'permissionsChanged',
           })
 
           return
@@ -401,11 +408,10 @@ export function from<
 
           const client = getClient()
 
-          const { createAccount, authorizeKey } = capabilities ?? {}
+          const { createAccount, grantPermissions: permissions } =
+            capabilities ?? {}
 
-          const authorizeKeys = authorizeKey ? [authorizeKey] : undefined
-
-          assertKeys(authorizeKeys)
+          if (permissions) assertPermissions(permissions)
 
           const internal = {
             client,
@@ -419,7 +425,7 @@ export function from<
               const { label = undefined } =
                 typeof createAccount === 'object' ? createAccount : {}
               const { account } = await implementation.actions.createAccount({
-                authorizeKeys,
+                permissions,
                 label,
                 internal,
               })
@@ -440,7 +446,7 @@ export function from<
               return undefined
             })()
             const loadAccountsParams = {
-              authorizeKeys,
+              permissions,
               internal,
             }
             try {
@@ -470,7 +476,11 @@ export function from<
             accounts: accounts.map((account) => ({
               address: account.address,
               capabilities: {
-                keys: account.keys ? getActiveKeys(account.keys) : [],
+                permissions: account.keys
+                  ? getActivePermissions(account.keys, {
+                      address: account.address,
+                    })
+                  : [],
               },
             })),
           } satisfies RpcSchema.ExtractReturnType<
@@ -513,7 +523,7 @@ export function from<
             createAccount: {
               supported: true,
             },
-            keys: {
+            permissions: {
               supported: true,
             },
           }
@@ -555,7 +565,7 @@ export function from<
           const hash = await implementation.actions.execute({
             account,
             calls,
-            key: capabilities?.key,
+            permissionsId: capabilities?.permissions?.id,
             internal: {
               client,
               config,
@@ -639,12 +649,19 @@ export function announce(provider: Provider) {
   })
 }
 
-function getActiveKeys(keys: readonly Key.Key[]): readonly Key.Rpc[] {
+function getActivePermissions(
+  keys: readonly Key.Key[],
+  {
+    address,
+    chainId,
+  }: { address: Address.Address; chainId?: Hex.Hex | undefined },
+): Schema_internal.PermissionsReturnType {
   return keys
     .map((key) => {
+      if (key.role !== 'session') return undefined
       if (key.expiry > 0 && key.expiry < BigInt(Math.floor(Date.now() / 1000)))
         return undefined
-      return Key.toRpc(key)
+      return Permissions.fromKey(key, { address, chainId })
     })
     .filter(Boolean) as never
 }
@@ -659,13 +676,13 @@ function requireParameter(
     })
 }
 
-function assertKeys(
-  keys: readonly Schema_internal.AuthorizeKeyParameters[] | undefined,
+function assertPermissions(
+  permission: Schema_internal.GrantPermissionsParameters,
 ) {
-  if (!keys) return
-  for (const key of keys) {
-    if (!key.expiry) throw new Error('expiry is required.')
-    if (!key.permissions || Object.keys(key.permissions).length === 0)
-      throw new Error('permissions are required.')
-  }
+  if (!permission.expiry) throw new Error('expiry is required.')
+  if (
+    !permission.permissions ||
+    Object.keys(permission.permissions).length === 0
+  )
+    throw new Error('permissions are required.')
 }

@@ -16,8 +16,8 @@ import { Route as IndexImport } from './routes/index'
 import { Route as DialogDialogWalletsendCallsImport } from './routes/_dialog.dialog/wallet_sendCalls'
 import { Route as DialogDialogWalletconnectImport } from './routes/_dialog.dialog/wallet_connect'
 import { Route as DialogDialogPersonalsignImport } from './routes/_dialog.dialog/personal_sign'
+import { Route as DialogDialogExperimentalgrantPermissionsImport } from './routes/_dialog.dialog/experimental_grantPermissions'
 import { Route as DialogDialogExperimentalcreateAccountImport } from './routes/_dialog.dialog/experimental_createAccount'
-import { Route as DialogDialogExperimentalauthorizeKeyImport } from './routes/_dialog.dialog/experimental_authorizeKey'
 import { Route as DialogDialogEthsendTransactionImport } from './routes/_dialog.dialog/eth_sendTransaction'
 import { Route as DialogDialogEthrequestAccountsImport } from './routes/_dialog.dialog/eth_requestAccounts'
 import { Route as DialogDialogSplatImport } from './routes/_dialog.dialog/$'
@@ -54,17 +54,17 @@ const DialogDialogPersonalsignRoute = DialogDialogPersonalsignImport.update({
   getParentRoute: () => DialogRoute,
 } as any)
 
+const DialogDialogExperimentalgrantPermissionsRoute =
+  DialogDialogExperimentalgrantPermissionsImport.update({
+    id: '/dialog/experimental_grantPermissions',
+    path: '/dialog/experimental_grantPermissions',
+    getParentRoute: () => DialogRoute,
+  } as any)
+
 const DialogDialogExperimentalcreateAccountRoute =
   DialogDialogExperimentalcreateAccountImport.update({
     id: '/dialog/experimental_createAccount',
     path: '/dialog/experimental_createAccount',
-    getParentRoute: () => DialogRoute,
-  } as any)
-
-const DialogDialogExperimentalauthorizeKeyRoute =
-  DialogDialogExperimentalauthorizeKeyImport.update({
-    id: '/dialog/experimental_authorizeKey',
-    path: '/dialog/experimental_authorizeKey',
     getParentRoute: () => DialogRoute,
   } as any)
 
@@ -127,18 +127,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DialogDialogEthsendTransactionImport
       parentRoute: typeof DialogImport
     }
-    '/_dialog/dialog/experimental_authorizeKey': {
-      id: '/_dialog/dialog/experimental_authorizeKey'
-      path: '/dialog/experimental_authorizeKey'
-      fullPath: '/dialog/experimental_authorizeKey'
-      preLoaderRoute: typeof DialogDialogExperimentalauthorizeKeyImport
-      parentRoute: typeof DialogImport
-    }
     '/_dialog/dialog/experimental_createAccount': {
       id: '/_dialog/dialog/experimental_createAccount'
       path: '/dialog/experimental_createAccount'
       fullPath: '/dialog/experimental_createAccount'
       preLoaderRoute: typeof DialogDialogExperimentalcreateAccountImport
+      parentRoute: typeof DialogImport
+    }
+    '/_dialog/dialog/experimental_grantPermissions': {
+      id: '/_dialog/dialog/experimental_grantPermissions'
+      path: '/dialog/experimental_grantPermissions'
+      fullPath: '/dialog/experimental_grantPermissions'
+      preLoaderRoute: typeof DialogDialogExperimentalgrantPermissionsImport
       parentRoute: typeof DialogImport
     }
     '/_dialog/dialog/personal_sign': {
@@ -171,8 +171,8 @@ interface DialogRouteChildren {
   DialogDialogSplatRoute: typeof DialogDialogSplatRoute
   DialogDialogEthrequestAccountsRoute: typeof DialogDialogEthrequestAccountsRoute
   DialogDialogEthsendTransactionRoute: typeof DialogDialogEthsendTransactionRoute
-  DialogDialogExperimentalauthorizeKeyRoute: typeof DialogDialogExperimentalauthorizeKeyRoute
   DialogDialogExperimentalcreateAccountRoute: typeof DialogDialogExperimentalcreateAccountRoute
+  DialogDialogExperimentalgrantPermissionsRoute: typeof DialogDialogExperimentalgrantPermissionsRoute
   DialogDialogPersonalsignRoute: typeof DialogDialogPersonalsignRoute
   DialogDialogWalletconnectRoute: typeof DialogDialogWalletconnectRoute
   DialogDialogWalletsendCallsRoute: typeof DialogDialogWalletsendCallsRoute
@@ -182,10 +182,10 @@ const DialogRouteChildren: DialogRouteChildren = {
   DialogDialogSplatRoute: DialogDialogSplatRoute,
   DialogDialogEthrequestAccountsRoute: DialogDialogEthrequestAccountsRoute,
   DialogDialogEthsendTransactionRoute: DialogDialogEthsendTransactionRoute,
-  DialogDialogExperimentalauthorizeKeyRoute:
-    DialogDialogExperimentalauthorizeKeyRoute,
   DialogDialogExperimentalcreateAccountRoute:
     DialogDialogExperimentalcreateAccountRoute,
+  DialogDialogExperimentalgrantPermissionsRoute:
+    DialogDialogExperimentalgrantPermissionsRoute,
   DialogDialogPersonalsignRoute: DialogDialogPersonalsignRoute,
   DialogDialogWalletconnectRoute: DialogDialogWalletconnectRoute,
   DialogDialogWalletsendCallsRoute: DialogDialogWalletsendCallsRoute,
@@ -200,8 +200,8 @@ export interface FileRoutesByFullPath {
   '/dialog/$': typeof DialogDialogSplatRoute
   '/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/dialog/eth_sendTransaction': typeof DialogDialogEthsendTransactionRoute
-  '/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
   '/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
+  '/dialog/experimental_grantPermissions': typeof DialogDialogExperimentalgrantPermissionsRoute
   '/dialog/personal_sign': typeof DialogDialogPersonalsignRoute
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
@@ -213,8 +213,8 @@ export interface FileRoutesByTo {
   '/dialog/$': typeof DialogDialogSplatRoute
   '/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/dialog/eth_sendTransaction': typeof DialogDialogEthsendTransactionRoute
-  '/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
   '/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
+  '/dialog/experimental_grantPermissions': typeof DialogDialogExperimentalgrantPermissionsRoute
   '/dialog/personal_sign': typeof DialogDialogPersonalsignRoute
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
@@ -227,8 +227,8 @@ export interface FileRoutesById {
   '/_dialog/dialog/$': typeof DialogDialogSplatRoute
   '/_dialog/dialog/eth_requestAccounts': typeof DialogDialogEthrequestAccountsRoute
   '/_dialog/dialog/eth_sendTransaction': typeof DialogDialogEthsendTransactionRoute
-  '/_dialog/dialog/experimental_authorizeKey': typeof DialogDialogExperimentalauthorizeKeyRoute
   '/_dialog/dialog/experimental_createAccount': typeof DialogDialogExperimentalcreateAccountRoute
+  '/_dialog/dialog/experimental_grantPermissions': typeof DialogDialogExperimentalgrantPermissionsRoute
   '/_dialog/dialog/personal_sign': typeof DialogDialogPersonalsignRoute
   '/_dialog/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/_dialog/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
@@ -242,8 +242,8 @@ export interface FileRouteTypes {
     | '/dialog/$'
     | '/dialog/eth_requestAccounts'
     | '/dialog/eth_sendTransaction'
-    | '/dialog/experimental_authorizeKey'
     | '/dialog/experimental_createAccount'
+    | '/dialog/experimental_grantPermissions'
     | '/dialog/personal_sign'
     | '/dialog/wallet_connect'
     | '/dialog/wallet_sendCalls'
@@ -254,8 +254,8 @@ export interface FileRouteTypes {
     | '/dialog/$'
     | '/dialog/eth_requestAccounts'
     | '/dialog/eth_sendTransaction'
-    | '/dialog/experimental_authorizeKey'
     | '/dialog/experimental_createAccount'
+    | '/dialog/experimental_grantPermissions'
     | '/dialog/personal_sign'
     | '/dialog/wallet_connect'
     | '/dialog/wallet_sendCalls'
@@ -266,8 +266,8 @@ export interface FileRouteTypes {
     | '/_dialog/dialog/$'
     | '/_dialog/dialog/eth_requestAccounts'
     | '/_dialog/dialog/eth_sendTransaction'
-    | '/_dialog/dialog/experimental_authorizeKey'
     | '/_dialog/dialog/experimental_createAccount'
+    | '/_dialog/dialog/experimental_grantPermissions'
     | '/_dialog/dialog/personal_sign'
     | '/_dialog/dialog/wallet_connect'
     | '/_dialog/dialog/wallet_sendCalls'
@@ -307,8 +307,8 @@ export const routeTree = rootRoute
         "/_dialog/dialog/$",
         "/_dialog/dialog/eth_requestAccounts",
         "/_dialog/dialog/eth_sendTransaction",
-        "/_dialog/dialog/experimental_authorizeKey",
         "/_dialog/dialog/experimental_createAccount",
+        "/_dialog/dialog/experimental_grantPermissions",
         "/_dialog/dialog/personal_sign",
         "/_dialog/dialog/wallet_connect",
         "/_dialog/dialog/wallet_sendCalls"
@@ -326,12 +326,12 @@ export const routeTree = rootRoute
       "filePath": "_dialog.dialog/eth_sendTransaction.tsx",
       "parent": "/_dialog"
     },
-    "/_dialog/dialog/experimental_authorizeKey": {
-      "filePath": "_dialog.dialog/experimental_authorizeKey.tsx",
-      "parent": "/_dialog"
-    },
     "/_dialog/dialog/experimental_createAccount": {
       "filePath": "_dialog.dialog/experimental_createAccount.tsx",
+      "parent": "/_dialog"
+    },
+    "/_dialog/dialog/experimental_grantPermissions": {
+      "filePath": "_dialog.dialog/experimental_grantPermissions.tsx",
       "parent": "/_dialog"
     },
     "/_dialog/dialog/personal_sign": {

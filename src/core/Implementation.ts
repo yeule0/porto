@@ -21,6 +21,8 @@ import * as Account from './internal/account.js'
 import * as Call from './internal/call.js'
 import { delegationAbi } from './internal/generated.js'
 import * as Key from './internal/key.js'
+import * as Permissions from './internal/permissions.js'
+import * as PermissionsRequest from './internal/permissionsRequest.js'
 import type * as Porto from './internal/porto.js'
 import type * as RpcSchema_internal from './internal/rpcSchema.js'
 import type { Compute, PartialBy } from './internal/types.js'
@@ -36,26 +38,15 @@ type ActionsInternal = Porto.Internal & {
 
 export type Implementation = {
   actions: {
-    authorizeKey: (parameters: {
-      /** Account to authorize the keys for. */
-      account: Account.Account
-      /** Key to authorize. */
-      key?: RpcSchema_internal.AuthorizeKeyParameters | undefined
-      /** Internal properties. */
-      internal: ActionsInternal
-    }) => Promise<{ key: Key.Key }>
-
     createAccount: (parameters: {
-      /** Extra keys to authorize. */
-      authorizeKeys?:
-        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
-        | undefined
       /** Preparation context (from `prepareCreateAccount`). */
       context?: unknown | undefined
       /** Internal properties. */
       internal: ActionsInternal
       /** Label to associate with the WebAuthn credential. */
       label?: string | undefined
+      /** Permissions to grant. */
+      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
       /** Preparation signatures (from `prepareCreateAccount`). */
       signatures?: readonly Hex.Hex[] | undefined
     }) => Promise<{
@@ -68,23 +59,30 @@ export type Implementation = {
       account: Account.Account
       /** Calls to execute. */
       calls: readonly Call.Call[]
-      /** Key to use to execute the calls. */
-      key?: { publicKey: Hex.Hex } | undefined
+      /** Permissions ID to use to execute the calls. */
+      permissionsId?: Hex.Hex | undefined
       /** Internal properties. */
       internal: ActionsInternal
     }) => Promise<Hex.Hex>
 
+    grantPermissions: (parameters: {
+      /** Account to authorize the keys for. */
+      account: Account.Account
+      /** Internal properties. */
+      internal: ActionsInternal
+      /** Permissions to grant. */
+      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
+    }) => Promise<{ key: Key.Key }>
+
     loadAccounts: (parameters: {
       /** Address of the account to load. */
       address?: Address.Address | undefined
-      /** Extra keys to authorize. */
-      authorizeKeys?:
-        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
-        | undefined
       /** Credential ID to use to load an existing account. */
       credentialId?: string | undefined
       /** Internal properties. */
       internal: ActionsInternal
+      /** Permissions to grant. */
+      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
     }) => Promise<{
       /** Accounts. */
       accounts: readonly Account.Account[]
@@ -93,14 +91,12 @@ export type Implementation = {
     prepareCreateAccount: (parameters: {
       /** Address of the account to import. */
       address: Address.Address
-      /** Extra keys to authorize. */
-      authorizeKeys?:
-        | readonly RpcSchema_internal.AuthorizeKeyParameters[]
-        | undefined
       /** Label to associate with the account. */
       label?: string | undefined
       /** Internal properties. */
       internal: ActionsInternal
+      /** Permissions to grant. */
+      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
     }) => Promise<{
       /** Filled context for the `createAccount` implementation. */
       context: unknown
@@ -108,11 +104,11 @@ export type Implementation = {
       signPayloads: readonly Hex.Hex[]
     }>
 
-    revokeKey: (parameters: {
-      /** Account to revoke the key for. */
+    revokePermissions: (parameters: {
+      /** Account to revoke the permissions for. */
       account: Account.Account
-      /** Public key of the key to revoke. */
-      publicKey: Hex.Hex
+      /** ID of the permissions to revoke. */
+      id: Hex.Hex
       /** Internal properties. */
       internal: ActionsInternal
     }) => Promise<void>
@@ -180,27 +176,8 @@ export function local(parameters: local.Parameters = {}) {
 
   return from({
     actions: {
-      async authorizeKey(parameters) {
-        const { account, key: keyToAuthorize, internal } = parameters
-        const { client } = internal
-
-        // Parse provided (RPC) keys into a list of structured keys (`Key.Key`).
-        const keys = await getKeysToAuthorize({
-          authorizeKeys: keyToAuthorize ? [keyToAuthorize] : undefined,
-        })
-
-        // TODO: wait for tx to be included?
-        await Delegation.execute(client, {
-          account,
-          // Extract calls to authorize the keys.
-          calls: getAuthorizeCalls(keys!),
-        })
-
-        return { key: keys![0]! }
-      },
-
       async createAccount(parameters) {
-        const { authorizeKeys, label, internal } = parameters
+        const { label, internal, permissions } = parameters
         const { client } = internal
 
         const { account, context, signatures } = await (async () => {
@@ -224,10 +201,10 @@ export function local(parameters: local.Parameters = {}) {
           // Prepare the account for creation.
           const { context, signPayloads } = await prepareCreateAccount({
             address,
-            authorizeKeys,
             client,
             keystoreHost,
             label,
+            permissions,
           })
 
           // Assign any keys to the account and sign over the payloads
@@ -261,7 +238,7 @@ export function local(parameters: local.Parameters = {}) {
         const key = await getAuthorizedExecuteKey({
           account,
           calls,
-          key: parameters.key,
+          permissionsId: parameters.permissionsId,
         })
 
         // Execute the calls (with the key if provided, otherwise it will
@@ -275,8 +252,26 @@ export function local(parameters: local.Parameters = {}) {
         return hash
       },
 
+      async grantPermissions(parameters) {
+        const { account, permissions, internal } = parameters
+        const { client } = internal
+
+        // Parse permissions request into a structured key.
+        const key = await PermissionsRequest.toKey(permissions)
+        if (!key) throw new Error('key not found.')
+
+        // TODO: wait for tx to be included?
+        await Delegation.execute(client, {
+          account,
+          // Extract calls to authorize the key.
+          calls: getAuthorizeCalls([key]),
+        })
+
+        return { key }
+      },
+
       async loadAccounts(parameters) {
-        const { authorizeKeys, internal } = parameters
+        const { internal, permissions } = parameters
         const { client } = internal
 
         const { address, credentialId } = await (async () => {
@@ -304,15 +299,13 @@ export function local(parameters: local.Parameters = {}) {
         })()
 
         // Fetch the delegated account's keys.
-        const [keyCount, extraKeys] = await Promise.all([
+        const [keyCount, extraKey] = await Promise.all([
           readContract(client, {
             abi: delegationAbi,
             address,
             functionName: 'keyCount',
           }),
-          getKeysToAuthorize({
-            authorizeKeys,
-          }),
+          PermissionsRequest.toKey(permissions),
         ])
         const keys = await Promise.all(
           Array.from({ length: Number(keyCount) }, (_, index) =>
@@ -323,7 +316,7 @@ export function local(parameters: local.Parameters = {}) {
         // Instantiate the account based off the extracted address and keys.
         const account = Account.from({
           address,
-          keys: [...keys, ...(extraKeys ?? [])].map((key, i) => {
+          keys: [...keys, ...(extraKey ? [extraKey] : [])].map((key, i) => {
             const credential = {
               id: credentialId,
               publicKey: PublicKey.fromHex(key.publicKey),
@@ -338,12 +331,12 @@ export function local(parameters: local.Parameters = {}) {
           }),
         })
 
-        // If there are any extra keys to authorize, we need to authorize them.
-        if (extraKeys.length > 0)
+        // If there is an extra key to authorize, we need to authorize it.
+        if (extraKey)
           // TODO: wait for tx to be included?
           await Delegation.execute(client, {
             account,
-            calls: getAuthorizeCalls(extraKeys),
+            calls: getAuthorizeCalls([extraKey]),
           })
 
         return {
@@ -352,32 +345,26 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async prepareCreateAccount(parameters) {
-        const { address, authorizeKeys, label, internal } = parameters
+        const { address, label, internal, permissions } = parameters
         const { client } = internal
         return await prepareCreateAccount({
           address,
-          authorizeKeys,
           client,
           keystoreHost,
           label,
+          permissions,
         })
       },
 
-      async revokeKey(parameters) {
-        const { account, internal, publicKey } = parameters
+      async revokePermissions(parameters) {
+        const { account, id, internal } = parameters
         const { client } = internal
 
-        const key = account.keys?.find((key) => key.publicKey === publicKey)
+        const key = account.keys?.find((key) => key.publicKey === id)
         if (!key) return
 
-        // We shouldn't be able to revoke the last key.
-        if (
-          key.role === 'admin' &&
-          account.keys?.map((x) => x.role === 'admin').length === 1
-        )
-          throw new Error(
-            'cannot revoke key. account must have at least one admin key.',
-          )
+        // We shouldn't be able to revoke the admin keys.
+        if (key.role === 'admin') throw new Error('cannot revoke permissions.')
 
         await Delegation.execute(client, {
           account,
@@ -505,43 +492,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
   return from({
     actions: {
-      async authorizeKey(parameters) {
-        const { internal } = parameters
-        const { store, request } = internal
-
-        if (request.method !== 'experimental_authorizeKey')
-          throw new Error('Cannot authorize key for method: ' + request.method)
-
-        const [{ address, ...keyToAuthorize }] = request.params
-
-        // Parse provided (RPC) key into a structured key (`Key.Key`).
-        const [key] = await getKeysToAuthorize({
-          authorizeKeys: keyToAuthorize ? [keyToAuthorize] : undefined,
-        })
-        if (!key) throw new Error('key not found.')
-
-        const rpc = Key.toRpc(key)
-
-        // Send a request off to the dialog to authorize the key.
-        const provider = getProvider(store)
-        await provider.request({
-          method: 'experimental_authorizeKey',
-          params: [
-            {
-              address,
-              expiry: rpc.expiry,
-              key: {
-                publicKey: rpc.publicKey,
-                type: rpc.type,
-              },
-              permissions: rpc.permissions,
-            },
-          ],
-        })
-
-        return { key }
-      },
-
       async createAccount(parameters) {
         const { internal } = parameters
         const { client, store, request } = internal
@@ -577,15 +527,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
             // Extract the capabilities from the request.
             const [{ capabilities }] = request.params ?? [{}]
 
-            // Parse the authorize key into a structured key (`Key.Key`).
-            const [authorizeKey] = await getKeysToAuthorize({
-              authorizeKeys: capabilities?.authorizeKey
-                ? [capabilities.authorizeKey]
-                : undefined,
-            })
+            // Parse the authorize key into a structured key.
+            const key = await PermissionsRequest.toKey(
+              capabilities?.grantPermissions,
+            )
 
-            // Convert the key into RPC format.
-            const rpc = authorizeKey ? Key.toRpc(authorizeKey) : undefined
+            // Convert the key into a permission.
+            const permissions = key
+              ? PermissionsRequest.fromKey(key)
+              : undefined
 
             // Send a request off to the dialog to create an account.
             const { accounts } = await provider.request({
@@ -594,16 +544,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 {
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: rpc?.publicKey
-                      ? {
-                          expiry: rpc.expiry,
-                          key: {
-                            publicKey: rpc.publicKey,
-                            type: rpc.type,
-                          },
-                          permissions: rpc.permissions,
-                        }
-                      : undefined,
+                    grantPermissions: permissions ? permissions : undefined,
                   },
                 },
               ],
@@ -613,10 +554,12 @@ export function dialog(parameters: dialog.Parameters = {}) {
             if (!account) throw new Error('no account found.')
 
             // Build keys to assign onto the account.
-            const keys = account.capabilities?.keys?.map((key) => {
-              if (key.publicKey === authorizeKey?.publicKey) return authorizeKey
-              return Key.fromRpc(key)
-            })
+            const keys = account.capabilities?.permissions?.map(
+              (permission) => {
+                if (permission.id === key?.publicKey) return key
+                return Permissions.toKey(permission)
+              },
+            )
 
             return Account.from({
               address: account.address,
@@ -642,7 +585,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const key = await getAuthorizedExecuteKey({
           account,
           calls,
-          key: parameters.key,
+          permissionsId: parameters.permissionsId,
         })
 
         // If a key is found, execute the calls with it.
@@ -662,20 +605,36 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         if (request.method === 'wallet_sendCalls')
           // Send calls request to the dialog.
-          return (await provider.request({
-            ...request,
-            params: [
-              {
-                ...request.params?.[0],
-                capabilities: {
-                  ...request.params?.[0]?.capabilities,
-                  key,
-                },
-              },
-            ],
-          })) as Hex.Hex
+          return (await provider.request(request)) as Hex.Hex
 
         throw new Error('Cannot execute for method: ' + request.method)
+      },
+
+      async grantPermissions(parameters) {
+        const { internal } = parameters
+        const { store, request } = internal
+
+        if (request.method !== 'experimental_grantPermissions')
+          throw new Error(
+            'Cannot grant permissions for method: ' + request.method,
+          )
+
+        const [{ address, ...permissions }] = request.params
+
+        // Parse permissions request into a structured key.
+        const key = await PermissionsRequest.toKey(permissions)
+        if (!key) throw new Error('no key found.')
+
+        const permissionsRequest = PermissionsRequest.fromKey(key)
+
+        // Send a request off to the dialog to grant the permissions.
+        const provider = getProvider(store)
+        await provider.request({
+          method: 'experimental_grantPermissions',
+          params: [permissionsRequest],
+        })
+
+        return { key }
       },
 
       async loadAccounts(parameters) {
@@ -693,15 +652,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
           if (request.method === 'wallet_connect') {
             const [{ capabilities }] = request.params ?? [{}]
 
-            // Parse provided (RPC) key into a structured key (`Key.Key`).
-            const [authorizeKey] = await getKeysToAuthorize({
-              authorizeKeys: capabilities?.authorizeKey
-                ? [capabilities.authorizeKey]
-                : undefined,
-            })
+            // Parse provided (RPC) key into a structured key.
+            const key = await PermissionsRequest.toKey(
+              capabilities?.grantPermissions,
+            )
 
-            // Convert the key into RPC format.
-            const rpc = authorizeKey ? Key.toRpc(authorizeKey) : undefined
+            // Convert the key into a permissions request.
+            const permissions = key
+              ? PermissionsRequest.fromKey(key)
+              : undefined
 
             // Send a request to the dialog.
             const result = await provider.request({
@@ -711,27 +670,19 @@ export function dialog(parameters: dialog.Parameters = {}) {
                   ...request.params?.[0],
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    authorizeKey: rpc?.publicKey
-                      ? {
-                          expiry: rpc.expiry,
-                          key: {
-                            publicKey: rpc.publicKey,
-                            type: rpc.type,
-                          },
-                          permissions: rpc.permissions,
-                        }
-                      : undefined,
+                    grantPermissions: permissions,
                   },
                 },
               ],
             })
 
             return result.accounts.map((account) => {
-              const keys = account.capabilities?.keys?.map((key) => {
-                if (key.publicKey === authorizeKey?.publicKey)
-                  return authorizeKey
-                return Key.fromRpc(key)
-              })
+              const keys = account.capabilities?.permissions?.map(
+                (permission) => {
+                  if (permission.id === key?.publicKey) return key
+                  return Permissions.toKey(permission)
+                },
+              )
 
               return Account.from({
                 address: account.address,
@@ -761,26 +712,20 @@ export function dialog(parameters: dialog.Parameters = {}) {
         return await provider.request(request)
       },
 
-      async revokeKey(parameters) {
-        const { account, internal, publicKey } = parameters
+      async revokePermissions(parameters) {
+        const { account, id, internal } = parameters
         const { store, request } = internal
 
-        if (request.method !== 'experimental_revokeKey')
+        if (request.method !== 'experimental_revokePermissions')
           throw new Error(
-            'Cannot sign personal message for method: ' + request.method,
+            'Cannot revoke permissions for method: ' + request.method,
           )
 
-        const key = account.keys?.find((key) => key.publicKey === publicKey)
+        const key = account.keys?.find((key) => key.publicKey === id)
         if (!key) return
 
-        // We shouldn't be able to revoke the last key.
-        if (
-          key.role === 'admin' &&
-          account.keys?.map((x) => x.role === 'admin').length === 1
-        )
-          throw new Error(
-            'cannot revoke key. account must have at least one admin key.',
-          )
+        // We shouldn't be able to revoke admins.
+        if (key.role === 'admin') throw new Error('cannot revoke permissions.')
 
         const provider = getProvider(store)
         return await provider.request(request)
@@ -869,7 +814,7 @@ export function mock() {
       ...local().actions,
 
       async createAccount(parameters) {
-        const { authorizeKeys, internal } = parameters
+        const { internal, permissions } = parameters
         const { client } = internal
 
         const privateKey = Secp256k1.randomPrivateKey()
@@ -878,12 +823,10 @@ export function mock() {
           role: 'admin',
         })
 
-        const extraKeys = await getKeysToAuthorize({
-          authorizeKeys,
-        })
+        const extraKey = await PermissionsRequest.toKey(permissions)
 
         const account = Account.fromPrivateKey(privateKey, {
-          keys: [key, ...(extraKeys ?? [])],
+          keys: [key, ...(extraKey ? [extraKey] : [])],
         })
         const delegation = client.chain.contracts.delegation.address
 
@@ -934,14 +877,12 @@ export function mock() {
 
 async function prepareCreateAccount(parameters: {
   address: Address.Address
-  authorizeKeys:
-    | readonly RpcSchema_internal.AuthorizeKeyParameters[]
-    | undefined
   client: Client
   label?: string | undefined
   keystoreHost?: string | undefined
+  permissions: RpcSchema_internal.GrantPermissionsParameters | undefined
 }) {
-  const { address, authorizeKeys, client, keystoreHost } = parameters
+  const { address, client, keystoreHost, permissions } = parameters
 
   const label =
     parameters.label ?? `${address.slice(0, 8)}\u2026${address.slice(-6)}`
@@ -953,11 +894,9 @@ async function prepareCreateAccount(parameters: {
     userId: Bytes.from(address),
   })
 
-  const extraKeys = await getKeysToAuthorize({
-    authorizeKeys,
-  })
+  const extraKey = await PermissionsRequest.toKey(permissions)
 
-  const keys = [key, ...(extraKeys ?? [])]
+  const keys = [key, ...(extraKey ? [extraKey] : [])]
 
   const account = Account.from({
     address,
@@ -1028,19 +967,17 @@ function getAuthorizeCalls(keys: readonly Key.Key[]): readonly Call.Call[] {
 async function getAuthorizedExecuteKey(parameters: {
   account: Account.Account
   calls: readonly Call.Call[]
-  key?: { publicKey: Hex.Hex } | undefined
+  permissionsId?: Hex.Hex | undefined
 }): Promise<Key.Key | undefined> {
-  const { account, calls, key } = parameters
+  const { account, calls, permissionsId } = parameters
 
   // If a key is provided, use it.
-  if (key) {
+  if (permissionsId) {
     const key = account.keys?.find(
-      (key) => key.publicKey === parameters.key?.publicKey && key.canSign,
+      (key) => key.publicKey === permissionsId && key.canSign,
     )
     if (!key)
-      throw new Error(
-        `key (publicKey: ${parameters.key?.publicKey}) does not exist or is not a provider-managed key.`,
-      )
+      throw new Error(`permission (id: ${permissionsId}) does not exist.`)
     return key
   }
 
@@ -1074,48 +1011,4 @@ async function getAuthorizedExecuteKey(parameters: {
   )
 
   return sessionKey ?? adminKey
-}
-
-async function getKeysToAuthorize(parameters: {
-  authorizeKeys:
-    | readonly RpcSchema_internal.AuthorizeKeyParameters[]
-    | undefined
-}): Promise<readonly Key.Key[]> {
-  const { authorizeKeys } = parameters
-
-  // Don't need to authorize extra keys if none are provided.
-  if (!authorizeKeys) return []
-
-  // Otherwise, authorize the provided keys.
-  return await Promise.all(
-    authorizeKeys
-      .map(async (k) => {
-        const expiry = k?.expiry ?? 0
-        const permissions = k.permissions ?? {}
-        const type = k.key?.type ?? 'secp256k1'
-
-        let publicKey = k.key?.publicKey ?? '0x'
-        // If the public key is not an address for secp256k1, convert it to an address.
-        if (
-          type === 'secp256k1' &&
-          publicKey !== '0x' &&
-          !Address.validate(publicKey)
-        )
-          publicKey = Address.fromPublicKey(publicKey)
-
-        const key = Key.fromRpc({
-          permissions,
-          expiry,
-          publicKey,
-          role: 'session',
-          type,
-        })
-        if (k.key) return key
-        return await Key.createWebCryptoP256({
-          ...key,
-          role: 'session',
-        })
-      })
-      .filter(Boolean),
-  )
 }

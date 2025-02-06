@@ -22,50 +22,13 @@ import {
 
 import type { Schema } from '../../core/RpcSchema.js'
 import type {
-  AuthorizeKeyParameters,
-  AuthorizeKeyReturnType,
   CreateAccountParameters,
-  GetKeysReturnType,
-  RevokeKeyParameters,
+  GrantPermissionsParameters,
+  GrantPermissionsReturnType,
+  PermissionsReturnType,
+  RevokePermissionsParameters,
 } from '../../core/internal/rpcSchema.js'
 import type { ChainIdParameter, ConnectorParameter } from './types.js'
-
-export async function authorizeKey<config extends Config>(
-  config: config,
-  parameters: authorizeKey.Parameters<config>,
-): Promise<authorizeKey.ReturnType> {
-  const { address, chainId, connector, ...key } = parameters
-
-  const client = await getConnectorClient(config, {
-    account: address,
-    chainId,
-    connector,
-  })
-
-  const method = 'experimental_authorizeKey'
-  type method = typeof method
-  return client.request<{
-    Method: method
-    Parameters?: RpcSchema.ExtractParams<Schema, method>
-    ReturnType: RpcSchema.ExtractReturnType<Schema, method>
-  }>({
-    method,
-    params: [{ address, ...key }],
-  })
-}
-
-export declare namespace authorizeKey {
-  type Parameters<config extends Config = Config> = ChainIdParameter<config> &
-    ConnectorParameter &
-    AuthorizeKeyParameters & {
-      address?: Address | undefined
-    }
-
-  type ReturnType = AuthorizeKeyReturnType
-
-  // TODO: Exhaustive ErrorType
-  type ErrorType = BaseError
-}
 
 export async function connect<config extends Config>(
   config: config,
@@ -101,7 +64,7 @@ export async function connect<config extends Config>(
       | undefined
     if (!provider) throw new ProviderNotFoundError()
 
-    const { authorizeKey, createAccount } = parameters
+    const { createAccount, grantPermissions } = parameters
     const method = 'wallet_connect'
     type method = typeof method
     await provider.request<{
@@ -110,7 +73,7 @@ export async function connect<config extends Config>(
       ReturnType: RpcSchema.ExtractReturnType<Schema, method>
     }>({
       method,
-      params: [{ capabilities: { authorizeKey, createAccount } }],
+      params: [{ capabilities: { grantPermissions, createAccount } }],
     })
     // we already connected, but call `connector.connect` so connector even listeners are set up
     const data = await connector.connect({
@@ -148,7 +111,7 @@ export async function connect<config extends Config>(
 
 export declare namespace connect {
   type Parameters<config extends Config = Config> = ChainIdParameter<config> & {
-    authorizeKey?: AuthorizeKeyParameters | undefined
+    grantPermissions?: GrantPermissionsParameters | undefined
     connector: Connector | CreateConnectorFn
     createAccount?: boolean | CreateAccountParameters | undefined
   }
@@ -287,10 +250,47 @@ export declare namespace disconnect {
   type ErrorType = BaseError
 }
 
-export async function keys<config extends Config>(
+export async function grantPermissions<config extends Config>(
   config: config,
-  parameters: keys.Parameters<config>,
-): Promise<keys.ReturnType> {
+  parameters: grantPermissions.Parameters<config>,
+): Promise<grantPermissions.ReturnType> {
+  const { address, chainId, connector, ...key } = parameters
+
+  const client = await getConnectorClient(config, {
+    account: address,
+    chainId,
+    connector,
+  })
+
+  const method = 'experimental_grantPermissions'
+  type method = typeof method
+  return client.request<{
+    Method: method
+    Parameters?: RpcSchema.ExtractParams<Schema, method>
+    ReturnType: RpcSchema.ExtractReturnType<Schema, method>
+  }>({
+    method,
+    params: [{ address, ...key }],
+  })
+}
+
+export declare namespace grantPermissions {
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> &
+    ConnectorParameter &
+    GrantPermissionsParameters & {
+      address?: Address | undefined
+    }
+
+  type ReturnType = GrantPermissionsReturnType
+
+  // TODO: Exhaustive ErrorType
+  type ErrorType = BaseError
+}
+
+export async function permissions<config extends Config>(
+  config: config,
+  parameters: permissions.Parameters<config>,
+): Promise<permissions.ReturnType> {
   const { address, chainId, connector } = parameters
 
   const client = await getConnectorClient(config, {
@@ -299,7 +299,7 @@ export async function keys<config extends Config>(
     connector,
   })
 
-  const method = 'experimental_keys'
+  const method = 'experimental_permissions'
   type method = typeof method
   return client.request<{
     Method: method
@@ -311,23 +311,23 @@ export async function keys<config extends Config>(
   })
 }
 
-export declare namespace keys {
+export declare namespace permissions {
   type Parameters<config extends Config = Config> = ChainIdParameter<config> &
     ConnectorParameter & {
       address?: Address | undefined
     }
 
-  type ReturnType = GetKeysReturnType
+  type ReturnType = PermissionsReturnType
 
   // TODO: Exhaustive ErrorType
   type ErrorType = BaseError
 }
 
-export async function revokeKey<config extends Config>(
+export async function revokePermissions<config extends Config>(
   config: config,
-  parameters: revokeKey.Parameters<config>,
+  parameters: revokePermissions.Parameters<config>,
 ) {
-  const { address, chainId, connector, publicKey } = parameters
+  const { address, chainId, connector, id } = parameters
 
   const client = await getConnectorClient(config, {
     account: address,
@@ -335,7 +335,7 @@ export async function revokeKey<config extends Config>(
     connector,
   })
 
-  const method = 'experimental_revokeKey'
+  const method = 'experimental_revokePermissions'
   type method = typeof method
   return client.request<{
     Method: method
@@ -343,15 +343,15 @@ export async function revokeKey<config extends Config>(
     ReturnType: RpcSchema.ExtractReturnType<Schema, method>
   }>({
     method,
-    params: [{ address, publicKey }],
+    params: [{ address, id }],
   })
 }
 
-export declare namespace revokeKey {
+export declare namespace revokePermissions {
   type Parameters<config extends Config = Config> = ChainIdParameter<config> &
     ConnectorParameter & {
       address?: Address | undefined
-      publicKey: RevokeKeyParameters['publicKey']
+      id: RevokePermissionsParameters['id']
     }
 
   // TODO: Exhaustive ErrorType
@@ -392,7 +392,7 @@ export async function upgradeAccount<config extends Config>(
       | undefined
     if (!provider) throw new ProviderNotFoundError()
 
-    const { account, authorizeKey, label } = parameters
+    const { account, grantPermissions, label } = parameters
 
     const experimental_prepareCreateAccount =
       'experimental_prepareCreateAccount'
@@ -411,7 +411,7 @@ export async function upgradeAccount<config extends Config>(
     }>({
       method: experimental_prepareCreateAccount,
       params: [
-        { address: account.address, capabilities: { authorizeKey }, label },
+        { address: account.address, capabilities: { grantPermissions }, label },
       ],
     })
 
@@ -469,7 +469,7 @@ export async function upgradeAccount<config extends Config>(
 
 export declare namespace upgradeAccount {
   type Parameters<config extends Config = Config> = ChainIdParameter<config> & {
-    authorizeKey?: AuthorizeKeyParameters | undefined
+    grantPermissions?: GrantPermissionsParameters | undefined
     account: PrivateKeyAccount
     connector: Connector | CreateConnectorFn
     label?: string | undefined

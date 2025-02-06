@@ -371,30 +371,6 @@ describe('fromP256', () => {
   })
 })
 
-describe('fromRpc', () => {
-  test('default', () => {
-    const key = Key.fromP256({
-      privateKey:
-        '0x59ff6b8de3b3b39e94b6f9fc0590cf4e3eaa9b6736e6a49c9a6b324c4f58cb9f',
-      role: 'admin',
-    })
-    const rpc = Key.toRpc(key)
-
-    expect(Key.fromRpc(rpc)).toMatchInlineSnapshot(`
-      {
-        "canSign": false,
-        "expiry": 0,
-        "permissions": {
-          "spend": undefined,
-        },
-        "publicKey": "0xec0effa5f2f378cbf7fd2fa7ca1e8dc51cf777c129fa1c00a0e9a9205f2e511ff3f20b34a4e0b50587d055c0e0fad33d32cf1147d3bb2538fbab0d15d8e65008",
-        "role": "admin",
-        "type": "p256",
-      }
-    `)
-  })
-})
-
 describe('fromSecp256k1', () => {
   test('args: privateKey', () => {
     const key = Key.fromSecp256k1({
@@ -573,26 +549,6 @@ describe('serialize', () => {
         "isSuperAdmin": true,
         "keyType": 0,
         "publicKey": "0xec0effa5f2f378cbf7fd2fa7ca1e8dc51cf777c129fa1c00a0e9a9205f2e511ff3f20b34a4e0b50587d055c0e0fad33d32cf1147d3bb2538fbab0d15d8e65008",
-      }
-    `)
-  })
-})
-
-describe('toRpc', () => {
-  test('default', () => {
-    const key = Key.fromP256({
-      privateKey:
-        '0x59ff6b8de3b3b39e94b6f9fc0590cf4e3eaa9b6736e6a49c9a6b324c4f58cb9f',
-      role: 'admin',
-    })
-
-    expect(Key.toRpc(key)).toMatchInlineSnapshot(`
-      {
-        "expiry": 0,
-        "permissions": {},
-        "publicKey": "0xec0effa5f2f378cbf7fd2fa7ca1e8dc51cf777c129fa1c00a0e9a9205f2e511ff3f20b34a4e0b50587d055c0e0fad33d32cf1147d3bb2538fbab0d15d8e65008",
-        "role": "admin",
-        "type": "p256",
       }
     `)
   })

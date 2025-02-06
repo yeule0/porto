@@ -1,28 +1,18 @@
 import type * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
-import type * as Key from './key.js'
+import type * as Permissions from './permissions.js'
+import type * as PermissionsRequest from './permissionsRequest.js'
 import type { OneOf } from './types.js'
 
-export type AuthorizeKeyParameters = {
-  address?: Address.Address | undefined
-  chainId?: Hex.Hex | undefined
-  expiry: Key.Rpc['expiry']
-  key?:
-    | {
-        publicKey: Key.Rpc['publicKey']
-        type: Key.Rpc['type']
-      }
-    | undefined
-  permissions: Key.Rpc['permissions']
-}
+export type GrantPermissionsParameters = PermissionsRequest.PermissionsRequest
 
-export type AuthorizeKeyReturnType = GetKeysReturnType[number]
+export type GrantPermissionsReturnType = Permissions.Permissions
 
 export type ConnectParameters = {
   capabilities?:
     | {
-        authorizeKey?: AuthorizeKeyParameters | undefined
         createAccount?: boolean | CreateAccountParameters | undefined
+        grantPermissions?: GrantPermissionsParameters | undefined
       }
     | undefined
 }
@@ -32,7 +22,7 @@ export type ConnectReturnType = {
     address: Address.Address
     capabilities?:
       | {
-          keys?: GetKeysReturnType | undefined
+          permissions?: PermissionsReturnType | undefined
         }
       | undefined
   }[]
@@ -54,23 +44,25 @@ export type CreateAccountReturnType = {
   address: Address.Address
   capabilities?:
     | {
-        keys?: GetKeysReturnType | undefined
+        permissions?: PermissionsReturnType | undefined
       }
     | undefined
 }
 
-export type GetKeysParameters = {
+export type PermissionsParameters = {
   address?: Address.Address | undefined
 }
 
-export type GetKeysReturnType = readonly Key.Rpc[]
+export type PermissionsReturnType = readonly (Permissions.Permissions & {
+  chainId?: Hex.Hex | undefined
+})[]
 
 export type PrepareCreateAccountParameters = {
   address: Address.Address
   chainId?: Hex.Hex | undefined
   capabilities?:
     | {
-        authorizeKey?: AuthorizeKeyParameters | undefined
+        grantPermissions?: GrantPermissionsParameters | undefined
       }
     | undefined
   label?: string | undefined
@@ -81,7 +73,7 @@ export type PrepareCreateAccountReturnType = {
   signPayloads: readonly Hex.Hex[]
 }
 
-export type RevokeKeyParameters = {
+export type RevokePermissionsParameters = {
   address?: Address.Address | undefined
-  publicKey: Hex.Hex
+  id: Hex.Hex
 }

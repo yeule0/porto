@@ -23,59 +23,16 @@ import type {
 } from 'wagmi/query'
 
 import {
-  authorizeKey,
   connect,
   createAccount,
   disconnect,
-  keys,
-  revokeKey,
+  grantPermissions,
+  permissions,
+  revokePermissions,
   upgradeAccount,
 } from './core.js'
-import { keysQueryKey } from './query.js'
+import { permissionsQueryKey } from './query.js'
 import type { ConfigParameter } from './types.js'
-
-export function useAuthorizeKey<
-  config extends Config = ResolvedRegister['config'],
-  context = unknown,
->(
-  parameters: useAuthorizeKey.Parameters<config, context> = {},
-): useAuthorizeKey.ReturnType<config, context> {
-  const { mutation } = parameters
-  const config = useConfig(parameters)
-  return useMutation({
-    ...mutation,
-    async mutationFn(variables) {
-      return authorizeKey(config, variables)
-    },
-    mutationKey: ['authorizeKey'],
-  })
-}
-
-export declare namespace useAuthorizeKey {
-  type Parameters<
-    config extends Config = Config,
-    context = unknown,
-  > = ConfigParameter<config> & {
-    mutation?:
-      | UseMutationParameters<
-          authorizeKey.ReturnType,
-          authorizeKey.ErrorType,
-          authorizeKey.Parameters<config>,
-          context
-        >
-      | undefined
-  }
-
-  type ReturnType<
-    config extends Config = Config,
-    context = unknown,
-  > = UseMutationResult<
-    authorizeKey.ReturnType,
-    authorizeKey.ErrorType,
-    authorizeKey.Parameters<config>,
-    context
-  >
-}
 
 export function useConnect<
   config extends Config = ResolvedRegister['config'],
@@ -200,12 +157,55 @@ export declare namespace useDisconnect {
   >
 }
 
-export function useKeys<
+export function useGrantPermissions<
   config extends Config = ResolvedRegister['config'],
-  selectData = keys.ReturnType,
+  context = unknown,
 >(
-  parameters: useKeys.Parameters<config, selectData> = {},
-): useKeys.ReturnType<selectData> {
+  parameters: useGrantPermissions.Parameters<config, context> = {},
+): useGrantPermissions.ReturnType<config, context> {
+  const { mutation } = parameters
+  const config = useConfig(parameters)
+  return useMutation({
+    ...mutation,
+    async mutationFn(variables) {
+      return grantPermissions(config, variables)
+    },
+    mutationKey: ['grantPermissions'],
+  })
+}
+
+export declare namespace useGrantPermissions {
+  type Parameters<
+    config extends Config = Config,
+    context = unknown,
+  > = ConfigParameter<config> & {
+    mutation?:
+      | UseMutationParameters<
+          grantPermissions.ReturnType,
+          grantPermissions.ErrorType,
+          grantPermissions.Parameters<config>,
+          context
+        >
+      | undefined
+  }
+
+  type ReturnType<
+    config extends Config = Config,
+    context = unknown,
+  > = UseMutationResult<
+    grantPermissions.ReturnType,
+    grantPermissions.ErrorType,
+    grantPermissions.Parameters<config>,
+    context
+  >
+}
+
+export function usePermissions<
+  config extends Config = ResolvedRegister['config'],
+  selectData = permissions.ReturnType,
+>(
+  parameters: usePermissions.Parameters<config, selectData> = {},
+): usePermissions.ReturnType<selectData> {
   const { query = {}, ...rest } = parameters
 
   const config = useConfig(rest)
@@ -221,7 +221,7 @@ export function useKeys<
   )
   const queryKey = useMemo(
     () =>
-      keysQueryKey({
+      permissionsQueryKey({
         address,
         chainId: parameters.chainId ?? chainId,
         connector: activeConnector,
@@ -237,7 +237,7 @@ export function useKeys<
       provider.current ??=
         (await activeConnector.getProvider?.()) as EIP1193Provider
       provider.current?.on('message', (event) => {
-        if (event.type !== 'keysChanged') return
+        if (event.type !== 'permissionsChanged') return
         queryClient.setQueryData(queryKey, event.data)
       })
     })()
@@ -255,7 +255,7 @@ export function useKeys<
           )[1]
           provider.current ??=
             (await activeConnector.getProvider()) as EIP1193Provider
-          return await keys(config, {
+          return await permissions(config, {
             ...options,
             connector: activeConnector,
           })
@@ -265,49 +265,49 @@ export function useKeys<
   }) as never
 }
 
-export declare namespace useKeys {
+export declare namespace usePermissions {
   type Parameters<
     config extends Config = Config,
-    selectData = keys.ReturnType,
-  > = keys.Parameters<config> &
+    selectData = permissions.ReturnType,
+  > = permissions.Parameters<config> &
     ConfigParameter<config> & {
       query?:
         | Omit<
             UseQueryParameters<
-              keys.ReturnType,
-              keys.ErrorType,
+              permissions.ReturnType,
+              permissions.ErrorType,
               selectData,
-              keysQueryKey.Value<config>
+              permissionsQueryKey.Value<config>
             >,
             'gcTime' | 'staleTime'
           >
         | undefined
     }
 
-  type ReturnType<selectData = keys.ReturnType> = UseQueryReturnType<
+  type ReturnType<selectData = permissions.ReturnType> = UseQueryReturnType<
     selectData,
-    keys.ErrorType
+    permissions.ErrorType
   >
 }
 
-export function useRevokeKey<
+export function useRevokePermissions<
   config extends Config = ResolvedRegister['config'],
   context = unknown,
 >(
-  parameters: useRevokeKey.Parameters<config, context> = {},
-): useRevokeKey.ReturnType<config, context> {
+  parameters: useRevokePermissions.Parameters<config, context> = {},
+): useRevokePermissions.ReturnType<config, context> {
   const { mutation } = parameters
   const config = useConfig(parameters)
   return useMutation({
     ...mutation,
     async mutationFn(variables) {
-      return revokeKey(config, variables)
+      return revokePermissions(config, variables)
     },
-    mutationKey: ['revokeKey'],
+    mutationKey: ['revokePermissions'],
   })
 }
 
-export declare namespace useRevokeKey {
+export declare namespace useRevokePermissions {
   type Parameters<
     config extends Config = Config,
     context = unknown,
@@ -315,8 +315,8 @@ export declare namespace useRevokeKey {
     mutation?:
       | UseMutationParameters<
           undefined,
-          revokeKey.ErrorType,
-          revokeKey.Parameters<config>,
+          revokePermissions.ErrorType,
+          revokePermissions.Parameters<config>,
           context
         >
       | undefined
@@ -327,8 +327,8 @@ export declare namespace useRevokeKey {
     context = unknown,
   > = UseMutationResult<
     undefined,
-    revokeKey.ErrorType,
-    revokeKey.Parameters<config>,
+    revokePermissions.ErrorType,
+    revokePermissions.Parameters<config>,
     context
   >
 }

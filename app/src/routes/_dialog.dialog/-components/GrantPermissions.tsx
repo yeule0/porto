@@ -12,7 +12,7 @@ import { ValueFormatter } from '~/utils'
 import LucideKey from '~icons/lucide/key-round'
 import { NotFound } from './NotFound'
 
-export function Authorize(props: Authorize.Props) {
+export function GrantPermissions(props: GrantPermissions.Props) {
   const { address, permissions, loading, onApprove, onReject } = props
 
   const [index, setIndex] = useState(0)
@@ -22,7 +22,7 @@ export function Authorize(props: Authorize.Props) {
 
   return (
     <Layout loading={loading} loadingTitle="Authorizing...">
-      <AuthorizeSpendPermission {...permissions.spend[index]!} />
+      <GrantSpendPermission {...permissions.spend[index]!} />
 
       <Layout.Footer>
         <Layout.Footer.Actions>
@@ -54,10 +54,10 @@ export function Authorize(props: Authorize.Props) {
   )
 }
 
-export declare namespace Authorize {
+export declare namespace GrantPermissions {
   type Props = RpcSchema.ExtractParams<
     porto_RpcSchema.Schema,
-    'experimental_authorizeKey'
+    'experimental_grantPermissions'
   >['0'] & {
     loading: boolean
     onApprove: () => void
@@ -65,9 +65,7 @@ export declare namespace Authorize {
   }
 }
 
-export function AuthorizeSpendPermission(
-  props: AuthorizeSpendPermission.Props,
-) {
+export function GrantSpendPermission(props: GrantSpendPermission.Props) {
   const { limit, period, token } = props
 
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
@@ -129,8 +127,8 @@ export function AuthorizeSpendPermission(
   )
 }
 
-export declare namespace AuthorizeSpendPermission {
+export declare namespace GrantSpendPermission {
   type Props = NonNullable<
-    NonNullable<Authorize.Props['permissions']>['spend']
+    NonNullable<GrantPermissions.Props['permissions']>['spend']
   >[number]
 }

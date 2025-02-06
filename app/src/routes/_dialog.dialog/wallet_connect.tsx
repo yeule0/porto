@@ -6,7 +6,7 @@ import { Actions, Hooks } from 'porto/remote'
 import { useEffect } from 'react'
 
 import { porto } from '~/lib/Porto'
-import { Authorize } from './-components/Authorize'
+import { Authorize } from './-components/GrantPermissions'
 import { SignIn } from './-components/SignIn'
 import { SignUp } from './-components/SignUp'
 
@@ -30,7 +30,7 @@ function RouteComponent() {
   )
 
   const signIn = address && !capabilities?.createAccount
-  const shouldAuthorize = capabilities?.authorizeKey
+  const shouldAuthorize = capabilities?.grantPermissions
 
   useEffect(() => {
     if (signIn) {
@@ -78,12 +78,12 @@ function RouteComponent() {
     },
   })
 
-  if (step === 'authorize' && capabilities?.authorizeKey)
+  if (step === 'authorize' && capabilities?.grantPermissions)
     return (
       <Authorize
-        {...capabilities.authorizeKey}
+        {...capabilities.grantPermissions}
         address={signIn ? address : undefined}
-        key={capabilities.authorizeKey.key as never}
+        key={capabilities.grantPermissions.key as never}
         loading={respond.isPending}
         onApprove={() => respond.mutate({ signIn })}
         onReject={() => Actions.reject(porto, queued!)}

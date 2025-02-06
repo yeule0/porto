@@ -22,7 +22,7 @@ const client = createClient({
   transport: custom(porto.provider),
 })
 
-const key = () =>
+const permissions = () =>
   ({
     expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
     permissions: {
@@ -63,9 +63,9 @@ export function App() {
         <hr />
         <br />
       </div>
-      <AuthorizeKey />
-      <GetKeys />
-      <RevokeKey />
+      <GrantPermissions />
+      <GetPermissions />
+      <RevokePermissions />
       <div>
         <br />
         <hr />
@@ -141,7 +141,7 @@ function Events() {
 }
 
 function Connect() {
-  const [authorizeKey, setAuthorizeKey] = useState<boolean>(true)
+  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
   const [result, setResult] = useState<unknown | null>(null)
   return (
     <div>
@@ -149,10 +149,10 @@ function Connect() {
       <label>
         <input
           type="checkbox"
-          checked={authorizeKey}
-          onChange={() => setAuthorizeKey((x) => !x)}
+          checked={grantPermissions}
+          onChange={() => setGrantPermissions((x) => !x)}
         />
-        Authorize a Session Key
+        Grant Permissions
       </label>
       <div>
         <button
@@ -163,7 +163,9 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? key() : undefined,
+                      grantPermissions: grantPermissions
+                        ? permissions()
+                        : undefined,
                     },
                   },
                 ],
@@ -182,7 +184,9 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
-                      authorizeKey: authorizeKey ? key() : undefined,
+                      grantPermissions: grantPermissions
+                        ? permissions()
+                        : undefined,
                       createAccount: true,
                     },
                   },
@@ -292,70 +296,70 @@ function GetCapabilities() {
   )
 }
 
-function AuthorizeKey() {
+function GrantPermissions() {
   const [result, setResult] = useState<any | null>(null)
   return (
     <div>
-      <h3>experimental_authorizeKey</h3>
+      <h3>experimental_grantPermissions</h3>
       <form
         onSubmit={async (e) => {
           e.preventDefault()
           const result = await porto.provider.request({
-            method: 'experimental_authorizeKey',
-            params: [key()],
+            method: 'experimental_grantPermissions',
+            params: [permissions()],
           })
           setResult(result)
         }}
       >
-        <button type="submit">Authorize a Session Key</button>
+        <button type="submit">Grant Permissions</button>
       </form>
-      {result && <pre>key: {JSON.stringify(result, null, 2)}</pre>}
+      {result && <pre>permissions: {JSON.stringify(result, null, 2)}</pre>}
     </div>
   )
 }
 
-function RevokeKey() {
+function RevokePermissions() {
   const [revoked, setRevoked] = useState(false)
   return (
     <div>
-      <h3>experimental_revokeKey</h3>
+      <h3>experimental_revokePermissions</h3>
       <form
         onSubmit={async (e) => {
           e.preventDefault()
           const formData = new FormData(e.target as HTMLFormElement)
-          const publicKey = formData.get('publicKey') as `0x${string}`
+          const id = formData.get('id') as `0x${string}`
 
           setRevoked(false)
           await porto.provider.request({
-            method: 'experimental_revokeKey',
-            params: [{ publicKey }],
+            method: 'experimental_revokePermissions',
+            params: [{ id }],
           })
           setRevoked(true)
         }}
       >
-        <input name="publicKey" placeholder="Public Key (0x...)" type="text" />
-        <button type="submit">Revoke Key</button>
+        <input name="id" placeholder="Permissions ID (0x...)" type="text" />
+        <button type="submit">Revoke Permissions</button>
       </form>
-      {revoked && <p>Key revoked.</p>}
+      {revoked && <p>Permissions revoked.</p>}
     </div>
   )
 }
 
-function GetKeys() {
+function GetPermissions() {
   const [result, setResult] = useState<unknown>(null)
 
   return (
     <div>
-      <h3>experimental_keys</h3>
+      <h3>experimental_permissions</h3>
       <button
         onClick={() =>
           porto.provider
-            .request({ method: 'experimental_keys' })
+            .request({ method: 'experimental_permissions' })
             .then(setResult)
         }
         type="button"
       >
-        Get Keys
+        Get Permissions
       </button>
       {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
     </div>
@@ -367,7 +371,7 @@ function UpgradeAccount() {
     address: string
     privateKey: string
   } | null>(null)
-  const [authorizeKey, setAuthorizeKey] = useState<boolean>(true)
+  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
   const [privateKey, setPrivateKey] = useState<string>('')
   const [result, setResult] = useState<unknown | null>(null)
 
@@ -402,10 +406,10 @@ function UpgradeAccount() {
       <label>
         <input
           type="checkbox"
-          checked={authorizeKey}
-          onChange={() => setAuthorizeKey((x) => !x)}
+          checked={grantPermissions}
+          onChange={() => setGrantPermissions((x) => !x)}
         />
-        Authorize a Session Key
+        Grant Permissions
       </label>
       <div>
         <button
@@ -418,7 +422,9 @@ function UpgradeAccount() {
                 {
                   address: account.address,
                   capabilities: {
-                    authorizeKey: authorizeKey ? key() : undefined,
+                    grantPermissions: grantPermissions
+                      ? permissions()
+                      : undefined,
                   },
                 },
               ],

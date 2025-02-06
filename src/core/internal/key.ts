@@ -70,14 +70,6 @@ export type Permissions<bigintType = bigint> = {
   spend?: SpendLimits<bigintType> | undefined
 }
 
-export type Rpc = {
-  expiry: number
-  permissions: Permissions<Hex.Hex>
-  publicKey: Hex.Hex
-  role: 'admin' | 'session'
-  type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256'
-}
-
 /** Serialized (contract-compatible) format of a key. */
 export type Serialized = {
   expiry: number
@@ -464,33 +456,6 @@ export declare namespace fromP256 {
 }
 
 /**
- * Instantiates a key from its RPC format.
- *
- * @param rpc - RPC key.
- * @returns Key.
- */
-export function fromRpc(rpc: Rpc): Key {
-  const permissions = rpc.permissions
-    ? {
-        ...rpc.permissions,
-        spend: rpc.permissions.spend?.map((spend) => ({
-          ...spend,
-          limit: BigInt(spend.limit ?? 0),
-        })),
-      }
-    : {}
-
-  return {
-    canSign: false,
-    expiry: rpc.expiry,
-    permissions,
-    publicKey: rpc.publicKey,
-    role: rpc.role,
-    type: rpc.type === 'contract' ? 'secp256k1' : rpc.type,
-  }
-}
-
-/**
  * Instantiates a Secp256k1 key from its parameters.
  *
  * @example
@@ -818,32 +783,6 @@ export async function sign(
     publicKey,
     prehash,
   })
-}
-
-/**
- * Converts a key into RPC format.
- *
- * @param key - Key.
- * @returns RPC key.
- */
-export function toRpc(key: Key): Rpc {
-  const permissions = key.permissions
-    ? {
-        ...key.permissions,
-        spend: key.permissions.spend?.map((spend) => ({
-          ...spend,
-          limit: Hex.fromNumber(spend.limit),
-        })),
-      }
-    : {}
-
-  return {
-    expiry: key.expiry,
-    permissions,
-    publicKey: key.publicKey,
-    role: key.role,
-    type: key.type,
-  }
 }
 
 ///////////////////////////////////////////////////////////////////////////

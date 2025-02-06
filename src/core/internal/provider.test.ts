@@ -113,7 +113,7 @@ describe('eth_signTypedData_v4', () => {
   })
 })
 
-describe('experimental_authorizeKey', () => {
+describe('experimental_grantPermissions', () => {
   test('default', async () => {
     const messages: any[] = []
 
@@ -124,7 +124,7 @@ describe('experimental_authorizeKey', () => {
       method: 'experimental_createAccount',
     })
     await porto.provider.request({
-      method: 'experimental_authorizeKey',
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -170,8 +170,8 @@ describe('experimental_authorizeKey', () => {
       ]
     `)
 
-    expect(messages[0].type).toBe('keysChanged')
-    expect(messages[0].data.length).toBe(2)
+    expect(messages[0].type).toBe('permissionsChanged')
+    expect(messages[0].data.length).toBe(1)
   })
 
   test('behavior: provided key', async () => {
@@ -184,26 +184,34 @@ describe('experimental_authorizeKey', () => {
       method: 'experimental_createAccount',
     })
 
-    expect(
-      await porto.provider.request({
-        method: 'experimental_authorizeKey',
-        params: [
-          {
-            expiry: 9999999999,
-            key: {
-              publicKey:
-                '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
-              type: 'p256',
-            },
-            permissions: {
-              calls: [{ signature: 'mint()' }],
-            },
+    const permissions = await porto.provider.request({
+      method: 'experimental_grantPermissions',
+      params: [
+        {
+          expiry: 9999999999,
+          key: {
+            publicKey:
+              '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
+            type: 'p256',
           },
-        ],
-      }),
-    ).toMatchInlineSnapshot(`
+          permissions: {
+            calls: [{ signature: 'mint()' }],
+          },
+        },
+      ],
+    })
+
+    expect(permissions.address).toBeDefined()
+    expect({ ...permissions, address: null }).toMatchInlineSnapshot(`
       {
+        "address": null,
+        "chainId": undefined,
         "expiry": 9999999999,
+        "id": "0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e",
+        "key": {
+          "publicKey": "0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e",
+          "type": "p256",
+        },
         "permissions": {
           "calls": [
             {
@@ -212,15 +220,12 @@ describe('experimental_authorizeKey', () => {
           ],
           "spend": undefined,
         },
-        "publicKey": "0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e",
-        "role": "session",
-        "type": "p256",
       }
     `)
 
-    expect(
-      await porto.provider.request({
-        method: 'experimental_authorizeKey',
+    {
+      const permissions = await porto.provider.request({
+        method: 'experimental_grantPermissions',
         params: [
           {
             expiry: 9999999999,
@@ -238,23 +243,30 @@ describe('experimental_authorizeKey', () => {
             },
           },
         ],
-      }),
-    ).toMatchInlineSnapshot(`
-      {
-        "expiry": 9999999999,
-        "permissions": {
-          "spend": [
-            {
-              "limit": "0x14d1120d7b160000",
-              "period": "day",
-            },
-          ],
-        },
-        "publicKey": "0x0000000000000000000000000000000000000000",
-        "role": "session",
-        "type": "secp256k1",
-      }
-    `)
+      })
+
+      expect(permissions.address).toBeDefined()
+      expect({ ...permissions, address: null }).toMatchInlineSnapshot(`
+        {
+          "address": null,
+          "chainId": undefined,
+          "expiry": 9999999999,
+          "id": "0x0000000000000000000000000000000000000000",
+          "key": {
+            "publicKey": "0x0000000000000000000000000000000000000000",
+            "type": "secp256k1",
+          },
+          "permissions": {
+            "spend": [
+              {
+                "limit": "0x14d1120d7b160000",
+                "period": "day",
+              },
+            ],
+          },
+        }
+      `)
+    }
 
     const accounts = porto._internal.store.getState().accounts
     expect(accounts.length).toBe(1)
@@ -309,8 +321,8 @@ describe('experimental_authorizeKey', () => {
         ]
       `)
 
-    expect(messages[0].type).toBe('keysChanged')
-    expect(messages[0].data.length).toBe(2)
+    expect(messages[0].type).toBe('permissionsChanged')
+    expect(messages[0].data.length).toBe(1)
   })
 
   test('behavior: signature verification permission', async () => {
@@ -322,7 +334,7 @@ describe('experimental_authorizeKey', () => {
     // Authorize an arbirary key.
     const key = Key.createP256({ role: 'session' })
     await porto.provider.request({
-      method: 'experimental_authorizeKey',
+      method: 'experimental_grantPermissions',
       params: [
         {
           key,
@@ -369,7 +381,7 @@ describe('experimental_authorizeKey', () => {
     })
     await expect(
       porto.provider.request({
-        method: 'experimental_authorizeKey',
+        method: 'experimental_grantPermissions',
         params: [
           {
             expiry: 9999999999,
@@ -394,7 +406,7 @@ describe('experimental_authorizeKey', () => {
     })
     await expect(
       porto.provider.request({
-        method: 'experimental_authorizeKey',
+        method: 'experimental_grantPermissions',
         params: [
           {
             expiry: 0,
@@ -425,14 +437,14 @@ describe('experimental_createAccount', () => {
   })
 })
 
-describe('experimental_keys', () => {
+describe('experimental_permissions', () => {
   test('default', async () => {
     const porto = createPorto()
     await porto.provider.request({
       method: 'experimental_createAccount',
     })
     await porto.provider.request({
-      method: 'experimental_authorizeKey',
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -443,7 +455,7 @@ describe('experimental_keys', () => {
       ],
     })
     await porto.provider.request({
-      method: 'experimental_authorizeKey',
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -458,55 +470,14 @@ describe('experimental_keys', () => {
         },
       ],
     })
-    const keys = await porto.provider.request({
-      method: 'experimental_keys',
+    const permissions = await porto.provider.request({
+      method: 'experimental_permissions',
     })
-    expect(keys.length).toBe(3)
-    expect(
-      keys.map((x) => ({ ...x, expiry: null, publicKey: null })),
-    ).toMatchInlineSnapshot(`
-      [
-        {
-          "expiry": null,
-          "permissions": {},
-          "publicKey": null,
-          "role": "admin",
-          "type": "p256",
-        },
-        {
-          "expiry": null,
-          "permissions": {
-            "calls": [
-              {
-                "signature": "mint()",
-              },
-            ],
-            "spend": undefined,
-          },
-          "publicKey": null,
-          "role": "session",
-          "type": "p256",
-        },
-        {
-          "expiry": null,
-          "permissions": {
-            "spend": [
-              {
-                "limit": "0x14d1120d7b160000",
-                "period": "day",
-              },
-            ],
-          },
-          "publicKey": null,
-          "role": "session",
-          "type": "p256",
-        },
-      ]
-    `)
+    expect(permissions.length).toBe(2)
   })
 })
 
-describe('experimental_revokeKey', () => {
+describe('experimental_revokePermissions', () => {
   test('default', async () => {
     const porto = createPorto()
 
@@ -516,8 +487,8 @@ describe('experimental_revokeKey', () => {
     await porto.provider.request({
       method: 'experimental_createAccount',
     })
-    const { publicKey } = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const { id } = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -562,12 +533,12 @@ describe('experimental_revokeKey', () => {
       ]
     `)
 
-    expect(messages[0].type).toBe('keysChanged')
-    expect(messages[0].data.length).toBe(2)
+    expect(messages[0].type).toBe('permissionsChanged')
+    expect(messages[0].data.length).toBe(1)
 
     await porto.provider.request({
-      method: 'experimental_revokeKey',
-      params: [{ publicKey }],
+      method: 'experimental_revokePermissions',
+      params: [{ id }],
     })
 
     accounts = porto._internal.store.getState().accounts
@@ -588,8 +559,8 @@ describe('experimental_revokeKey', () => {
       ]
     `)
 
-    expect(messages[1].type).toBe('keysChanged')
-    expect(messages[1].data.length).toBe(1)
+    expect(messages[1].type).toBe('permissionsChanged')
+    expect(messages[1].data.length).toBe(0)
   })
 
   test('behavior: revoke last admin key', async () => {
@@ -603,15 +574,15 @@ describe('experimental_revokeKey', () => {
     })
 
     const accounts = porto._internal.store.getState().accounts
-    const publicKey = accounts![0]!.keys![0]!.publicKey
+    const id = accounts![0]!.keys![0]!.publicKey
 
     await expect(() =>
       porto.provider.request({
-        method: 'experimental_revokeKey',
-        params: [{ publicKey }],
+        method: 'experimental_revokePermissions',
+        params: [{ id }],
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '[RpcResponse.InternalError: cannot revoke key. account must have at least one admin key.]',
+      '[RpcResponse.InternalError: cannot revoke permissions.]',
     )
   })
 })
@@ -712,7 +683,7 @@ describe('wallet_connect', () => {
     expect(messages[0].chainId).toBe(Hex.fromNumber(1))
   })
 
-  test('behavior: `createAccount` + `authorizeKey` capability', async () => {
+  test('behavior: `createAccount` + `grantPermissions` capability', async () => {
     const messages: any[] = []
 
     const porto = createPorto()
@@ -724,7 +695,7 @@ describe('wallet_connect', () => {
         {
           capabilities: {
             createAccount: true,
-            authorizeKey: {
+            grantPermissions: {
               expiry: 9999999999,
               permissions: {
                 calls: [{ signature: 'mint()' }],
@@ -772,7 +743,7 @@ describe('wallet_connect', () => {
     expect(messages[0].chainId).toBe(Hex.fromNumber(1))
   })
 
-  test('behavior: `createAccount` + `authorizeKey` capability (provided key)', async () => {
+  test('behavior: `createAccount` + `grantPermissions` capability (provided key)', async () => {
     const messages: any[] = []
 
     const porto = createPorto()
@@ -790,7 +761,7 @@ describe('wallet_connect', () => {
         {
           capabilities: {
             createAccount: true,
-            authorizeKey: {
+            grantPermissions: {
               expiry: 9999999999,
               key: {
                 publicKey,
@@ -845,7 +816,7 @@ describe('wallet_connect', () => {
     expect(messages[0].chainId).toBe(Hex.fromNumber(1))
   })
 
-  test('behavior: `authorizeKey` capability (unlimited expiry)', async () => {
+  test('behavior: `grantPermissions` capability (unlimited expiry)', async () => {
     const porto = createPorto()
     await expect(() =>
       porto.provider.request({
@@ -854,7 +825,7 @@ describe('wallet_connect', () => {
           {
             capabilities: {
               createAccount: true,
-              authorizeKey: {
+              grantPermissions: {
                 expiry: 0,
                 permissions: {
                   calls: [{ signature: 'mint()' }],
@@ -869,7 +840,7 @@ describe('wallet_connect', () => {
     )
   })
 
-  test('behavior: `authorizeKey` capability (no permissions)', async () => {
+  test('behavior: `grantPermissions` capability (no permissions)', async () => {
     const porto = createPorto()
     await expect(() =>
       porto.provider.request({
@@ -878,7 +849,7 @@ describe('wallet_connect', () => {
           {
             capabilities: {
               createAccount: true,
-              authorizeKey: {
+              grantPermissions: {
                 expiry: 9999999,
                 permissions: {},
               },
@@ -953,7 +924,7 @@ describe('wallet_sendCalls', () => {
     expect(await getBalance(client, { address: alice })).toBe(69420n)
   })
 
-  test('behavior: `key` capability', async () => {
+  test('behavior: `permissions` capability', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -969,8 +940,8 @@ describe('wallet_sendCalls', () => {
 
     const alice = '0x0000000000000000000000000000000000069422'
 
-    const key = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const permissions = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -985,7 +956,7 @@ describe('wallet_sendCalls', () => {
       params: [
         {
           capabilities: {
-            key,
+            permissions,
           },
           from: address,
           calls: [
@@ -1003,7 +974,7 @@ describe('wallet_sendCalls', () => {
     expect(await getBalance(client, { address: alice })).toBe(69420n)
   })
 
-  test('behavior: `key.permissions.calls` unauthorized', async () => {
+  test('behavior: `permissions.calls` unauthorized', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -1019,8 +990,8 @@ describe('wallet_sendCalls', () => {
 
     const alice = '0x0000000000000000000000000000000000069422'
 
-    const key = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const permissions = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -1036,7 +1007,7 @@ describe('wallet_sendCalls', () => {
         params: [
           {
             capabilities: {
-              key,
+              permissions,
             },
             from: address,
             calls: [
@@ -1052,7 +1023,7 @@ describe('wallet_sendCalls', () => {
     ).rejects.toThrowError('Unauthorized')
   })
 
-  test('behavior: `key.permissions.spend` exceeded', async () => {
+  test('behavior: `permissions.spend` exceeded', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -1068,8 +1039,8 @@ describe('wallet_sendCalls', () => {
 
     const alice = '0x0000000000000000000000000000000000069422'
 
-    const key = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const permissions = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -1090,7 +1061,7 @@ describe('wallet_sendCalls', () => {
       params: [
         {
           capabilities: {
-            key,
+            permissions,
           },
           from: address,
           calls: [
@@ -1110,7 +1081,7 @@ describe('wallet_sendCalls', () => {
         params: [
           {
             capabilities: {
-              key,
+              permissions,
             },
             from: address,
             calls: [
@@ -1126,7 +1097,7 @@ describe('wallet_sendCalls', () => {
     ).rejects.toThrowError('ExceededSpendLimit')
   })
 
-  test('behavior: revoked key', async () => {
+  test('behavior: revoked permission', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -1142,8 +1113,8 @@ describe('wallet_sendCalls', () => {
 
     const alice = '0x0000000000000000000000000000000000069423'
 
-    const key = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const permissions = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -1158,7 +1129,7 @@ describe('wallet_sendCalls', () => {
       params: [
         {
           capabilities: {
-            key,
+            permissions,
           },
           from: address,
           calls: [
@@ -1176,8 +1147,8 @@ describe('wallet_sendCalls', () => {
     expect(await getBalance(client, { address: alice })).toBe(69420n)
 
     await porto.provider.request({
-      method: 'experimental_revokeKey',
-      params: [{ publicKey: key.publicKey }],
+      method: 'experimental_revokePermissions',
+      params: [{ id: permissions.id }],
     })
     await expect(() =>
       porto.provider.request({
@@ -1185,7 +1156,7 @@ describe('wallet_sendCalls', () => {
         params: [
           {
             capabilities: {
-              key,
+              permissions,
             },
             from: address,
             calls: [
@@ -1201,7 +1172,7 @@ describe('wallet_sendCalls', () => {
     ).rejects.toThrowError()
   })
 
-  test('behavior: not provider-managed key', async () => {
+  test('behavior: not provider-managed permission', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -1217,8 +1188,8 @@ describe('wallet_sendCalls', () => {
 
     const alice = '0x0000000000000000000000000000000000069421'
 
-    const key = await porto.provider.request({
-      method: 'experimental_authorizeKey',
+    const { id } = await porto.provider.request({
+      method: 'experimental_grantPermissions',
       params: [
         {
           expiry: 9999999999,
@@ -1239,7 +1210,9 @@ describe('wallet_sendCalls', () => {
         params: [
           {
             capabilities: {
-              key,
+              permissions: {
+                id,
+              },
             },
             from: address,
             calls: [
@@ -1253,11 +1226,11 @@ describe('wallet_sendCalls', () => {
         ],
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '[RpcResponse.InternalError: key (publicKey: 0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e) does not exist or is not a provider-managed key.]',
+      '[RpcResponse.InternalError: permission (id: 0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e) does not exist.]',
     )
   })
 
-  test('behavior: key does not exist', async () => {
+  test('behavior: permission does not exist', async () => {
     const porto = createPorto()
     const client = Porto.getClient(porto).extend(() => ({
       mode: 'anvil',
@@ -1279,9 +1252,8 @@ describe('wallet_sendCalls', () => {
         params: [
           {
             capabilities: {
-              key: {
-                publicKey:
-                  '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
+              permissions: {
+                id: '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
               },
             },
             from: address,
@@ -1296,7 +1268,7 @@ describe('wallet_sendCalls', () => {
         ],
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      '[RpcResponse.InternalError: key (publicKey: 0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e) does not exist or is not a provider-managed key.]',
+      '[RpcResponse.InternalError: permission (id: 0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e) does not exist.]',
     )
   })
 })

@@ -43,7 +43,7 @@ export function App() {
       {isConnected ? (
         <>
           <Balance />
-          <AuthorizeKey />
+          <GrantPermissions />
           <Mint />
         </>
       ) : (
@@ -58,7 +58,7 @@ export function App() {
 
 function Account() {
   const account = useAccount()
-  const { data: keys } = Hooks.useKeys()
+  const { data: permissions } = Hooks.usePermissions()
   const disconnect = Hooks.useDisconnect()
 
   return (
@@ -72,7 +72,7 @@ function Account() {
         <br />
         status: {account.status}
         <br />
-        keys: {JSON.stringify(keys)}
+        permissions: {JSON.stringify(permissions)}
       </div>
 
       {account.status !== 'disconnected' && (
@@ -85,7 +85,7 @@ function Account() {
 }
 
 function Connect() {
-  const [authorizeKey, setAuthorizeKey] = useState<boolean>(true)
+  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
 
   const connectors = useConnectors()
   const connect = Hooks.useConnect()
@@ -96,10 +96,10 @@ function Connect() {
       <label>
         <input
           type="checkbox"
-          checked={authorizeKey}
-          onChange={() => setAuthorizeKey((x) => !x)}
+          checked={grantPermissions}
+          onChange={() => setGrantPermissions((x) => !x)}
         />
-        Authorize Key
+        Grant Permissions
       </label>
       {connectors
         .filter((x) => x.id === 'xyz.ithaca.porto')
@@ -110,7 +110,7 @@ function Connect() {
               onClick={() =>
                 connect.mutate({
                   connector,
-                  authorizeKey: authorizeKey ? key() : undefined,
+                  grantPermissions: grantPermissions ? key() : undefined,
                 })
               }
               type="button"
@@ -122,7 +122,7 @@ function Connect() {
                 connect.mutate({
                   connector,
                   createAccount: true,
-                  authorizeKey: authorizeKey ? key() : undefined,
+                  grantPermissions: grantPermissions ? key() : undefined,
                 })
               }
               type="button"
@@ -142,7 +142,7 @@ function UpgradeAccount() {
     address: string
     privateKey: string
   } | null>(null)
-  const [authorizeKey, setAuthorizeKey] = useState<boolean>(true)
+  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
   const [privateKey, setPrivateKey] = useState<string>('')
 
   const connectors = useConnectors()
@@ -180,10 +180,10 @@ function UpgradeAccount() {
         <label>
           <input
             type="checkbox"
-            checked={authorizeKey}
-            onChange={() => setAuthorizeKey((x) => !x)}
+            checked={grantPermissions}
+            onChange={() => setGrantPermissions((x) => !x)}
           />
-          Authorize Key
+          Grant Permissions
         </label>
       </div>
       {connectors
@@ -195,7 +195,7 @@ function UpgradeAccount() {
               upgradeAccount.mutate({
                 account: privateKeyToAccount(privateKey as Hex),
                 connector,
-                authorizeKey: authorizeKey ? key() : undefined,
+                grantPermissions: grantPermissions ? key() : undefined,
               })
             }
             type="button"
@@ -229,21 +229,23 @@ function Balance() {
   )
 }
 
-function AuthorizeKey() {
-  const keys = Hooks.useKeys()
-  const authorizeKey = Hooks.useAuthorizeKey()
+function GrantPermissions() {
+  const permissions = Hooks.usePermissions()
+  const grantPermissions = Hooks.useGrantPermissions()
 
-  if (keys.data?.length !== 0) return null
+  if (permissions.data?.length !== 0) return null
   return (
     <div>
-      <h2>Authorize Key</h2>
-      <button onClick={() => authorizeKey.mutate(key())} type="button">
-        Authorize Key
+      <h2>Grant Permissions</h2>
+      <button onClick={() => grantPermissions.mutate(key())} type="button">
+        Grant Permissions
       </button>
-      {authorizeKey.data && <div>Key authorized.</div>}
-      {authorizeKey.error && (
+      {grantPermissions.data && <div>Permissions granted.</div>}
+      {grantPermissions.error && (
         <div>
-          Error: {authorizeKey.error.shortMessage || authorizeKey.error.message}
+          Error:{' '}
+          {grantPermissions.error.shortMessage ||
+            grantPermissions.error.message}
         </div>
       )}
     </div>

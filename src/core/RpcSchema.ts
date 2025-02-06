@@ -1,6 +1,6 @@
+import type * as Hex from 'ox/Hex'
 import type * as RpcSchema from 'ox/RpcSchema'
 
-import type * as Key from './internal/key.js'
 import type * as internal from './internal/rpcSchema.js'
 
 export type Schema = RpcSchema.From<
@@ -13,17 +13,17 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
-        method: 'experimental_authorizeKey'
-        params: [internal.AuthorizeKeyParameters]
-      }
-      ReturnType: internal.AuthorizeKeyReturnType
-    }
-  | {
-      Request: {
         method: 'experimental_createAccount'
         params?: [internal.CreateAccountParameters] | undefined
       }
       ReturnType: internal.CreateAccountReturnType
+    }
+  | {
+      Request: {
+        method: 'experimental_grantPermissions'
+        params: [internal.GrantPermissionsParameters]
+      }
+      ReturnType: internal.GrantPermissionsReturnType
     }
   | {
       Request: {
@@ -34,15 +34,15 @@ export type Schema = RpcSchema.From<
     }
   | {
       Request: {
-        method: 'experimental_keys'
-        params?: [internal.GetKeysParameters] | undefined
+        method: 'experimental_permissions'
+        params?: [internal.PermissionsParameters] | undefined
       }
-      ReturnType: internal.GetKeysReturnType
+      ReturnType: internal.PermissionsReturnType
     }
   | {
       Request: {
-        method: 'experimental_revokeKey'
-        params: [internal.RevokeKeyParameters]
+        method: 'experimental_revokePermissions'
+        params: [internal.RevokePermissionsParameters]
       }
       ReturnType: undefined
     }
@@ -69,7 +69,9 @@ export type Schema = RpcSchema.From<
           > & {
             capabilities?:
               | {
-                  key?: { publicKey: Key.Rpc['publicKey'] } | undefined
+                  permissions?: {
+                    id: Hex.Hex | undefined
+                  }
                 }
               | undefined
           },

@@ -5,17 +5,17 @@ import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
 import { porto } from '~/lib/Porto'
-import { Authorize } from './-components/Authorize'
+import { Authorize } from './-components/GrantPermissions'
 
 export const Route = createFileRoute(
-  '/_dialog/dialog/experimental_authorizeKey',
+  '/_dialog/dialog/experimental_grantPermissions',
 )({
   component: RouteComponent,
   validateSearch(
     search,
   ): RpcSchema.ExtractParams<
     porto_RpcSchema.Schema,
-    'experimental_authorizeKey'
+    'experimental_grantPermissions'
   > {
     return search as never
   },
