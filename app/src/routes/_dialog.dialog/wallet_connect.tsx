@@ -6,7 +6,7 @@ import { Actions, Hooks } from 'porto/remote'
 import { useEffect } from 'react'
 
 import { porto } from '~/lib/Porto'
-import { Authorize } from './-components/GrantPermissions'
+import { GrantPermissions } from './-components/GrantPermissions'
 import { SignIn } from './-components/SignIn'
 import { SignUp } from './-components/SignUp'
 
@@ -80,7 +80,7 @@ function RouteComponent() {
 
   if (step === 'authorize' && capabilities?.grantPermissions)
     return (
-      <Authorize
+      <GrantPermissions
         {...capabilities.grantPermissions}
         address={signIn ? address : undefined}
         key={capabilities.grantPermissions.key as never}

@@ -5,7 +5,7 @@ import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
 import { porto } from '~/lib/Porto'
-import { Authorize } from './-components/GrantPermissions'
+import { GrantPermissions } from './-components/GrantPermissions'
 
 export const Route = createFileRoute(
   '/_dialog/dialog/experimental_grantPermissions',
@@ -32,7 +32,7 @@ function RouteComponent() {
   })
 
   return (
-    <Authorize
+    <GrantPermissions
       {...parameters}
       address={undefined}
       key={parameters?.key as never}
