@@ -28,14 +28,17 @@ const permissions = () =>
     permissions: {
       calls: [
         {
-          to: ExperimentERC20.address,
+          to: ExperimentERC20.address[0],
+        },
+        {
+          to: ExperimentERC20.address[1],
         },
       ],
       spend: [
         {
           limit: Hex.fromNumber(Value.fromEther('50')),
           period: 'minute',
-          token: ExperimentERC20.address,
+          token: ExperimentERC20.address[0],
         },
       ],
     },
@@ -471,7 +474,7 @@ function SendCalls() {
           if (action === 'mint')
             return [
               {
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
                   [account, Value.fromEther('100')],
@@ -482,14 +485,14 @@ function SendCalls() {
           if (action === 'transfer')
             return [
               {
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
               },
               {
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
                   [
@@ -504,21 +507,21 @@ function SendCalls() {
           if (action === 'mint-transfer')
             return [
               {
-                to: '0x390dd40042a844f92b499069cfe983236d9fe204',
+                to: ExperimentERC20.address[1],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
               },
               {
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
               },
               {
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
                   [
@@ -533,7 +536,7 @@ function SendCalls() {
           if (action === 'revert')
             return [
               {
-                to: '0x390dd40042a844f92b499069cfe983236d9fe204',
+                to: ExperimentERC20.address[1],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
                   [
@@ -616,7 +619,7 @@ function SendTransaction() {
             return [
               {
                 from: account,
-                to: ExperimentERC20.address,
+                to: ExperimentERC20.address[0],
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
                   [account, Value.fromEther('100')],
