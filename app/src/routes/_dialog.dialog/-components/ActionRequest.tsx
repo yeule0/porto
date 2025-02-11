@@ -15,7 +15,7 @@ import ArrowUpRight from '~icons/lucide/arrow-up-right'
 import TriangleAlert from '~icons/lucide/triangle-alert'
 import Star from '~icons/ph/star-four-bold'
 
-export function TransactionRequest(props: TransactionRequest.Props) {
+export function ActionRequest(props: ActionRequest.Props) {
   const { calls } = props
 
   const account = Hooks.useAccount(porto)
@@ -117,14 +117,27 @@ export function TransactionRequest(props: TransactionRequest.Props) {
               })}
             </div>
 
-            {/* <div className="h-[1px] w-full bg-gray6" />
+            <div className="h-[1px] w-full bg-gray6" />
 
             <div className="space-y-1">
-              <div className="flex justify-between font-medium text-[14px]">
-                <span className="text-[14px] text-gray10">Fees</span>
-                <span>TODO</span>
+              {/* TODO: Fees */}
+              <div className="flex justify-between text-[14px]">
+                <span className="text-[14px] text-gray10">Fees (est.)</span>
+                <span className="font-medium">$0.01</span>
               </div>
-            </div> */}
+
+              {/* TODO: Duration */}
+              <div className="flex justify-between text-[14px]">
+                <span className="text-[14px] text-gray10">Duration (est.)</span>
+                <span className="font-medium">2 seconds</span>
+              </div>
+
+              {/* TODO: Network */}
+              <div className="flex justify-between text-[14px]">
+                <span className="text-[14px] text-gray10">Network</span>
+                <span className="font-medium">Odyssey Testnet</span>
+              </div>
+            </div>
           </div>
         )}
 
@@ -180,7 +193,7 @@ export function TransactionRequest(props: TransactionRequest.Props) {
   )
 }
 
-export namespace TransactionRequest {
+export namespace ActionRequest {
   export type Props = {
     calls: RpcSchema.ExtractParams<
       RpcSchema.Wallet,

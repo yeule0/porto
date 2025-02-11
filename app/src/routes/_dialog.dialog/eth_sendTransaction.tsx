@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 
-import { TransactionRequest } from './-components/TransactionRequest'
+import { ActionRequest } from './-components/ActionRequest'
 
 export const Route = createFileRoute('/_dialog/dialog/eth_sendTransaction')({
   component: RouteComponent,
@@ -18,7 +18,7 @@ function RouteComponent() {
   const { chainId, data, to, value } = parameters
 
   return (
-    <TransactionRequest
+    <ActionRequest
       calls={[{ data, to: to!, value }]}
       chainId={chainId ? Hex.toNumber(chainId) : undefined}
     />

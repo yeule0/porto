@@ -26,11 +26,11 @@ export namespace Button {
       variants: {
         variant: {
           default:
-            'text-gray12 bg-blackA1 dark:bg-whiteA1 border border-blackA1 dark:border-whiteA1',
-          primary: 'text-white bg-blue10',
-          destructive: 'text-red10 bg-red3',
-          success: 'text-white bg-green9',
-          warning: 'text-white bg-amber8',
+            'text-gray12 bg-blackA1 hover:not-active:bg-blackA2 dark:bg-whiteA1 dark:hover:not-active:bg-whiteA2 border border-blackA1 dark:border-whiteA1',
+          primary: 'text-white bg-blue10 hover:not-active:bg-blue11',
+          destructive: 'text-red10 bg-red3 hover:not-active:bg-red4',
+          success: 'text-white bg-green9 hover:not-active:bg-green10',
+          warning: 'text-white bg-amber8 hover:not-active:bg-amber9',
         },
         size: {
           default: 'h-9 px-5 rounded-lg text-[15px]',
