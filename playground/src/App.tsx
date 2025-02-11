@@ -1,5 +1,16 @@
-import { AbiFunction, Hex, Json, Siwe, TypedData, Value } from 'ox'
-import { Porto } from 'porto'
+import {
+  AbiFunction,
+  type Address,
+  Hex,
+  Json,
+  P256,
+  PublicKey,
+  Signature,
+  Siwe,
+  TypedData,
+  Value,
+} from 'ox'
+import { Chains, Porto } from 'porto'
 import { Implementation } from 'porto'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { createClient, custom } from 'viem'
@@ -12,12 +23,15 @@ import { verifyMessage, verifyTypedData } from 'viem/actions'
 
 import { ExperimentERC20 } from './contracts'
 
-const porto = Porto.create({
-  implementation: Implementation.dialog({
-    host: import.meta.env.VITE_HOST ?? 'https://exp.porto.sh/dialog',
-  }),
-})
+const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'
 
+const implementation = DISABLE_DIALOG
+  ? Implementation.local()
+  : Implementation.dialog({
+      host: import.meta.env.VITE_DIALOG_HOST ?? 'https://exp.porto.sh/dialog',
+    })
+
+export const porto = Porto.create({ implementation })
 const client = createClient({
   transport: custom(porto.provider),
 })
@@ -49,12 +63,12 @@ export function App() {
     <div>
       <State />
       <Events />
-      <GetCapabilities />
       <div>
         <br />
         <hr />
         <br />
       </div>
+      <h2>Account Management</h2>
       <Connect />
       <Login />
       <Register />
@@ -66,6 +80,7 @@ export function App() {
         <hr />
         <br />
       </div>
+      <h2>Permissions</h2>
       <GrantPermissions />
       <GetPermissions />
       <RevokePermissions />
@@ -74,10 +89,26 @@ export function App() {
         <hr />
         <br />
       </div>
+      <h2>Actions</h2>
       <SendCalls />
       <SendTransaction />
       <SignMessage />
       <SignTypedData />
+      <div>
+        <br />
+        <hr />
+        <br />
+      </div>
+      <h2>App-managed Signing</h2>
+      <GrantKeyPermissions />
+      <PrepareCalls />
+      <div>
+        <br />
+        <hr />
+        <br />
+      </div>
+      <h2>Misc.</h2>
+      <GetCapabilities />
     </div>
   )
 }
@@ -826,6 +857,177 @@ function SignTypedData() {
         {valid !== null && <pre>{valid ? 'valid' : 'invalid'}</pre>}
       </form>
     </>
+  )
+}
+
+let keyPair: {
+  publicKey: Hex.Hex
+  privateKey: Hex.Hex
+} | null = null
+
+function GrantKeyPermissions() {
+  const [result, setResult] = useState<any | null>(null)
+  return (
+    <div>
+      <button
+        onClick={async (e) => {
+          const privateKey = P256.randomPrivateKey()
+          const publicKey = PublicKey.toHex(P256.getPublicKey({ privateKey }), {
+            includePrefix: false,
+          })
+
+          keyPair = { publicKey, privateKey }
+
+          const result = await porto.provider.request({
+            method: 'experimental_grantPermissions',
+            params: [
+              {
+                key: { type: 'p256', publicKey },
+                ...permissions(),
+              },
+            ],
+          })
+          setResult(result)
+        }}
+        type="button"
+      >
+        Create Key & Grant Permissions
+      </button>
+      {result && <pre>permissions: {JSON.stringify(result, null, 2)}</pre>}
+    </div>
+  )
+}
+
+function PrepareCalls() {
+  const [hash, setHash] = useState<string | null>(null)
+  return (
+    <form
+      onSubmit={async (e) => {
+        e.preventDefault()
+        const formData = new FormData(e.target as HTMLFormElement)
+        const action = formData.get('action') as string | null
+
+        const [account] = await porto.provider.request({
+          method: 'eth_accounts',
+        })
+
+        const calls = (() => {
+          if (action === 'mint')
+            return [
+              {
+                to: ExperimentERC20.address[0],
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  [account, Value.fromEther('100')],
+                ),
+              },
+            ]
+
+          if (action === 'transfer')
+            return [
+              {
+                to: ExperimentERC20.address[0],
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  [account, Value.fromEther('50')],
+                ),
+              },
+              {
+                to: ExperimentERC20.address[0],
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  [
+                    account,
+                    '0x0000000000000000000000000000000000000000',
+                    Value.fromEther('50'),
+                  ],
+                ),
+              },
+            ] as const
+
+          if (action === 'revert')
+            return [
+              {
+                to: ExperimentERC20.address[1],
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  [
+                    '0x0000000000000000000000000000000000000000',
+                    account,
+                    Value.fromEther('100'),
+                  ],
+                ),
+              },
+            ] as const
+
+          return [
+            {
+              to: '0x0000000000000000000000000000000000000000',
+              value: '0x0',
+            },
+            {
+              to: '0x0000000000000000000000000000000000000000',
+              value: '0x0',
+            },
+          ] as const
+        })()
+
+        const { digest, ...request } = await porto.provider.request({
+          method: 'wallet_prepareCalls',
+          params: [
+            {
+              calls,
+              chainId: Hex.fromNumber(Chains.odysseyTestnet.id),
+            },
+          ],
+        })
+
+        if (!keyPair) throw new Error('create key first.')
+
+        const signature = Signature.toHex(
+          P256.sign({
+            payload: digest,
+            privateKey: keyPair.privateKey,
+          }),
+        )
+
+        const [{ id: hash }] = await porto.provider.request({
+          method: 'wallet_sendPreparedCalls',
+          params: [
+            {
+              ...request,
+              signature: {
+                type: 'p256',
+                publicKey: keyPair.publicKey,
+                value: signature,
+              },
+            },
+          ],
+        })
+        setHash(hash)
+      }}
+    >
+      <h3>wallet_prepareCalls → P256.sign → wallet_sendPreparedCalls</h3>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <select name="action">
+          <option value="mint">Mint 100 EXP</option>
+          <option value="transfer">Transfer 50 EXP</option>
+        </select>
+        <button type="submit">Sign & Send</button>
+      </div>
+      {hash && (
+        <>
+          <pre>{hash}</pre>
+          <a
+            href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Explorer
+          </a>
+        </>
+      )}
+    </form>
   )
 }
 

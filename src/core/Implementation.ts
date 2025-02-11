@@ -24,6 +24,7 @@ import * as Key from './internal/key.js'
 import * as Permissions from './internal/permissions.js'
 import * as PermissionsRequest from './internal/permissionsRequest.js'
 import type * as Porto from './internal/porto.js'
+import * as Provider_internal from './internal/provider.js'
 import type * as RpcSchema_internal from './internal/rpcSchema.js'
 import type { Compute, PartialBy } from './internal/types.js'
 
@@ -54,6 +55,22 @@ export type Implementation = {
       account: Account.Account
     }>
 
+    prepareExecute: (parameters: {
+      /** Account to execute the calls with. */
+      account: Account.Account
+      /** Calls to execute. */
+      calls: readonly Call.Call[]
+      /** Viem Clients. */
+      client: Client
+      /** RPC Request. */
+      request: Request
+    }) => Promise<{
+      /** RPC Request. */
+      request: unknown
+      /** Hex payloads to sign over. */
+      signPayloads: readonly Hex.Hex[]
+    }>
+
     execute: (parameters: {
       /** Account to execute the calls with. */
       account: Account.Account
@@ -61,6 +78,10 @@ export type Implementation = {
       calls: readonly Call.Call[]
       /** Permissions ID to use to execute the calls. */
       permissionsId?: Hex.Hex | undefined
+      /** Nonce to use for execution. */
+      nonce?: bigint | undefined
+      /** Signature for execution. */
+      signature?: Hex.Hex | undefined
       /** Internal properties. */
       internal: ActionsInternal
     }) => Promise<Hex.Hex>
@@ -230,8 +251,22 @@ export function local(parameters: local.Parameters = {}) {
         return { account }
       },
 
+      async prepareExecute(parameters) {
+        const { client } = parameters
+
+        const { request, signPayloads } = await Delegation.prepareExecute(
+          client,
+          parameters,
+        )
+
+        return {
+          request,
+          signPayloads,
+        }
+      },
+
       async execute(parameters) {
-        const { account, calls, internal } = parameters
+        const { account, calls, internal, nonce, signature } = parameters
         const { client } = internal
 
         // Try and extract an authorized key to sign the calls with.
@@ -246,7 +281,14 @@ export function local(parameters: local.Parameters = {}) {
         const hash = await Delegation.execute(client, {
           account,
           calls,
-          key,
+          ...(nonce && signature
+            ? {
+                nonce,
+                signatures: [signature],
+              }
+            : {
+                key,
+              }),
         })
 
         return hash
@@ -577,8 +619,21 @@ export function dialog(parameters: dialog.Parameters = {}) {
         }
       },
 
+      async prepareExecute(parameters) {
+        const { client } = parameters
+        const { request, signPayloads } = await Delegation.prepareExecute(
+          client,
+          parameters,
+        )
+
+        return {
+          request,
+          signPayloads,
+        }
+      },
+
       async execute(parameters) {
-        const { account, calls, internal } = parameters
+        const { account, calls, internal, nonce, signature } = parameters
         const { client, store, request } = internal
 
         // Try and extract an authorized key to sign the calls with.
@@ -606,6 +661,21 @@ export function dialog(parameters: dialog.Parameters = {}) {
         if (request.method === 'wallet_sendCalls')
           // Send calls request to the dialog.
           return (await provider.request(request)) as Hex.Hex
+
+        // execute prepared calls directly with Delegation.execute
+        if (request.method === 'wallet_sendPreparedCalls') {
+          Provider_internal.requireParameter(nonce, 'nonce')
+          Provider_internal.requireParameter(signature, 'signature')
+
+          const hash = await Delegation.execute(client, {
+            account,
+            calls,
+            nonce,
+            signatures: [signature],
+          })
+
+          return hash
+        }
 
         throw new Error('Cannot execute for method: ' + request.method)
       },
