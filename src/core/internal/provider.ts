@@ -573,7 +573,7 @@ export function from<
             chainId,
             version,
             context,
-            digest: signPayloads.at(0)!,
+            digest: signPayloads[0]!,
           } satisfies RpcSchema.ExtractReturnType<
             Schema.Schema,
             'wallet_prepareCalls'
