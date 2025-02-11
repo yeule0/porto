@@ -7,6 +7,7 @@ import * as PersonalMessage from 'ox/PersonalMessage'
 import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcRequest from 'ox/RpcRequest'
+import * as RpcResponse from 'ox/RpcResponse'
 import * as RpcSchema from 'ox/RpcSchema'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as TypedData from 'ox/TypedData'
@@ -24,7 +25,6 @@ import * as Key from './internal/key.js'
 import * as Permissions from './internal/permissions.js'
 import * as PermissionsRequest from './internal/permissionsRequest.js'
 import type * as Porto from './internal/porto.js'
-import * as Provider_internal from './internal/provider.js'
 import type * as RpcSchema_internal from './internal/rpcSchema.js'
 import type { Compute, PartialBy } from './internal/types.js'
 
@@ -664,8 +664,8 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // execute prepared calls directly with Delegation.execute
         if (request.method === 'wallet_sendPreparedCalls') {
-          Provider_internal.requireParameter(nonce, 'nonce')
-          Provider_internal.requireParameter(signature, 'signature')
+          requireParameter(nonce, 'nonce')
+          requireParameter(signature, 'signature')
 
           const hash = await Delegation.execute(client, {
             account,
@@ -1081,4 +1081,14 @@ async function getAuthorizedExecuteKey(parameters: {
   )
 
   return sessionKey ?? adminKey
+}
+
+export function requireParameter(
+  param: unknown,
+  details: string,
+): asserts param is NonNullable<typeof param> {
+  if (typeof param === 'undefined')
+    throw new RpcResponse.InvalidParamsError({
+      message: `Missing required parameter: ${details}`,
+    })
 }
