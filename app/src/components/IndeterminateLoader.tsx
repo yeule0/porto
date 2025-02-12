@@ -1,7 +1,11 @@
 import { Spinner } from './Spinner'
 
 export function IndeterminateLoader(props: IndeterminateLoader.Props) {
-  const { title } = props
+  const {
+    title,
+    description = 'This will only take a few moments.',
+    hint = 'Please do not close the window.',
+  } = props
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -13,8 +17,8 @@ export function IndeterminateLoader(props: IndeterminateLoader.Props) {
       </div>
 
       <div className="mt-1.5 text-[15px] leading-[20px]">
-        <div className="text-primary">This will only take a few moments.</div>
-        <div className="text-secondary">Please do not close the window.</div>
+        <div className="text-primary">{description}</div>
+        {hint && <div className="text-secondary">{hint}</div>}
       </div>
     </div>
   )
@@ -22,6 +26,8 @@ export function IndeterminateLoader(props: IndeterminateLoader.Props) {
 
 export declare namespace IndeterminateLoader {
   type Props = {
+    description?: string
     title: string
+    hint?: string
   }
 }

@@ -2,10 +2,11 @@ import { type VariantProps, cva } from 'cva'
 import type * as React from 'react'
 
 export function Button(props: Button.Props) {
-  const { className, size, variant, asChild = false, ...rest } = props
+  const { className, disabled, size, variant, asChild = false, ...rest } = props
   return (
     <button
-      className={Button.className({ className, size, variant })}
+      className={Button.className({ className, disabled, size, variant })}
+      disabled={disabled}
       {...rest}
     />
   )
@@ -34,6 +35,9 @@ export namespace Button {
             'text-destructive bg-destructive hover:not-active:bg-destructiveHover',
           success: 'text-white bg-success hover:not-active:bg-successHover',
           warning: 'text-white bg-warning hover:not-active:bg-warningHover',
+        },
+        disabled: {
+          true: 'pointer-events-none opacity-50',
         },
         size: {
           default: 'h-button px-5 text-[15px]',
