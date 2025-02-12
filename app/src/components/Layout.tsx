@@ -62,10 +62,10 @@ export namespace Layout {
                 <Icon className="size-[18px] text-current" />
               </div>
             )}
-            <div className="font-medium text-[18px] text-gray12">{title}</div>
+            <div className="font-medium text-[18px] text-primary">{title}</div>
           </div>
 
-          <div className="mt-1.5 text-[15px] text-gray12 leading-[22px]">
+          <div className="mt-1.5 text-[15px] text-primary leading-[22px]">
             {content}
           </div>
         </div>
@@ -85,10 +85,10 @@ export namespace Layout {
         {
           variants: {
             variant: {
-              default: 'bg-blueA3 text-blue10',
-              primary: 'bg-blueA3 text-blue10',
-              warning: 'bg-amberA2 text-amber8',
-              destructive: 'bg-red3 text-red10',
+              default: 'bg-accentTint text-accent',
+              primary: 'bg-accentTint text-accent',
+              warning: 'bg-warningTint text-warning',
+              destructive: 'bg-destructive text-destructive',
             },
           },
           defaultVariants: {
@@ -146,11 +146,13 @@ export namespace Layout {
       const address = props.address ?? Hooks.useAccount(porto)?.address
       if (!address) return null
       return (
-        <div className="flex justify-between border-blackA1 border-t px-3 pt-3 dark:border-whiteA1">
-          <div className="text-[13px] text-gray9 leading-[22px]">Wallet</div>
+        <div className="flex justify-between border-primary border-t px-3 pt-3">
+          <div className="text-[13px] text-secondary leading-[22px]">
+            Wallet
+          </div>
 
           <div className="flex items-center gap-1.5">
-            <div className="font-medium text-[14px] text-gray12">
+            <div className="font-medium text-[14px] text-primary">
               {StringFormatter.truncate(address, { start: 6, end: 4 })}
             </div>
           </div>

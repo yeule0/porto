@@ -41,6 +41,29 @@ if (import.meta.hot)
     offRequests()
   })
 
+if (import.meta.env.DEV) {
+  let theme = 'system'
+  document.addEventListener('keydown', (event) => {
+    // ⌥ + 1: light/dark mode
+    if (event.altKey && event.code === 'Digit1') {
+      if (theme === 'system') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        theme = isDark ? 'dark' : 'light'
+      } else theme = theme === 'dark' ? 'light' : 'dark'
+
+      document.documentElement.classList.remove('scheme-light-dark')
+      document.documentElement.classList.remove('scheme-light')
+      if (theme === 'dark')
+        document.documentElement.classList.add('scheme-light')
+      else document.documentElement.classList.add('scheme-light-dark')
+    }
+
+    // ⌥ + 2: toggle dialog mode
+    if (event.altKey && event.code === 'Digit2')
+      document.documentElement.toggleAttribute('data-dialog')
+  })
+}
+
 declare module 'react' {
   interface CSSProperties {
     [key: `--${string}`]: string | number

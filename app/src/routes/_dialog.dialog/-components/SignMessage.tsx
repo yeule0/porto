@@ -28,12 +28,12 @@ export function SignMessage({ message }: SignMessage.Props) {
       </Layout.Header>
 
       <Layout.Content>
-        <div className="rounded-lg bg-gray3">
-          <div className="px-3 pt-2 font-medium text-[14px] text-gray10">
+        <div className="rounded-lg bg-surface">
+          <div className="px-3 pt-2 font-medium text-[14px] text-secondary">
             Message
           </div>
           <div className="max-h-[160px] overflow-scroll px-3 pb-2">
-            <pre className="whitespace-pre-wrap font-sans text-[14px] text-gray12">
+            <pre className="whitespace-pre-wrap font-sans text-[14px] text-primary">
               {message}
             </pre>
           </div>
@@ -53,7 +53,7 @@ export function SignMessage({ message }: SignMessage.Props) {
           <Button
             className="flex-grow"
             type="button"
-            variant="primary"
+            variant="accent"
             onClick={() => respond.mutate()}
           >
             Sign message
@@ -109,7 +109,7 @@ export namespace SignMessage {
             <Button
               className="flex-grow"
               type="button"
-              variant="primary"
+              variant="accent"
               onClick={() => respond.mutate()}
             >
               Approve

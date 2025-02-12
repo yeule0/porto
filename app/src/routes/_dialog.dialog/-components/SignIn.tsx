@@ -32,7 +32,7 @@ export function SignIn(props: SignIn.Props) {
           <Button
             className="flex-grow"
             type="button"
-            variant="primary"
+            variant="accent"
             onClick={onApprove}
           >
             Sign in

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html,
+:host {
+  background-color: var(--background-color-primary);
+}
+
 /* https://github.com/radix-ui/colors */
 /* biome-ignore format: <explanation> */
 @theme {
@@ -132,7 +137,47 @@
   --color-red10: light-dark(#dc3e42, #ec5d5e);
   --color-red11: light-dark(#ce2c31, #ff9592);
   --color-red12: light-dark(#641723, #ffd1d9);
+  
+  --background-color-accent: var(--color-blue9);
+  --background-color-accentHover: var(--color-blue10);
+  --background-color-accentTint: var(--color-blueA3);
+  --background-color-destructive: var(--color-red3);
+  --background-color-destructiveHover: var(--color-red4);
+  --background-color-destructiveTint: var(--color-red3);
+  --background-color-invert: light-dark(var(--color-black), var(--color-white));
+  --background-color-invertHover: light-dark(var(--color-blackA10), var(--color-whiteA10));
+  --background-color-primary: light-dark(var(--color-gray1), var(--color-gray2));
+  --background-color-secondary: light-dark(var(--color-gray2), var(--color-gray3));
+  --background-color-surface: var(--color-gray3);
+  --background-color-surfaceHover: var(--color-gray4);
+  --background-color-success: var(--color-green9);
+  --background-color-successHover: var(--color-green10);
+  --background-color-successTint: var(--color-green4);
+  --background-color-warning: var(--color-amber8);
+  --background-color-warningHover: var(--color-amber7);
+  --background-color-warningTint: var(--color-amberA2);
 
+  --border-color-primary: light-dark(var(--color-gray5), var(--color-gray4));
+  --border-color-surface: light-dark(var(--color-gray4), var(--color-gray5));
+
+  --text-color-accent: var(--color-blue10);
+  --text-color-destructive: var(--color-red10);
+  --text-color-invert: light-dark(var(--color-white), var(--color-black));
+  --text-color-primary: var(--color-gray12);
+  --text-color-secondary: var(--color-gray10);
+  --text-color-success: var(--color-green10);
+  --text-color-warning: var(--color-amber8);
+
+  --height-button: 42px;
+  
   --spacing-dialog: 360px;
   --spacing-titlebar: 36px;
+
+  --radius-default: calc(infinity * 1px);
+}
+
+[data-dialog] {
+  --height-button: 36px;
+
+  --radius-default: 8px;
 }

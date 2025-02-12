@@ -64,15 +64,15 @@ export function ActionRequest(props: ActionRequest.Props) {
 
       <Layout.Content>
         {simulate.status === 'pending' && (
-          <div className="space-y-2 rounded-lg bg-gray3 p-3">
+          <div className="space-y-2 rounded-lg bg-surface p-3">
             <div className="flex size-[24px] w-full items-center justify-center">
-              <Spinner className="text-gray10" />
+              <Spinner className="text-secondary" />
             </div>
           </div>
         )}
 
         {simulate.status === 'success' && (
-          <div className="space-y-3 rounded-lg bg-gray3 p-3">
+          <div className="space-y-3 rounded-lg bg-surface p-3">
             <div className="space-y-2">
               {balances.map((balance) => {
                 const { token, value } = balance
@@ -91,22 +91,24 @@ export function ActionRequest(props: ActionRequest.Props) {
                       className={cx(
                         'flex size-[24px] items-center justify-center rounded-full',
                         {
-                          'bg-green4': receiving,
-                          'bg-red4': !receiving,
+                          'bg-successTint': receiving,
+                          'bg-destructiveTint': !receiving,
                         },
                       )}
                     >
                       <Icon
                         className={cx('size-4 text-current', {
-                          'text-green10': receiving,
-                          'text-red10': !receiving,
+                          'text-success': receiving,
+                          'text-destructive': !receiving,
                         })}
                       />
                     </div>
                     <div>
                       {receiving ? 'Receive' : 'Send'}{' '}
                       <span
-                        className={receiving ? 'text-green10' : 'text-red10'}
+                        className={
+                          receiving ? 'text-success' : 'text-destructive'
+                        }
                       >
                         {formatted}
                       </span>{' '}
@@ -122,19 +124,21 @@ export function ActionRequest(props: ActionRequest.Props) {
             <div className="space-y-1">
               {/* TODO: Fees */}
               <div className="flex justify-between text-[14px]">
-                <span className="text-[14px] text-gray10">Fees (est.)</span>
+                <span className="text-[14px] text-secondary">Fees (est.)</span>
                 <span className="font-medium">$0.01</span>
               </div>
 
               {/* TODO: Duration */}
               <div className="flex justify-between text-[14px]">
-                <span className="text-[14px] text-gray10">Duration (est.)</span>
+                <span className="text-[14px] text-secondary">
+                  Duration (est.)
+                </span>
                 <span className="font-medium">2 seconds</span>
               </div>
 
               {/* TODO: Network */}
               <div className="flex justify-between text-[14px]">
-                <span className="text-[14px] text-gray10">Network</span>
+                <span className="text-[14px] text-secondary">Network</span>
                 <span className="font-medium">Odyssey Testnet</span>
               </div>
             </div>
@@ -142,9 +146,9 @@ export function ActionRequest(props: ActionRequest.Props) {
         )}
 
         {simulate.status === 'error' && (
-          <div className="rounded-lg bg-red3 px-3 py-2 text-red10">
+          <div className="rounded-lg bg-destructiveTint px-3 py-2 text-destructive">
             <div className="font-medium text-[14px]">Error</div>
-            <div className="text-[14px] text-gray12">
+            <div className="text-[14px] text-primary">
               An error occurred while simulating the action. Contact{' '}
               <span className="font-medium">{origin?.hostname}</span> for more
               information.

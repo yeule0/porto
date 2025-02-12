@@ -46,7 +46,7 @@ export function SignUp(props: SignUp.Props) {
           <Button
             className="flex-grow"
             type="button"
-            variant="primary"
+            variant="accent"
             onClick={() => onApprove({})}
           >
             Sign up
@@ -54,7 +54,7 @@ export function SignUp(props: SignUp.Props) {
         </Layout.Footer.Actions>
 
         <button
-          className="flex w-full cursor-pointer items-center justify-between border-blackA1 border-t px-3 pt-3 dark:border-whiteA1"
+          className="flex w-full cursor-pointer items-center justify-between border-primary border-t px-3 pt-3"
           onClick={() => setShowLearn(true)}
           type="button"
         >
@@ -64,7 +64,7 @@ export function SignUp(props: SignUp.Props) {
               Learn about passkeys
             </span>
           </div>
-          <div className="text-gray10">
+          <div className="text-secondary">
             <ChevronRight />
           </div>
         </button>
@@ -95,7 +95,7 @@ export namespace SignUp {
                   Passkeys let you sign in to your wallet in seconds. Passkeys
                   are the safest way to authenticate on the internet.
                 </div>
-                <div className="text-gray10">
+                <div className="text-secondary">
                   Your passkeys are protected by your device, browser, or
                   password manager like 1Password.
                 </div>

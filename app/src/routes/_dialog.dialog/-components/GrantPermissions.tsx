@@ -108,7 +108,7 @@ export function GrantSpendPermission(props: GrantSpendPermission.Props) {
         />
       </Layout.Header>
       <Layout.Content>
-        <div className="flex h-[40px] items-center justify-center gap-2 rounded-lg bg-gray3 p-2">
+        <div className="flex h-[40px] items-center justify-center gap-2 rounded-lg bg-surface p-2">
           {displayAmount || !token ? (
             <>
               <div className="mt-[2px]">
@@ -119,7 +119,7 @@ export function GrantSpendPermission(props: GrantSpendPermission.Props) {
               <div className="opacity-50">per {period}</div>
             </>
           ) : (
-            <Spinner className="text-gray10" />
+            <Spinner className="text-secondary" />
           )}
         </div>
       </Layout.Content>

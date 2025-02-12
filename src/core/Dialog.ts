@@ -74,6 +74,7 @@ export function iframe() {
         @media (min-width: 460px) {
           dialog iframe {
             animation: porto-fade-in-from-top 0.1s ease-in-out;
+            border-radius: 14px;
             top: 16px;
             inset-inline-end: calc(50% - ${width}px / 2);
             width: ${width}px;
