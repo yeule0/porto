@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+
 import { Button } from '../components/Button'
-import { Spinner } from '../components/Spinner'
 
 export const Route = createFileRoute('/playground')({
   component: RouteComponent,

@@ -6,7 +6,7 @@ export function Button(props: Button.Props) {
   return (
     <button
       className={Button.className({ className, disabled, size, variant })}
-      disabled={disabled}
+      disabled={disabled ?? false}
       {...rest}
     />
   )
@@ -16,7 +16,7 @@ export namespace Button {
   export const displayName = 'Button'
 
   export interface Props
-    extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'disabled'>,
       VariantProps<typeof className> {
     asChild?: boolean
   }
