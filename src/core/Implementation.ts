@@ -7,7 +7,6 @@ import * as PersonalMessage from 'ox/PersonalMessage'
 import * as Provider from 'ox/Provider'
 import * as PublicKey from 'ox/PublicKey'
 import * as RpcRequest from 'ox/RpcRequest'
-import * as RpcResponse from 'ox/RpcResponse'
 import * as RpcSchema from 'ox/RpcSchema'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as TypedData from 'ox/TypedData'
@@ -25,10 +24,11 @@ import * as Key from './internal/key.js'
 import * as Permissions from './internal/permissions.js'
 import * as PermissionsRequest from './internal/permissionsRequest.js'
 import type * as Porto from './internal/porto.js'
-import type * as RpcSchema_internal from './internal/rpcSchema.js'
+import type * as Rpc from './internal/typebox/rpc.js'
+import * as Schema from './internal/typebox/schema.js'
 import type { Compute, PartialBy } from './internal/types.js'
 
-type Request = RpcSchema.ExtractRequest<RpcSchema_porto.Schema>
+type Request = Rpc.parseRequest.ReturnType
 
 type ActionsInternal = Porto.Internal & {
   /** Viem Client. */
@@ -47,7 +47,7 @@ export type Implementation = {
       /** Label to associate with the WebAuthn credential. */
       label?: string | undefined
       /** Permissions to grant. */
-      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
+      permissions?: PermissionsRequest.PermissionsRequest | undefined
       /** Preparation signatures (from `prepareCreateAccount`). */
       signatures?: readonly Hex.Hex[] | undefined
     }) => Promise<{
@@ -62,8 +62,8 @@ export type Implementation = {
       calls: readonly Call.Call[]
       /** Viem Clients. */
       client: Client
-      /** RPC Request. */
-      request: Request
+      /** Internal properties. */
+      internal: ActionsInternal
     }) => Promise<{
       /** RPC Request. */
       request: unknown
@@ -92,7 +92,7 @@ export type Implementation = {
       /** Internal properties. */
       internal: ActionsInternal
       /** Permissions to grant. */
-      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
+      permissions?: PermissionsRequest.PermissionsRequest | undefined
     }) => Promise<{ key: Key.Key }>
 
     loadAccounts: (parameters: {
@@ -103,7 +103,7 @@ export type Implementation = {
       /** Internal properties. */
       internal: ActionsInternal
       /** Permissions to grant. */
-      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
+      permissions?: PermissionsRequest.PermissionsRequest | undefined
     }) => Promise<{
       /** Accounts. */
       accounts: readonly Account.Account[]
@@ -117,7 +117,7 @@ export type Implementation = {
       /** Internal properties. */
       internal: ActionsInternal
       /** Permissions to grant. */
-      permissions?: RpcSchema_internal.GrantPermissionsParameters | undefined
+      permissions?: PermissionsRequest.PermissionsRequest | undefined
     }) => Promise<{
       /** Filled context for the `createAccount` implementation. */
       context: unknown
@@ -536,14 +536,14 @@ export function dialog(parameters: dialog.Parameters = {}) {
     actions: {
       async createAccount(parameters) {
         const { internal } = parameters
-        const { client, store, request } = internal
+        const { client, request, store } = internal
 
         const provider = getProvider(store)
 
         const account = await (async () => {
           if (request.method === 'experimental_createAccount') {
             // Extract the capabilities from the request.
-            const [{ context, signatures }] = request.params ?? [{}]
+            const [{ context, signatures }] = request._decoded.params ?? [{}]
 
             // If the context and signatures are provided, we can create
             // the account without sending a request to the dialog.
@@ -567,7 +567,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
           if (request.method === 'wallet_connect') {
             // Extract the capabilities from the request.
-            const [{ capabilities }] = request.params ?? [{}]
+            const [{ capabilities }] = request._decoded.params ?? [{}]
 
             // Parse the authorize key into a structured key.
             const key = await PermissionsRequest.toKey(
@@ -575,8 +575,11 @@ export function dialog(parameters: dialog.Parameters = {}) {
             )
 
             // Convert the key into a permission.
-            const permissions = key
-              ? PermissionsRequest.fromKey(key)
+            const permissionsRequest = key
+              ? Schema.Encode(
+                  PermissionsRequest.Schema,
+                  PermissionsRequest.fromKey(key),
+                )
               : undefined
 
             // Send a request off to the dialog to create an account.
@@ -586,7 +589,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 {
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    grantPermissions: permissions ? permissions : undefined,
+                    grantPermissions: permissionsRequest,
                   },
                 },
               ],
@@ -599,7 +602,9 @@ export function dialog(parameters: dialog.Parameters = {}) {
             const keys = account.capabilities?.permissions?.map(
               (permission) => {
                 if (permission.id === key?.publicKey) return key
-                return Permissions.toKey(permission)
+                return Permissions.toKey(
+                  Schema.Decode(Permissions.Schema, permission),
+                )
               },
             )
 
@@ -660,18 +665,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         if (request.method === 'wallet_sendCalls')
           // Send calls request to the dialog.
-          return (await provider.request(request)) as Hex.Hex
+          return await provider.request(request)
 
         // execute prepared calls directly with Delegation.execute
         if (request.method === 'wallet_sendPreparedCalls') {
-          requireParameter(nonce, 'nonce')
-          requireParameter(signature, 'signature')
-
           const hash = await Delegation.execute(client, {
             account,
             calls,
-            nonce,
-            signatures: [signature],
+            nonce: nonce!,
+            signatures: [signature!],
           })
 
           return hash
@@ -682,20 +684,23 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
       async grantPermissions(parameters) {
         const { internal } = parameters
-        const { store, request } = internal
+        const { request, store } = internal
 
         if (request.method !== 'experimental_grantPermissions')
           throw new Error(
             'Cannot grant permissions for method: ' + request.method,
           )
 
-        const [{ address, ...permissions }] = request.params
+        const [{ address, ...permissions }] = request._decoded.params
 
         // Parse permissions request into a structured key.
         const key = await PermissionsRequest.toKey(permissions)
         if (!key) throw new Error('no key found.')
 
-        const permissionsRequest = PermissionsRequest.fromKey(key)
+        const permissionsRequest = Schema.Encode(
+          PermissionsRequest.Schema,
+          PermissionsRequest.fromKey(key),
+        )
 
         // Send a request off to the dialog to grant the permissions.
         const provider = getProvider(store)
@@ -720,7 +725,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
           }
 
           if (request.method === 'wallet_connect') {
-            const [{ capabilities }] = request.params ?? [{}]
+            const [{ capabilities }] = request._decoded.params ?? [{}]
 
             // Parse provided (RPC) key into a structured key.
             const key = await PermissionsRequest.toKey(
@@ -728,8 +733,11 @@ export function dialog(parameters: dialog.Parameters = {}) {
             )
 
             // Convert the key into a permissions request.
-            const permissions = key
-              ? PermissionsRequest.fromKey(key)
+            const permissionsRequest = key
+              ? Schema.Encode(
+                  PermissionsRequest.Schema,
+                  PermissionsRequest.fromKey(key),
+                )
               : undefined
 
             // Send a request to the dialog.
@@ -740,7 +748,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                   ...request.params?.[0],
                   capabilities: {
                     ...request.params?.[0]?.capabilities,
-                    grantPermissions: permissions,
+                    grantPermissions: permissionsRequest,
                   },
                 },
               ],
@@ -750,7 +758,9 @@ export function dialog(parameters: dialog.Parameters = {}) {
               const keys = account.capabilities?.permissions?.map(
                 (permission) => {
                   if (permission.id === key?.publicKey) return key
-                  return Permissions.toKey(permission)
+                  return Permissions.toKey(
+                    Schema.Decode(Permissions.Schema, permission),
+                  )
                 },
               )
 
@@ -950,7 +960,7 @@ async function prepareCreateAccount(parameters: {
   client: Client
   label?: string | undefined
   keystoreHost?: string | undefined
-  permissions: RpcSchema_internal.GrantPermissionsParameters | undefined
+  permissions: PermissionsRequest.PermissionsRequest | undefined
 }) {
   const { address, client, keystoreHost, permissions } = parameters
 
@@ -1081,14 +1091,4 @@ async function getAuthorizedExecuteKey(parameters: {
   )
 
   return sessionKey ?? adminKey
-}
-
-export function requireParameter(
-  param: unknown,
-  details: string,
-): asserts param is NonNullable<typeof param> {
-  if (typeof param === 'undefined')
-    throw new RpcResponse.InvalidParamsError({
-      message: `Missing required parameter: ${details}`,
-    })
 }

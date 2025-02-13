@@ -1,23 +1,20 @@
 import * as Mipd from 'mipd'
-import type { RpcSchema } from 'ox'
 import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as ox_Provider from 'ox/Provider'
-import * as RpcResponse from 'ox/RpcResponse'
 
 import type * as Chains from '../Chains.js'
-import type * as Delegation from '../Delegation.js'
 import * as Porto from '../Porto.js'
-import type * as Schema from '../RpcSchema.js'
+import type * as RpcSchema from '../RpcSchema.js'
 import * as Account from './account.js'
-import type * as Call from './call.js'
 import * as Key from './key.js'
 import * as Permissions from './permissions.js'
-import type * as Schema_internal from './rpcSchema.js'
+import * as Rpc from './typebox/rpc.js'
+import * as Schema from './typebox/schema.js'
 
 export type Provider = ox_Provider.Provider<{
   includeEvents: true
-  schema: Schema.Schema
+  schema: RpcSchema.Schema
 }> & {
   /**
    * Not part of versioned API, proceed with caution.
@@ -47,7 +44,19 @@ export function from<
   const provider = ox_Provider.from({
     ...emitter,
     async request(request_) {
-      const request = request_ as RpcSchema.ExtractRequest<Schema.Schema>
+      let request: Rpc.parseRequest.ReturnType
+      try {
+        request = Rpc.parseRequest(request_)
+      } catch (e) {
+        const unsupportedCode = 62
+        if ((e as any).error?.type !== unsupportedCode) throw e
+
+        // catch unsupported methods
+        if ((request_ as { method: string }).method.startsWith('wallet_'))
+          throw new ox_Provider.UnsupportedMethodError()
+        return getClient().request(request_ as any)
+      }
+
       const state = store.getState()
 
       switch (request.method) {
@@ -56,23 +65,20 @@ export function from<
             throw new ox_Provider.DisconnectedError()
           return state.accounts.map(
             (account) => account.address,
-          ) satisfies RpcSchema.ExtractReturnType<Schema.Schema, 'eth_accounts'>
+          ) satisfies Schema.Static<typeof Rpc.eth_accounts.ReturnType>
         }
 
         case 'eth_chainId': {
-          return Hex.fromNumber(
-            state.chain.id,
-          ) satisfies RpcSchema.ExtractReturnType<Schema.Schema, 'eth_chainId'>
+          return Hex.fromNumber(state.chain.id) satisfies Schema.Static<
+            typeof Rpc.eth_chainId.ReturnType
+          >
         }
 
         case 'eth_requestAccounts': {
           if (state.accounts.length > 0)
             return state.accounts.map(
               (account) => account.address,
-            ) satisfies RpcSchema.ExtractReturnType<
-              Schema.Schema,
-              'eth_requestAccounts'
-            >
+            ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.ReturnType>
 
           const client = getClient()
 
@@ -93,26 +99,20 @@ export function from<
 
           return accounts.map(
             (account) => account.address,
-          ) satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'eth_requestAccounts'
-          >
+          ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.ReturnType>
         }
 
         case 'eth_sendTransaction': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ chainId, data = '0x', from, to, value = '0x0' }] =
-            request.params
+          const [{ chainId, data = '0x', from, to, value }] =
+            request._decoded.params
 
           const client = getClient(chainId)
 
-          if (chainId && Hex.toNumber(chainId) !== client.chain.id)
+          if (chainId && chainId !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
-
-          requireParameter(to, 'to')
-          requireParameter(from, 'from')
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, from),
@@ -125,7 +125,7 @@ export function from<
               {
                 data,
                 to,
-                value: Hex.toBigInt(value),
+                value,
               },
             ],
             internal: {
@@ -136,9 +136,8 @@ export function from<
             },
           })
 
-          return hash satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'eth_sendTransaction'
+          return hash satisfies Schema.Static<
+            typeof Rpc.eth_sendTransaction.ReturnType
           >
         }
 
@@ -146,7 +145,7 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [address, data] = request.params
+          const [address, data] = request._decoded.params
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, address),
@@ -166,9 +165,8 @@ export function from<
             },
           })
 
-          return signature satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'eth_signTypedData_v4'
+          return signature satisfies Schema.Static<
+            typeof Rpc.eth_signTypedData_v4.ReturnType
           >
         }
 
@@ -176,9 +174,8 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, chainId, ...permissions }] = request.params ?? [{}]
-
-          assertPermissions(permissions)
+          const [{ address, chainId, ...permissions }] = request._decoded
+            .params ?? [{}]
 
           const account = address
             ? state.accounts.find((account) =>
@@ -222,18 +219,19 @@ export function from<
             type: 'permissionsChanged',
           })
 
-          return Permissions.fromKey(key, {
-            address: account.address,
-          }) satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'experimental_grantPermissions'
+          return Schema.Encode(
+            Permissions.Schema,
+            Permissions.fromKey(key, {
+              address: account.address,
+            }),
+          ) satisfies Schema.Static<
+            typeof Rpc.experimental_grantPermissions.ReturnType
           >
         }
 
         case 'experimental_createAccount': {
-          const [{ chainId, label, context, signatures }] = request.params ?? [
-            {},
-          ]
+          const [{ chainId, label, context, signatures }] = request._decoded
+            .params ?? [{}]
 
           const client = getClient(chainId)
 
@@ -263,19 +261,16 @@ export function from<
             capabilities: {
               ...(permissions.length > 0 ? { permissions } : {}),
             },
-          } satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'experimental_createAccount'
+          } satisfies Schema.Static<
+            typeof Rpc.experimental_createAccount.ReturnType
           >
         }
 
         case 'experimental_prepareCreateAccount': {
-          const [{ address, capabilities, chainId, label }] =
-            request.params ?? [{}]
+          const [{ address, capabilities, chainId, label }] = request._decoded
+            .params ?? [{}]
 
           const { grantPermissions: permissions } = capabilities ?? {}
-
-          if (permissions) assertPermissions(permissions)
 
           const client = getClient(chainId)
 
@@ -294,10 +289,9 @@ export function from<
 
           return {
             context,
-            signPayloads,
-          } satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'experimental_prepareCreateAccount'
+            signPayloads: signPayloads.map((x) => x as never),
+          } satisfies Schema.Static<
+            typeof Rpc.experimental_prepareCreateAccount.ReturnType
           >
         }
 
@@ -305,7 +299,7 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address }] = request.params ?? [{}]
+          const [{ address }] = request._decoded.params ?? [{}]
 
           const account = address
             ? state.accounts.find((account) =>
@@ -322,7 +316,7 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, id }] = request.params
+          const [{ address, id }] = request._decoded.params
 
           const account = address
             ? state.accounts.find((account) =>
@@ -369,9 +363,8 @@ export function from<
         }
 
         case 'porto_ping': {
-          return 'pong' satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'porto_ping'
+          return 'pong' satisfies Schema.Static<
+            typeof Rpc.porto_ping.ReturnType
           >
         }
 
@@ -379,7 +372,7 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [data, address] = request.params
+          const [data, address] = request._decoded.params
 
           const account = state.accounts.find((account) =>
             Address.isEqual(account.address, address),
@@ -399,21 +392,18 @@ export function from<
             },
           })
 
-          return signature satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'personal_sign'
+          return signature satisfies Schema.Static<
+            typeof Rpc.personal_sign.ReturnType
           >
         }
 
         case 'wallet_connect': {
-          const [{ capabilities }] = request.params ?? [{}]
+          const [{ capabilities }] = request._decoded.params ?? [{}]
 
           const client = getClient()
 
           const { createAccount, grantPermissions: permissions } =
             capabilities ?? {}
-
-          if (permissions) assertPermissions(permissions)
 
           const internal = {
             client,
@@ -485,10 +475,7 @@ export function from<
                   : [],
               },
             })),
-          } satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_connect'
-          >
+          } satisfies Schema.Static<typeof Rpc.wallet_connect.ReturnType>
         }
 
         case 'wallet_disconnect': {
@@ -498,7 +485,7 @@ export function from<
         }
 
         case 'wallet_getCallsStatus': {
-          const [id] = request.params ?? []
+          const [id] = request._decoded.params ?? []
 
           const client = getClient()
 
@@ -511,10 +498,7 @@ export function from<
           return {
             receipts: [receipt],
             status: 'CONFIRMED',
-          } satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_getCallsStatus'
-          >
+          } satisfies Schema.Static<typeof Rpc.wallet_getCallsStatus.ReturnType>
         }
 
         case 'wallet_getCapabilities': {
@@ -534,15 +518,14 @@ export function from<
           for (const chain of config.chains)
             capabilities[Hex.fromNumber(chain.id)] = value
 
-          return capabilities satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_getCapabilities'
+          return capabilities satisfies Schema.Static<
+            typeof Rpc.wallet_getCapabilities.ReturnType
           >
         }
 
         case 'wallet_prepareCalls': {
-          const [parameters] = request.params
-          const { chainId, from, version = '1.0' } = parameters
+          const [parameters] = request._decoded.params
+          const { calls, chainId, from, version = '1.0' } = parameters
 
           const client = getClient(chainId)
 
@@ -553,48 +536,39 @@ export function from<
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          if (chainId && Hex.toNumber(chainId) !== client.chain.id)
+          if (chainId && chainId !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
-
-          const calls = parameters.calls.map((x) => {
-            requireParameter(x, 'to')
-            return x
-          }) as Call.Call[]
 
           const { signPayloads, request: context } =
             await implementation.actions.prepareExecute({
               calls,
               client,
-              request,
+              internal: {
+                client,
+                config,
+                request,
+                store,
+              },
               account: Account.from(account),
             })
 
           return {
-            chainId,
+            chainId: chainId ? Hex.fromNumber(chainId) : undefined,
             version,
-            context,
+            context: context as never,
             digest: signPayloads[0]!,
-          } satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_prepareCalls'
-          >
+          } satisfies Schema.Static<typeof Rpc.wallet_prepareCalls.ReturnType>
         }
 
         case 'wallet_sendPreparedCalls': {
-          const [parameters] = request.params
+          const [parameters] = request._decoded.params
           const { signature, chainId } = parameters
-          const context =
-            parameters.context as Delegation.prepareExecute.ReturnType['request']
+          const { account, calls, nonce } = parameters.context
 
           const client = getClient(chainId)
 
           if (chainId && Hex.toNumber(chainId) !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
-
-          const calls = context.calls.map((x) => {
-            requireParameter(x, 'to')
-            return x
-          }) as Call.Call[]
 
           const wrappedSignature = Key.wrapSignature(signature.value, {
             keyType: signature.type as never,
@@ -602,9 +576,9 @@ export function from<
           })
 
           const hash = await implementation.actions.execute({
-            account: context.account,
+            account,
             calls,
-            nonce: context.nonce,
+            nonce,
             signature: wrappedSignature,
             internal: {
               client,
@@ -614,9 +588,8 @@ export function from<
             },
           })
 
-          return [{ id: hash }] satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_sendPreparedCalls'
+          return [{ id: hash }] satisfies Schema.Static<
+            typeof Rpc.wallet_sendPreparedCalls.ReturnType
           >
         }
 
@@ -624,12 +597,12 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [parameters] = request.params
-          const { capabilities, chainId, from } = parameters
+          const [parameters] = request._decoded.params
+          const { calls, capabilities, chainId, from } = parameters
 
           const client = getClient(chainId)
 
-          if (chainId && Hex.toNumber(chainId) !== client.chain.id)
+          if (chainId && chainId !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
           const account = from
@@ -638,11 +611,6 @@ export function from<
               )
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
-
-          const calls = parameters.calls.map((x) => {
-            requireParameter(x, 'to')
-            return x
-          }) as Call.Call[]
 
           const hash = await implementation.actions.execute({
             account,
@@ -656,16 +624,9 @@ export function from<
             },
           })
 
-          return hash satisfies RpcSchema.ExtractReturnType<
-            Schema.Schema,
-            'wallet_sendCalls'
+          return hash satisfies Schema.Static<
+            typeof Rpc.wallet_sendCalls.ReturnType
           >
-        }
-
-        default: {
-          if (request.method.startsWith('wallet_'))
-            throw new ox_Provider.UnsupportedMethodError()
-          return getClient().request(request as any)
         }
       }
     },
@@ -736,35 +697,17 @@ function getActivePermissions(
   {
     address,
     chainId,
-  }: { address: Address.Address; chainId?: Hex.Hex | undefined },
-): Schema_internal.PermissionsReturnType {
+  }: { address: Address.Address; chainId?: number | undefined },
+): Schema.Static<typeof Rpc.experimental_permissions.ReturnType> {
   return keys
     .map((key) => {
       if (key.role !== 'session') return undefined
       if (key.expiry > 0 && key.expiry < BigInt(Math.floor(Date.now() / 1000)))
         return undefined
-      return Permissions.fromKey(key, { address, chainId })
+      return Schema.Encode(
+        Permissions.Schema,
+        Permissions.fromKey(key, { address, chainId }),
+      )
     })
     .filter(Boolean) as never
-}
-
-export function requireParameter(
-  param: unknown,
-  details: string,
-): asserts param is NonNullable<typeof param> {
-  if (typeof param === 'undefined')
-    throw new RpcResponse.InvalidParamsError({
-      message: `Missing required parameter: ${details}`,
-    })
-}
-
-function assertPermissions(
-  permission: Schema_internal.GrantPermissionsParameters,
-) {
-  if (!permission.expiry) throw new Error('expiry is required.')
-  if (
-    !permission.permissions ||
-    Object.keys(permission.permissions).length === 0
-  )
-    throw new Error('permissions are required.')
 }
