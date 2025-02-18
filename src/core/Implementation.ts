@@ -995,7 +995,7 @@ async function prepareCreateAccount(parameters: {
 
 function getAuthorizeCalls(keys: readonly Key.Key[]): readonly Call.Call[] {
   return keys.flatMap((key) => {
-    const { permissions } = key
+    const { permissions, role } = key
 
     const permissionCalls: Call.Call[] = []
 
@@ -1024,6 +1024,12 @@ function getAuthorizeCalls(keys: readonly Key.Key[]): readonly Call.Call[] {
         ...permissions.spend.map((spend) =>
           Call.setSpendLimit({ key, ...spend }),
         ),
+      )
+    // If no spend limits are provided for a session, set a default of 0
+    // (account cannot spend ERC20, ERC721, ETH, etc).
+    else if (role === 'session')
+      permissionCalls.push(
+        Call.setSpendLimit({ key, limit: 0n, period: 'year' }),
       )
 
     // Set authorized contracts for signature verification.

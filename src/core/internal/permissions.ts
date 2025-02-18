@@ -20,7 +20,7 @@ export function fromKey(key: Key.Key, options: fromKey.Options): Permissions {
       publicKey,
       type,
     },
-    permissions: permissions ?? {},
+    permissions: (permissions ?? {}) as never,
   }
 }
 

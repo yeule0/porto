@@ -17,7 +17,7 @@ export function fromKey(key: Key.Key): PermissionsRequest {
       publicKey,
       type,
     },
-    permissions: permissions ?? {},
+    permissions: (permissions ?? {}) as never,
   }
 }
 

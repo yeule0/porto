@@ -232,6 +232,7 @@ describe('experimental_grantPermissions', () => {
               type: 'contract',
             },
             permissions: {
+              calls: [{ signature: 'mint()' }],
               spend: [
                 {
                   limit: Hex.fromNumber(Value.fromEther('1.5')),
@@ -255,6 +256,11 @@ describe('experimental_grantPermissions', () => {
             "type": "secp256k1",
           },
           "permissions": {
+            "calls": [
+              {
+                "signature": "mint()",
+              },
+            ],
             "spend": [
               {
                 "limit": "0x14d1120d7b160000",
@@ -304,6 +310,11 @@ describe('experimental_grantPermissions', () => {
           "canSign": false,
           "expiry": null,
           "permissions": {
+            "calls": [
+              {
+                "signature": "mint()",
+              },
+            ],
             "spend": [
               {
                 "limit": 1500000000000000000n,
@@ -340,6 +351,7 @@ describe('experimental_grantPermissions', () => {
           },
           expiry: 9999999999,
           permissions: {
+            calls: [{ signature: 'mint()' }],
             signatureVerification: {
               addresses: ['0xb3030d74b87321d620f2d0cdf3f97cc4598b9248'],
             },
@@ -390,16 +402,18 @@ describe('experimental_grantPermissions', () => {
                 '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
               type: 'p256',
             },
-            permissions: {},
+            permissions: {
+              calls: [],
+            },
           },
         ],
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       `
-      [RpcResponse.InvalidParamsError: Expected object to have at least 1 properties
+      [RpcResponse.InvalidParamsError: Expected array length to be greater or equal to 1
 
-      Path: params.0.permissions
-      Value: {}]
+      Path: params.0.permissions.calls
+      Value: []]
     `,
     )
   })
@@ -469,6 +483,7 @@ describe('experimental_permissions', () => {
         {
           expiry: 9999999999,
           permissions: {
+            calls: [{ signature: 'mint()' }],
             spend: [
               {
                 limit: Hex.fromNumber(Value.fromEther('1.5')),
@@ -861,7 +876,9 @@ describe('wallet_connect', () => {
               createAccount: true,
               grantPermissions: {
                 expiry: 9999999,
-                permissions: {},
+                permissions: {
+                  calls: [],
+                },
               },
             },
           },
@@ -869,10 +886,10 @@ describe('wallet_connect', () => {
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       `
-      [RpcResponse.InvalidParamsError: Expected object to have at least 1 properties
+      [RpcResponse.InvalidParamsError: Expected array length to be greater or equal to 1
 
-      Path: params.0.capabilities.grantPermissions.permissions
-      Value: {}]
+      Path: params.0.capabilities.grantPermissions.permissions.calls
+      Value: []]
     `,
     )
   })
@@ -962,6 +979,7 @@ describe('wallet_sendCalls', () => {
           expiry: 9999999999,
           permissions: {
             calls: [{ to: alice }],
+            spend: [{ limit: Hex.fromNumber(69420), period: 'day' }],
           },
         },
       ],
@@ -1012,6 +1030,7 @@ describe('wallet_sendCalls', () => {
           expiry: 9999999999,
           permissions: {
             calls: [{ to: '0x0000000000000000000000000000000000000000' }],
+            spend: [{ limit: Hex.fromNumber(69420), period: 'day' }],
           },
         },
       ],
@@ -1060,6 +1079,7 @@ describe('wallet_sendCalls', () => {
         {
           expiry: 9999999999,
           permissions: {
+            calls: [{ to: alice }],
             spend: [
               {
                 limit: Hex.fromNumber(69420),
@@ -1135,6 +1155,7 @@ describe('wallet_sendCalls', () => {
           expiry: 9999999999,
           permissions: {
             calls: [{ to: alice }],
+            spend: [{ limit: Hex.fromNumber(69420 * 3), period: 'day' }],
           },
         },
       ],

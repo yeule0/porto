@@ -18,21 +18,20 @@ export const Permissions = Type.Object({
   }),
   permissions: Type.Object(
     {
-      calls: Schema.Optional(
-        Type.Array(
-          Type.Union([
-            Type.Object({
-              signature: Type.String(),
-              to: Primitive.Address,
-            }),
-            Type.Object({
-              signature: Type.String(),
-            }),
-            Type.Object({
-              to: Primitive.Address,
-            }),
-          ]),
-        ),
+      calls: Type.Array(
+        Type.Union([
+          Type.Object({
+            signature: Type.String(),
+            to: Primitive.Address,
+          }),
+          Type.Object({
+            signature: Type.String(),
+          }),
+          Type.Object({
+            to: Primitive.Address,
+          }),
+        ]),
+        { minItems: 1 },
       ),
       signatureVerification: Schema.Optional(
         Type.Object({
