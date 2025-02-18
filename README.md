@@ -195,6 +195,8 @@ const address = await porto.provider.request({
 
 Grants permissions for an Application to perform actions on behalf of the account.
 
+Applications MUST provide at least one spend permission and one scoped call permission.
+
 > Alternative to the draft [ERC-7715](https://github.com/ethereum/ERCs/blob/23fa3603c6181849f61d219f75e8a16d6624ac60/ERCS/erc-7715.md) specification with a tighter API. We hope to upstream concepts from this method and eventually use ERC-7715 or similar.
 
 #### Request
@@ -223,11 +225,22 @@ type Request = {
     // Permissions to grant.
     permissions: {
       // Call permissions.
-      calls?: {
-        // Function signature or 4-byte selector.
+      calls: {
+        // Function signature or 4-byte signature.
         signature?: string
         // Authorized target address.
         to?: `0x${string}`
+      }[],
+
+      // Spend permissions.
+      spend: {
+        // Spending limit (in wei) per period.
+        limit: `0x${string}`,
+        // Period of the spend limit.
+        period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+        // ERC20 token to set the limit on. 
+        // If not provided, the limit will be set on the native token (e.g. ETH).
+        token?: `0x${string}`
       }[],
 
       // ERC-1271 verification permissions.
@@ -236,17 +249,6 @@ type Request = {
         // account's ERC-1271 `isValidSignature` function.
         addresses: readonly `0x${string}`[]
       },
-
-      // Spend permissions.
-      spend?: {
-        // Spending limit (in wei) per period.
-        limit: `0x${string}`,
-        // Period of the spend limit.
-        period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-        // ERC20 token to set the limit on. 
-        // If not provided, the limit will be set on the native token (e.g. ETH).
-        token?: `0x${string}`
-      }[]
     },
   }]
 }
@@ -265,18 +267,18 @@ type Response = {
     type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
   },
   permissions: {
-    calls?: {
+    calls: {
       signature?: string,
       to?: `0x${string}`,
     }[],
-    signatureVerification?: {
-      addresses: `0x${string}`[]
-    },
-    spend?: {
+    spend: {
       limit: `0x${string}`,
       period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year',
       token?: `0x${string}`,
     }[],
+    signatureVerification?: {
+      addresses: `0x${string}`[]
+    },
   },
 }
 ```
@@ -289,6 +291,7 @@ const permissions = await porto.provider.request({
   method: 'experimental_grantPermissions',
   params: [{
     permissions: {
+      calls: [{ signature: 'subscribe()' }],
       spend: [{
         limit: '0x5f5e100', // 100 USDC,
         period: 'day',
@@ -303,6 +306,7 @@ const permissions = await porto.provider.request({
   method: 'experimental_grantPermissions',
   params: [{
     permissions: {
+      calls: [{ signature: 'foo()' }],
       signatureVerification: {
         addresses: ['0xb3030d74b87321d620f2d0cdf3f97cc4598b9248'],
       },
@@ -363,18 +367,18 @@ type Response = {
     type: 'contract' | 'p256' | 'secp256k1' | 'webauthn-p256',
   },
   permissions: {
-    calls?: {
+    calls: {
       signature?: string
       to?: `0x${string}`
-    }[]
-    signatureVerification?: {
-      addresses: `0x${string}`[]
-    },
-    spend?: {
+    }[],
+    spend: {
       limit: bigint
       period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
       token?: `0x${string}`
-    }[]
+    }[],
+    signatureVerification?: {
+      addresses: `0x${string}`[]
+    },
   }
   publicKey: `0x${string}`, 
   type: 'p256' | 'secp256k1' | 'webauthn-p256' 
@@ -438,18 +442,18 @@ type Request = {
           type?: 'p256' | 'secp256k1' | 'webauthn-p256'
         },
         permissions: {
-          calls?: {
+          calls: {
             signature?: string
             to?: `0x${string}`
-          }[]
-          signatureVerification?: {
-            addresses: `0x${string}`[]
-          },
-          spend?: {
+          }[],
+          spend: {
             limit: bigint
             period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
             token?: `0x${string}`
-          }[]
+          }[],
+          signatureVerification?: {
+            addresses: `0x${string}`[]
+          },
         }
       },
     } 
@@ -572,6 +576,7 @@ Example:
       grantPermissions: {
         expiry: 1727078400,
         permissions: {
+          calls: [{ signature: 'subscribe()' }],
           spend: [{
             limit: '0x5f5e100', // 100 USDC
             period: 'day',
@@ -600,6 +605,9 @@ Example:
           type: 'p256' 
         },
         permissions: {
+          calls: [{
+            signature: 'subscribe()',
+          }],
           spend: [{
             limit: '0x5f5e100', // 100 USDC
             period: 'day',
