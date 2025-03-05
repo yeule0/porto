@@ -52,7 +52,7 @@ import { Porto } from 'porto'
 
 const { provider } = Porto.create()
 
-const permissions = await provider.request({
-  method: 'experimental_permissions',
-})
+const permissions = await provider.request({ // [!code focus]
+  method: 'experimental_permissions', // [!code focus]
+}) // [!code focus]
 ```

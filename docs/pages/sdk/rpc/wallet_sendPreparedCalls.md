@@ -78,5 +78,5 @@ const response = await provider.request({ // [!code focus]
       value: Signature.toHex(signature), // [!code focus]
     } // [!code focus]
   }] // [!code focus]
-})
+}) // [!code focus]
 ```

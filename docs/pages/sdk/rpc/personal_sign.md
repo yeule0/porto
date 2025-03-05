@@ -31,11 +31,11 @@ import { Porto } from 'porto'
 
 const { provider } = Porto.create()
 
-const signature = await provider.request({
-  method: 'personal_sign',
+const signature = await provider.request({ // [!code focus]
+  method: 'personal_sign', // [!code focus]
   params: [ // [!code focus]
     '0xcafebabe', // [!code focus]
     '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef', // [!code focus]
-  ],
+  ], // [!code focus]
 }) // [!code focus]
 ```

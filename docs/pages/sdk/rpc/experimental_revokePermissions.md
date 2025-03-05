@@ -23,8 +23,8 @@ import { Porto } from 'porto'
 
 const { provider } = Porto.create()
 
-await provider.request({
-  method: 'experimental_revokePermissions',
-  params: [{ id: '0x...' }],
-})
+await provider.request({ // [!code focus]
+  method: 'experimental_revokePermissions', // [!code focus]
+  params: [{ id: '0x...' }], // [!code focus]
+}) // [!code focus]
 ```

@@ -75,13 +75,13 @@ import { Porto } from 'porto'
 
 const { provider } = Porto.create()
 
-const response = await provider.request({
-  method: 'wallet_prepareCalls',
-  params: [{
-    calls: [{
-      to: '0xcafebabecafebabecafebabecafebabecafebabe',
-      value: '0x12345678',
-    }],
-  }]
-})
+const response = await provider.request({ // [!code focus]
+  method: 'wallet_prepareCalls', // [!code focus]
+  params: [{ // [!code focus]
+    calls: [{ // [!code focus]
+      to: '0xcafebabecafebabecafebabecafebabecafebabe', // [!code focus]
+      value: '0x12345678', // [!code focus]
+    }], // [!code focus]
+  }] // [!code focus]
+}) // [!code focus]
 ``` 
