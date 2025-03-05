@@ -113,6 +113,7 @@ export function iframe() {
         to: Messenger.fromWindow(iframe.contentWindow!, {
           targetOrigin: hostUrl.origin,
         }),
+        waitForReady: true,
       })
 
       messenger.on('ready', () => {
