@@ -1,5 +1,6 @@
 packages:
   - 'app'
+  - 'demo'
   - 'docs'
   - 'examples/*'
   - 'extension'
@@ -7,7 +8,7 @@ packages:
   - 'src'
 
 catalog:
-  "@tanstack/react-query": "^5.59.20"
+  "@tanstack/react-query": "^5.65.1"
   "@types/react": "^19"
   "@types/react-dom": "^19"
   "@wagmi/core": "^2.16.3"
@@ -18,4 +19,4 @@ catalog:
   tailwindcss: "^4"
   typescript: "^5.7.3"
   viem: "^2.23.1"
-  wagmi: "^2.14.9"
+  wagmi: "^2.14.11"
