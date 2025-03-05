@@ -5,6 +5,21 @@ import { parseEther, toHex } from 'viem'
 
 Requests to connect account(s) with optional capabilities.
 
+<TryItOut
+  exampleSlug="#example"
+  fn={async ({ provider }) => {
+    const accounts = await provider.request({
+      method: 'wallet_connect',
+    })
+
+    return accounts
+  }}
+  requireConnection={false}
+  transformResultCode={(code) => {
+    return 'const response = ' + code
+  }}
+/>
+
 ## Request
 
 ```ts

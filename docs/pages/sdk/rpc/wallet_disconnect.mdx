@@ -4,6 +4,15 @@ import { TryItOut } from '../../../components/TryItOut'
 
 Disconnects the Application from Porto.
 
+<TryItOut
+  exampleSlug="#example"
+  fn={async ({ provider }) => {
+    await provider.request({
+      method: 'wallet_disconnect',
+    })
+  }}
+/>
+
 ## Request
 
 ```ts

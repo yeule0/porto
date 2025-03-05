@@ -9,6 +9,41 @@ Instructs the Wallet to broadcast a transaction to the network.
 This method is deprecated and exists for compatibility. Please [use `wallet_sendCalls` instead](/sdk/rpc/wallet_sendCalls).
 :::
 
+<TryItOut
+  exampleSlug="#mint-erc20-tokens"
+  fn={async ({ provider }) => {
+    const exp = {
+      address: '0x706aa5c8e5cc2c67da21ee220718f6f6b154e75c',
+      abi: parseAbi([
+        'function mint(address, uint256)',
+      ]),
+    }
+
+    const [account] = await provider.request({
+      method: 'eth_accounts',
+    })
+
+    const hash = await provider.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: account,
+        // @ts-expect-error
+        to: exp.address,
+        data: encodeFunctionData({
+          abi: exp.abi,
+          functionName: 'mint',
+          args: [account, parseEther('100')],
+        }),
+      }],
+    })
+    
+    return hash
+  }}
+  transformResultCode={(code) => {
+    return 'const hash = ' + code
+  }}
+/>
+
 ## Request
 
 ```ts

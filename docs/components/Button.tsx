@@ -52,6 +52,7 @@ export namespace Button {
             'text-accent bg-accentTint hover:not-active:bg-accentTintHover',
           destructive:
             'text-destructive bg-destructive hover:not-active:bg-destructiveHover',
+          ghost: 'text-primary bg-transparent hover:not-active:bg-surfaceHover',
         },
         size: {
           small: 'h-[32px] px-[14px] text-[13px]',

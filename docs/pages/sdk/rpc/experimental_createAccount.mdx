@@ -4,6 +4,22 @@ import { TryItOut } from '../../../components/TryItOut'
 
 Creates a new Account.
 
+<TryItOut
+  exampleSlug="#example"
+  fn={async ({ provider }) => {
+    const account = await provider.request({
+      method: 'experimental_createAccount',
+      params: [{ label: 'My Example Account' }],
+    })
+
+    return account
+  }}
+  requireConnection={false}
+  transformResultCode={(code) => {
+    return 'const account = ' + code
+  }}
+/>
+
 ## Request
 
 ```ts

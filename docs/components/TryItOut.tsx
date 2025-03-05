@@ -8,6 +8,7 @@ import { Connect } from './Connect'
 
 export function TryItOut(props: TryItOut.Props) {
   const {
+    exampleSlug,
     fn,
     requireConnection = true,
     transformResultCode = (x) => `const result = ${x}`,
@@ -56,6 +57,18 @@ export function TryItOut(props: TryItOut.Props) {
             Reset
           </Button>
         ) : null}
+        {exampleSlug ? (
+          <button
+            className="vocs_Anchor underline-none"
+            onClick={() => {
+              const element = document.getElementById(exampleSlug.slice(1))
+              element?.scrollIntoView({ behavior: 'smooth' })
+            }}
+            type="button"
+          >
+            See Example
+          </button>
+        ) : null}
       </div>
       {mutation.data?.html ? (
         <div className="vocs_CodeBlock">
@@ -71,6 +84,7 @@ export function TryItOut(props: TryItOut.Props) {
 
 export namespace TryItOut {
   export interface Props {
+    exampleSlug?: string
     fn: (parameters: {
       provider: Porto.Porto['provider']
     }) => Promise<unknown>

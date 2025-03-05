@@ -4,6 +4,15 @@ import { TryItOut } from '../../../components/TryItOut'
 
 Returns an array of all **connected** Account addresses.
 
+<TryItOut
+  exampleSlug="#example"
+  fn={({ provider }) => provider.request({ method: 'eth_accounts' })}
+  transformResultCode={(code) => {
+    return 'const accounts = ' + code
+  }}
+/>
+
+
 ## Request
 
 ```ts
