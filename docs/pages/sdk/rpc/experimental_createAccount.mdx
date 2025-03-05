@@ -1,3 +1,5 @@
+import { TryItOut } from '../../../components/TryItOut'
+
 # `experimental_createAccount`
 
 Creates a new Account.
@@ -31,8 +33,24 @@ import { Porto } from 'porto'
 
 const { provider } = Porto.create()
 
-const address = await provider.request({ // [!code focus]
+const account = await provider.request({ // [!code focus]
   method: 'experimental_createAccount', // [!code focus]
   params: [{ label: 'My Example Account' }], // [!code focus]
 }) // [!code focus]
 ```
+
+<TryItOut
+  fn={async ({ provider }) => {
+    const account = await provider.request({
+      method: 'experimental_createAccount',
+      params: [{ label: 'My Example Account' }],
+    })
+
+    return account
+  }}
+  requireConnection={false}
+  transformResultCode={(code) => {
+    return 'const account = ' + code
+  }}
+/>
+
