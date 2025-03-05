@@ -1,4 +1,12 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vocs'
+
+const https = {
+  key: resolve(import.meta.dirname, '../localhost-key.pem'),
+  cert: resolve(import.meta.dirname, '../localhost.pem'),
+} as const
+const enableHttps = existsSync(https.cert) && existsSync(https.key)
 
 export default defineConfig({
   rootDir: '.',
@@ -372,4 +380,10 @@ export default defineConfig({
       link: '/contracts',
     },
   ],
+  vite: {
+    server: {
+      https: enableHttps ? https : undefined,
+      proxy: {},
+    },
+  },
 })
