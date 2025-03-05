@@ -4,7 +4,7 @@ import { useAccount, useConnectors } from 'wagmi'
 import { Button } from './Button'
 
 export function Connect(props: Connect.Props) {
-  const { variant = 'default' } = props
+  const { variant = 'default', signInText = 'Sign in' } = props
 
   const account = useAccount()
   const connect = Hooks.useConnect()
@@ -44,13 +44,14 @@ export function Connect(props: Connect.Props) {
       size={size}
       variant={variant === 'topnav' ? 'accentTint' : 'accent'}
     >
-      Sign in
+      {signInText}
     </Button>
   )
 }
 
 export namespace Connect {
   export interface Props {
+    signInText?: string
     variant?: 'default' | 'topnav'
   }
 }

@@ -39,7 +39,8 @@ export function TryItOut(props: TryItOut.Props) {
     },
   })
 
-  if (requireConnection && !account.isConnected) return <Connect />
+  if (requireConnection && !account.isConnected)
+    return <Connect signInText="Sign in to try" />
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
