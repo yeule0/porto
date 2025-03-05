@@ -1,3 +1,5 @@
+import { TryItOut } from '../../../components/TryItOut'
+
 # `eth_accounts`
 
 Returns an array of all **connected** Account addresses.
@@ -28,3 +30,9 @@ const { provider } = Porto.create()
 const accounts = await provider.request({ method: 'eth_accounts' }) // [!code focus]
 ```
 
+<TryItOut
+  fn={({ provider }) => provider.request({ method: 'eth_accounts' })}
+  transformResultCode={(code) => {
+    return 'const accounts = ' + code
+  }}
+/>

@@ -1,3 +1,5 @@
+import { TryItOut } from '../../../components/TryItOut'
+
 # `eth_requestAccounts`
 
 Requests access to Account addresses.
@@ -32,3 +34,10 @@ const { provider } = Porto.create()
 const accounts = await provider.request({ method: 'eth_requestAccounts' }) // [!code focus]
 ```
 
+<TryItOut
+  fn={({ provider }) => provider.request({ method: 'eth_requestAccounts' })}
+  requireConnection={false}
+  transformResultCode={(code) => {
+    return 'const accounts = ' + code
+  }}
+/>

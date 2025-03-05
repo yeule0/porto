@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
+    "cva": "npm:class-variance-authority@^0.7.1",
     "porto": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "shiki": "^1",
     "tailwindcss": "catalog:",
-    "vocs": "latest",
-    "wagmi": "catalog:",
     "viem": "catalog:",
-    "cva": "npm:class-variance-authority@^0.7.1"
+    "vocs": "latest",
+    "wagmi": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

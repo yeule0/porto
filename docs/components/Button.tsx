@@ -2,10 +2,24 @@ import { type VariantProps, cva } from 'cva'
 import type * as React from 'react'
 
 export function Button(props: Button.Props) {
-  const { className, disabled, size, variant, asChild = false, ...rest } = props
+  const {
+    className,
+    disabled,
+    size,
+    static: static_,
+    variant,
+    asChild = false,
+    ...rest
+  } = props
   return (
     <button
-      className={Button.className({ className, disabled, size, variant })}
+      className={Button.className({
+        className,
+        disabled,
+        size,
+        static: static_,
+        variant,
+      })}
       {...rest}
     />
   )
@@ -25,6 +39,9 @@ export namespace Button {
     {
       variants: {
         disabled: {
+          true: 'pointer-events-none opacity-50',
+        },
+        static: {
           true: 'pointer-events-none',
         },
         variant: {

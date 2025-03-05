@@ -219,6 +219,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.0.0(react@19.0.0)
+      shiki:
+        specifier: ^1
+        version: 1.29.2
       tailwindcss:
         specifier: 'catalog:'
         version: 4.0.9

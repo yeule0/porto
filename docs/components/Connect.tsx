@@ -19,7 +19,7 @@ export function Connect(props: Connect.Props) {
   if (account.address)
     return (
       <div className="flex items-center gap-2">
-        <Button disabled size={size}>
+        <Button static size={size}>
           {account.address.slice(0, 6)}...{account.address.slice(-4)}
         </Button>
         <Button
