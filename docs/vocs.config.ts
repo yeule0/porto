@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vocs'
 
 const https = {
@@ -378,6 +379,7 @@ export default defineConfig({
     },
   ],
   vite: {
+    plugins: [Icons({ compiler: 'jsx', jsx: 'react' }) as never],
     server: {
       https: enableHttps ? https : undefined,
       proxy: {},

@@ -83,9 +83,6 @@
     }
   ],
   "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": ["*web3.js", "bs58"]
-    },
     "patchedDependencies": {
       "@rainbow-me/rainbowkit": "patches/@rainbow-me__rainbowkit.patch",
       "@privy-io/react-auth": "patches/@privy-io__react-auth.patch"
