@@ -20,5 +20,6 @@
     "prool": "^0.0.17",
     "typescript": "catalog:",
     "vite": "^6.0.7"
-  }
+  },
+  "packageManager": "pnpm@10.5.2"
 }
