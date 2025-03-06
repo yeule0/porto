@@ -131,14 +131,11 @@ export function DemoApp() {
             <div className="in-data-rainbowkit:block hidden">
               <RainbowKitProvider
                 modalSize="compact"
-                theme={{
-                  darkMode: darkTheme({
-                    accentColor: 'var(--color-blue9)',
-                  }),
-                  lightMode: lightTheme({
-                    accentColor: 'var(--color-blue9)',
-                  }),
-                }}
+                theme={
+                  colorScheme === 'dark'
+                    ? darkTheme({ accentColor: 'var(--color-blue9)' })
+                    : lightTheme({ accentColor: 'var(--color-blue9)' })
+                }
               >
                 <RainbowKitDemo />
               </RainbowKitProvider>
@@ -406,7 +403,7 @@ function PrivyDemo() {
     )
 
   return (
-    <div className="overflow-hidden rounded-xl">
+    <div className="overflow-hidden rounded-xl shadow-lg">
       <LoginModal open />
     </div>
   )
