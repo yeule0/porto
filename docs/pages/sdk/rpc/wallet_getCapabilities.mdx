@@ -1,6 +1,16 @@
+import { TryItOut } from '../../../components/TryItOut'
+
 # `wallet_getCapabilities`
 
 Gets supported capabilities of Porto.
+
+<TryItOut
+  exampleSlug="#example"
+  fn={({ provider }) => provider.request({ method: 'wallet_getCapabilities' })}
+  transformResultCode={(code) => {
+    return 'const capabilities = ' + code
+  }}
+/>
 
 ## Request
 
@@ -39,3 +49,10 @@ const capabilities = await provider.request({ // [!code focus]
   method: 'wallet_getCapabilities', // [!code focus]
 }) // [!code focus]
 ```
+
+<TryItOut
+  fn={({ provider }) => provider.request({ method: 'wallet_getCapabilities' })}
+  transformResultCode={(code) => {
+    return 'const capabilities = ' + code
+  }}
+/>

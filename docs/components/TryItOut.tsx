@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { Json } from 'ox'
 import type { Porto } from 'porto'
 import { codeToHtml } from 'shiki'
 import { useAccount, useConnectors } from 'wagmi'
@@ -27,7 +28,7 @@ export function TryItOut(props: TryItOut.Props) {
           (await connector?.getProvider()) as unknown as Porto.Porto['provider'],
       })
       const html = await codeToHtml(
-        transformResultCode(JSON.stringify(json, null, 2)),
+        transformResultCode(Json.stringify(json, null, 2)),
         {
           lang: 'typescript',
           themes: {

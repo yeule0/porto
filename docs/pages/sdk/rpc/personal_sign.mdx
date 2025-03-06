@@ -1,6 +1,19 @@
+import { TryItOut } from '../../../components/TryItOut'
+
 # `personal_sign`
 
 Signs an [EIP-191](https://eips.ethereum.org/EIPS/eip-191) personal message.
+
+<TryItOut
+  exampleSlug="#example"
+  fn={async ({ provider }) => {
+    const [account] = await provider.request({ method: 'eth_accounts' })
+    return await provider.request({ method: 'personal_sign', params: ['0x68656c6c6f', account] })
+  }}
+  transformResultCode={(code) => {
+    return 'const signature = ' + code
+  }}
+/>
 
 ## Request
 
@@ -39,3 +52,13 @@ const signature = await provider.request({ // [!code focus]
   ], // [!code focus]
 }) // [!code focus]
 ```
+
+<TryItOut
+  fn={async ({ provider }) => {
+    const [account] = await provider.request({ method: 'eth_accounts' })
+    return await provider.request({ method: 'personal_sign', params: ['0x68656c6c6f', account] })
+  }}
+  transformResultCode={(code) => {
+    return 'const signature = ' + code
+  }}
+/>
