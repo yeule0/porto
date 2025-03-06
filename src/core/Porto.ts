@@ -141,7 +141,7 @@ export type Config<
   chains: chains | readonly [Chains.Chain, ...Chains.Chain[]]
   /**
    * Implementation to use.
-   * @default Implementation.local()
+   * @default Implementation.dialog()
    */
   implementation: Implementation.Implementation
   /**

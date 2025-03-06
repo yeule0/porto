@@ -53,14 +53,11 @@ export default defineConfig({
         text: 'API Reference',
         items: [
           {
-            text: 'Porto 🚧',
+            text: 'Porto',
             collapsed: false,
-            disabled: true,
-            link: '/sdk/api/porto',
             items: [
               {
                 text: '.create',
-                disabled: true,
                 link: '/sdk/api/porto/create',
               },
             ],
