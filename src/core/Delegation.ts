@@ -530,7 +530,14 @@ export async function simulate<
       // ETH pre balances
       {
         calls: [{ data: getBalanceData }],
-        stateOverrides,
+        stateOverrides: [
+          ...(stateOverrides ?? []),
+          {
+            address: zeroAddress,
+            balance: balance_tmp,
+            nonce: 0,
+          },
+        ],
       },
 
       // ERC20 pre balances
