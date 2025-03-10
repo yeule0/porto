@@ -13,6 +13,25 @@ export function from(storage: Storage): Storage {
   return storage
 }
 
+export function combine(...storages: readonly Storage[]): Storage {
+  return {
+    async getItem<value>(name: string) {
+      const results = await Promise.allSettled(
+        storages.map((x) => x.getItem(name)),
+      )
+      const value = results.find((x) => x.status === 'fulfilled')?.value
+      if (value === undefined) return null
+      return value as value
+    },
+    async removeItem(name) {
+      await Promise.allSettled(storages.map((x) => x.removeItem(name)))
+    },
+    async setItem(name, value) {
+      await Promise.allSettled(storages.map((x) => x.setItem(name, value)))
+    },
+  }
+}
+
 export function idb() {
   const store =
     typeof indexedDB !== 'undefined' ? createStore('porto', 'store') : undefined
@@ -68,7 +87,7 @@ export function cookie() {
       document.cookie = `${name}=;max-age=-1;path=/`
     },
     async setItem(name, value) {
-      document.cookie = `${name}=${Json.stringify(value)};path=/;samesite=None;secure`
+      document.cookie = `${name}=${Json.stringify(value)};path=/;samesite=None;secure;max-age=31536000`
     },
   })
 }
