@@ -19,9 +19,12 @@ export function combine(...storages: readonly Storage[]): Storage {
       const results = await Promise.allSettled(
         storages.map((x) => x.getItem(name)),
       )
-      const value = results.find((x) => x.status === 'fulfilled')?.value
-      if (value === undefined) return null
-      return value as value
+      const result = results.find(
+        (x) => x.status === 'fulfilled' && x.value !== null,
+      )
+      if (result?.status !== 'fulfilled') return null
+      if (result.value === null) return null
+      return result.value as value
     },
     async removeItem(name) {
       await Promise.allSettled(storages.map((x) => x.removeItem(name)))
