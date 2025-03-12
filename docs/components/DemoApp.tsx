@@ -10,6 +10,7 @@ import {
   useReadContract,
 } from 'wagmi'
 import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
+import LucideCheck from '~icons/lucide/check'
 import LucideInfo from '~icons/lucide/info'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
 
@@ -77,12 +78,9 @@ export function DemoApp() {
   return (
     <div className="mx-auto my-8 flex max-w-[1060px] flex-col gap-9">
       <header>
-        <div className="mb-3.5 flex items-center justify-start gap-2.5">
-          <h1 className="-tracking-[1.064px] order-1 font-medium text-[28px] leading-none">
-            Demo
-          </h1>
-          <PortoLogo />
-        </div>
+        <h1 className="-tracking-[1.064px] order-1 mb-3.5 font-medium text-[28px] leading-none">
+          Demo
+        </h1>
 
         <p className="max-w-[288px] text-left text-[18px] text-gray10 leading-[24px]">
           Preview how Porto integrates with your existing wallet providers.
@@ -185,9 +183,14 @@ export function DemoApp() {
           </div>
         </div>
 
-        <div className="h-fit flex-1 rounded-2xl bg-gray3 px-4 pt-4 pb-4 lg:px-9 lg:pt-6.5 lg:pb-9">
+        <div
+          className={cx(
+            'h-fit flex-1 rounded-2xl bg-gray3 px-4 pt-4 pb-4 lg:px-9 lg:pt-6.5 lg:pb-9',
+            status !== 'connected' && 'cursor-not-allowed opacity-30',
+          )}
+        >
           <div className="flex justify-between">
-            <h3 className="-tracking-[0.364px] w-fit! rounded-full bg-gray5 px-2.5 py-1.5 font-medium text-[13px] text-black leading-[16px] opacity-50 dark:text-white">
+            <h3 className="-tracking-[0.364px] w-fit! rounded-full bg-gray1 px-2.5 py-1.5 font-medium text-[13px] text-black leading-[16px] opacity-50 dark:text-white">
               Your application
             </h3>
 
@@ -528,7 +531,7 @@ function SwapDemo(props: SwapDemo.Props) {
       >
         <div className="relative flex flex-1 items-center">
           <input
-            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 py-3 ps-3 pe-[76px] font-medium text-[15px] text-gray12 [appearance:textfield] placeholder:text-gray8"
+            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 py-3 ps-3 pe-[76px] font-medium text-[15px] text-gray12 placeholder:text-gray8"
             disabled={!address || noFunds || swapStatus === 'pending'}
             max={from.balance ? Value.formatEther(from.balance) : 0}
             min="0"
@@ -555,7 +558,7 @@ function SwapDemo(props: SwapDemo.Props) {
 
         <div className="relative flex flex-1 items-center">
           <input
-            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 py-3 ps-4 pe-[76px] font-medium text-[15px] text-gray12 [appearance:textfield] placeholder:text-gray8"
+            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 py-3 ps-4 pe-[76px] font-medium text-[15px] text-gray12 placeholder:text-gray8"
             disabled={!address || noFunds || swapStatus === 'pending'}
             placeholder="0.0"
             min="0"
@@ -696,7 +699,7 @@ function PayDemo(props: PayDemo.Props) {
             Amount
           </label>
           <input
-            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 px-3 py-3 font-medium text-[15px] text-gray12 [appearance:textfield] placeholder:text-gray8 disabled:cursor-not-allowed"
+            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 px-3 py-3 font-medium text-[15px] text-gray12 placeholder:text-gray8 disabled:cursor-not-allowed"
             disabled={!address}
             max={balance ? Value.formatEther(balance) : 0}
             min="0"
@@ -851,7 +854,7 @@ function LimitDemo(props: LimitDemo.Props) {
               <label htmlFor="amount">Amount</label>
             </Ariakit.VisuallyHidden>
             <input
-              className="-tracking-[0.42px] h-9.5 w-full rounded-[10px] border border-gray5 ps-[28px] pe-3.25 text-right font-medium text-[15px] text-gray12 [appearance:textfield] placeholder:text-gray8"
+              className="-tracking-[0.42px] h-9.5 w-full rounded-[10px] border border-gray5 ps-[28px] pe-3.25 text-right font-medium text-[15px] text-gray12 placeholder:text-gray8"
               disabled={!address}
               min="0"
               placeholder="0.0"
@@ -978,14 +981,39 @@ function SignedIn(props: SignedIn.Props) {
       },
     },
   })
+
+  const [copied, setCopied] = React.useState(false)
+  const copyToClipboard = React.useCallback(() => {
+    if (copied) return
+
+    navigator.clipboard.writeText(address)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2_000)
+  }, [address, copied])
+
   return (
     <div className="flex gap-2">
-      <div className="-tracking-[0.448px] flex h-9.5 flex-grow items-center justify-center gap-1.25 rounded-full bg-gray4 px-2.75 font-medium text-[16px] text-gray12 leading-none">
-        <div className="flex size-6 items-center justify-center">{icon}</div>
-        <div>
+      <button
+        type="button"
+        onClick={() => copyToClipboard()}
+        className="-tracking-[0.448px] relative h-9.5 flex-grow rounded-full bg-gray4 px-2.75 font-medium text-[16px] text-gray12 leading-none"
+      >
+        {copied && (
+          <div className="absolute inset-0 flex items-center justify-center gap-1.5">
+            <LucideCheck />
+            Copied
+          </div>
+        )}
+        <div
+          className={cx(
+            'flex items-center justify-center gap-1.25',
+            copied && 'invisible',
+          )}
+        >
+          <div className="flex size-6 items-center justify-center">{icon}</div>
           {address.slice(0, 6)}...{address.slice(-4)}
         </div>
-      </div>
+      </button>
       <Button variant="destructive" onClick={() => disconnect.mutate({})}>
         Sign out
       </Button>
@@ -1777,140 +1805,6 @@ function Exp2Token() {
         fill="white"
       />
     </svg>
-  )
-}
-
-function PortoLogo() {
-  return (
-    <div className="h-8">
-      <svg
-        className="dark:hidden"
-        aria-hidden="true"
-        width="auto"
-        height="100%"
-        viewBox="0 0 95 80"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M6.5676 0.959473C2.9404 0.959473 0 3.89987 0 7.52697V75.3919C0 77.407 1.6336 79.041 3.6487 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V7.52697C94.865 3.89987 91.924 0.959473 88.297 0.959473H6.5676ZM78.4461 7.52697C73.4084 7.52697 69.3245 11.6109 69.3245 16.6487C69.3245 21.6864 73.4084 25.7703 78.4461 25.7703H79.1758C84.2136 25.7703 88.297 21.6864 88.297 16.6487C88.297 11.6109 84.2136 7.52697 79.1758 7.52697H78.4461Z"
-          fill="#CCCCCC"
-        />
-        <mask
-          id="mask0_684_30"
-          maskUnits="userSpaceOnUse"
-          x="0"
-          y="0"
-          width="95"
-          height="80"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M6.5676 0.959473C2.9404 0.959473 0 3.89987 0 7.52697V75.3919C0 77.407 1.6336 79.041 3.6487 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V7.52697C94.865 3.89987 91.924 0.959473 88.297 0.959473H6.5676ZM78.4461 7.52697C73.4084 7.52697 69.3245 11.6109 69.3245 16.6487C69.3245 21.6864 73.4084 25.7703 78.4461 25.7703H79.1758C84.2136 25.7703 88.297 21.6864 88.297 16.6487C88.297 11.6109 84.2136 7.52697 79.1758 7.52697H78.4461Z"
-            fill="white"
-          />
-        </mask>
-        <g mask="url(#mask0_684_30)">
-          <path
-            d="M0.000213623 37.446C0.000213623 35.431 1.63371 33.7974 3.64881 33.7974H91.216C93.231 33.7974 94.865 35.431 94.865 37.446V75.392C94.865 77.4071 93.231 79.0411 91.216 79.0411H3.64881C1.63371 79.0411 0.000213623 77.4071 0.000213623 75.392V37.446Z"
-            fill="#A3A3A3"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 30.8784H91.216C94.844 30.8784 97.784 33.8188 97.784 37.4459V75.3919C97.784 79.019 94.844 81.959 91.216 81.959H3.6488C0.021699 81.959 -2.9187 79.019 -2.9187 75.3919V37.4459C-2.9187 33.8188 0.021699 30.8784 3.6488 30.8784ZM3.6488 33.7973C1.6337 33.7973 0.000199318 35.4309 0.000199318 37.4459V75.3919C0.000199318 77.407 1.6337 79.041 3.6488 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V37.4459C94.865 35.4309 93.231 33.7973 91.216 33.7973H3.6488Z"
-            fill="#CCCCCC"
-          />
-          <path
-            d="M0.000213623 52.7703C0.000213623 50.7552 1.63371 49.1216 3.64881 49.1216H91.216C93.231 49.1216 94.865 50.7552 94.865 52.7703V75.3919C94.865 77.407 93.231 79.041 91.216 79.041H3.64881C1.63371 79.041 0.000213623 77.407 0.000213623 75.3919V52.7703Z"
-            fill="#626262"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 46.2026H91.216C94.844 46.2026 97.784 49.143 97.784 52.7702V75.3918C97.784 79.0189 94.844 81.9589 91.216 81.9589H3.6488C0.021699 81.9589 -2.9187 79.0189 -2.9187 75.3918V52.7702C-2.9187 49.143 0.021699 46.2026 3.6488 46.2026ZM3.6488 49.1215C1.6337 49.1215 0.000199318 50.7551 0.000199318 52.7702V75.3918C0.000199318 77.4069 1.6337 79.0409 3.6488 79.0409H91.216C93.231 79.0409 94.865 77.4069 94.865 75.3918V52.7702C94.865 50.7551 93.231 49.1215 91.216 49.1215H3.6488Z"
-            fill="#CCCCCC"
-          />
-          <path
-            d="M0.000213623 68.0945C0.000213623 66.0794 1.63371 64.4458 3.64881 64.4458H91.216C93.231 64.4458 94.865 66.0794 94.865 68.0945V75.3918C94.865 77.4069 93.231 79.0409 91.216 79.0409H3.64881C1.63371 79.0409 0.000213623 77.4069 0.000213623 75.3918V68.0945Z"
-            fill="#313131"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 61.5271H91.216C94.844 61.5271 97.784 64.4675 97.784 68.0947V75.392C97.784 79.0191 94.844 81.9591 91.216 81.9591H3.6488C0.021699 81.9591 -2.9187 79.0191 -2.9187 75.392V68.0947C-2.9187 64.4675 0.021699 61.5271 3.6488 61.5271ZM3.6488 64.446C1.6337 64.446 0.000199318 66.0796 0.000199318 68.0947V75.392C0.000199318 77.4071 1.6337 79.0411 3.6488 79.0411H91.216C93.231 79.0411 94.865 77.4071 94.865 75.392V68.0947C94.865 66.0796 93.231 64.446 91.216 64.446H3.6488Z"
-            fill="#CCCCCC"
-          />
-        </g>
-      </svg>
-
-      <svg
-        className="hidden dark:block"
-        aria-hidden="true"
-        width="auto"
-        height="100%"
-        viewBox="0 0 95 80"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M6.5676 0.959473C2.9404 0.959473 0 3.89987 0 7.52697V75.3919C0 77.407 1.6336 79.041 3.6487 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V7.52697C94.865 3.89987 91.924 0.959473 88.297 0.959473H6.5676ZM78.4461 7.52697C73.4084 7.52697 69.3245 11.6109 69.3245 16.6487C69.3245 21.6864 73.4084 25.7703 78.4461 25.7703H79.1758C84.214 25.7703 88.297 21.6864 88.297 16.6487C88.297 11.6109 84.214 7.52697 79.1758 7.52697H78.4461Z"
-          fill="#999999"
-        />
-        <mask
-          id="mask0_684_45"
-          maskUnits="userSpaceOnUse"
-          x="0"
-          y="0"
-          width="95"
-          height="80"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M6.5676 0.959473C2.9404 0.959473 0 3.89987 0 7.52697V75.3919C0 77.407 1.6336 79.041 3.6487 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V7.52697C94.865 3.89987 91.924 0.959473 88.297 0.959473H6.5676ZM78.4461 7.52697C73.4084 7.52697 69.3245 11.6109 69.3245 16.6487C69.3245 21.6864 73.4084 25.7703 78.4461 25.7703H79.1758C84.214 25.7703 88.297 21.6864 88.297 16.6487C88.297 11.6109 84.214 7.52697 79.1758 7.52697H78.4461Z"
-            fill="white"
-          />
-        </mask>
-        <g mask="url(#mask0_684_45)">
-          <path
-            d="M0.000213623 37.446C0.000213623 35.431 1.63371 33.7974 3.64881 33.7974H91.216C93.231 33.7974 94.865 35.431 94.865 37.446V75.392C94.865 77.4071 93.231 79.0411 91.216 79.0411H3.64881C1.63371 79.0411 0.000213623 77.4071 0.000213623 75.392V37.446Z"
-            fill="#CBCBCB"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 30.8784H91.216C94.844 30.8784 97.784 33.8188 97.784 37.4459V75.3919C97.784 79.019 94.844 81.959 91.216 81.959H3.6488C0.021699 81.959 -2.9187 79.019 -2.9187 75.3919V37.4459C-2.9187 33.8188 0.021699 30.8784 3.6488 30.8784ZM3.6488 33.7973C1.6337 33.7973 0.000199318 35.4309 0.000199318 37.4459V75.3919C0.000199318 77.407 1.6337 79.041 3.6488 79.041H91.216C93.231 79.041 94.865 77.407 94.865 75.3919V37.4459C94.865 35.4309 93.231 33.7973 91.216 33.7973H3.6488Z"
-            fill="#999999"
-          />
-          <path
-            d="M0.000213623 52.7703C0.000213623 50.7552 1.63371 49.1216 3.64881 49.1216H91.216C93.231 49.1216 94.865 50.7552 94.865 52.7703V75.3919C94.865 77.407 93.231 79.041 91.216 79.041H3.64881C1.63371 79.041 0.000213623 77.407 0.000213623 75.3919V52.7703Z"
-            fill="#DDDDDD"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 46.2026H91.216C94.844 46.2026 97.784 49.143 97.784 52.7702V75.3918C97.784 79.0189 94.844 81.9589 91.216 81.9589H3.6488C0.021699 81.9589 -2.9187 79.0189 -2.9187 75.3918V52.7702C-2.9187 49.143 0.021699 46.2026 3.6488 46.2026ZM3.6488 49.1215C1.6337 49.1215 0.000199318 50.7551 0.000199318 52.7702V75.3918C0.000199318 77.4069 1.6337 79.0409 3.6488 79.0409H91.216C93.231 79.0409 94.865 77.4069 94.865 75.3918V52.7702C94.865 50.7551 93.231 49.1215 91.216 49.1215H3.6488Z"
-            fill="#999999"
-          />
-          <path
-            d="M0.000213623 68.0945C0.000213623 66.0794 1.63371 64.4458 3.64881 64.4458H91.216C93.231 64.4458 94.865 66.0794 94.865 68.0945V75.3918C94.865 77.4069 93.231 79.0409 91.216 79.0409H3.64881C1.63371 79.0409 0.000213623 77.4069 0.000213623 75.3918V68.0945Z"
-            fill="white"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M3.6488 61.5271H91.216C94.844 61.5271 97.784 64.4675 97.784 68.0947V75.392C97.784 79.0191 94.844 81.9591 91.216 81.9591H3.6488C0.021699 81.9591 -2.9187 79.0191 -2.9187 75.392V68.0947C-2.9187 64.4675 0.021699 61.5271 3.6488 61.5271ZM3.6488 64.446C1.6337 64.446 0.000199318 66.0796 0.000199318 68.0947V75.392C0.000199318 77.4071 1.6337 79.0411 3.6488 79.0411H91.216C93.231 79.0411 94.865 77.4071 94.865 75.392V68.0947C94.865 66.0796 93.231 64.446 91.216 64.446H3.6488Z"
-            fill="#999999"
-          />
-        </g>
-      </svg>
-    </div>
   )
 }
 
