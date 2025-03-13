@@ -14,7 +14,7 @@ import {
   privateKeyToAccount,
   privateKeyToAddress,
 } from 'viem/accounts'
-import { ExperimentERC20 } from './contracts.js'
+import { exp1Address, exp1Config } from './_generated/contracts'
 
 const key = () =>
   ({
@@ -22,14 +22,14 @@ const key = () =>
     permissions: {
       calls: [
         {
-          to: ExperimentERC20.address,
+          to: exp1Address,
         },
       ],
       spend: [
         {
           limit: parseEther('50'),
           period: 'minute',
-          token: ExperimentERC20.address,
+          token: exp1Address,
         },
       ],
     },
@@ -212,7 +212,7 @@ function UpgradeAccount() {
 function Balance() {
   const { address } = useAccount()
   const { data: balance } = useReadContract({
-    ...ExperimentERC20,
+    ...exp1Config,
     query: {
       enabled: !!address,
       refetchInterval: 2_000,
@@ -276,8 +276,7 @@ function Mint() {
           sendCalls({
             calls: [
               {
-                abi: ExperimentERC20.abi,
-                to: ExperimentERC20.address,
+                ...exp1Config,
                 functionName: 'mint',
                 args: [address!, parseEther('100')],
               },
