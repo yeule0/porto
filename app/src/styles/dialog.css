@@ -1,10 +1,6 @@
 @import "tailwindcss";
+@import "./shared.css";
 @import "./theme.css";
-
-html,
-:host {
-  background-color: var(--background-color-primary);
-}
 
 [data-dialog] {
   --height-button: 36px;
