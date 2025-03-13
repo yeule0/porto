@@ -282,6 +282,7 @@ function Mint() {
                 args: [address!, parseEther('100')],
               },
             ],
+            version: '1',
           })
         }}
       >
