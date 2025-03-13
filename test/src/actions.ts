@@ -7,8 +7,8 @@ import * as Account from '../../src/core/internal/account.js'
 import type * as Key from '../../src/core/internal/key.js'
 import type { Client } from '../../src/core/internal/porto.js'
 import * as Relay from '../../src/core/internal/relay.js'
+import { exp1Abi, exp1Address } from './_generated/contracts.js'
 import * as Anvil from './anvil.js'
-import { ExperimentERC20 } from './contracts.js'
 
 export async function createAccount(
   client: Client,
@@ -70,7 +70,7 @@ export async function getUpgradedAccount(
   const request = await Relay.prepareUpgradeAccount(client, {
     address: account.address,
     keys,
-    feeToken: ExperimentERC20.address[0],
+    feeToken: exp1Address,
   })
 
   const signatures = await Promise.all(
@@ -103,8 +103,8 @@ export async function setBalance(
   await writeContract(client, {
     account: privateKeyToAccount(Anvil.accounts[0]!.privateKey),
     chain: null,
-    address: ExperimentERC20.address[0],
-    abi: ExperimentERC20.abi,
+    address: exp1Address,
+    abi: exp1Abi,
     functionName: 'mint',
     args: [address, value],
   })

@@ -1,18 +1,15 @@
 import { RpcTransport } from 'ox'
 import { createServer } from 'prool'
 
+import { exp1Address } from './_generated/contracts.js'
 import * as Anvil from './anvil.js'
-import { ExperimentERC20 } from './contracts.js'
 import { relay } from './prool.js'
 
 export const instances = {
   odyssey: defineRelay({
     endpoint: (key) =>
       `http://127.0.0.1:${Anvil.instances.odyssey.port}/${key}`,
-    feeTokens: [
-      '0x0000000000000000000000000000000000000000',
-      ExperimentERC20.address[0],
-    ],
+    feeTokens: ['0x0000000000000000000000000000000000000000', exp1Address],
     userOpGasBuffer: 100_000n,
   }),
 } as const

@@ -8,8 +8,11 @@ import {
 } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
+import {
+  exp1Address,
+  exp1Config,
+} from '../../../test/src/_generated/contracts.js'
 import { getAccount } from '../../../test/src/actions.js'
-import { ExperimentERC20 } from '../../../test/src/contracts.js'
 import { getPorto } from '../../../test/src/porto.js'
 import * as Chains from '../Chains.js'
 import * as Call from './call.js'
@@ -335,13 +338,12 @@ describe('execute', () => {
 
       await Delegation.execute(client, {
         account,
-        calls: [{ data: mint, to: ExperimentERC20.address[0] }],
+        calls: [{ data: mint, to: exp1Address }],
         key,
       })
 
       const balance = await readContract(client, {
-        address: ExperimentERC20.address[0],
-        abi: ExperimentERC20.abi,
+        ...exp1Config,
         functionName: 'balanceOf',
         args: [account.address],
       })

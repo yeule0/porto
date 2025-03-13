@@ -2,9 +2,11 @@ import { defineConfig } from '@wagmi/cli'
 import { blockExplorer, foundry } from '@wagmi/cli/plugins'
 import { odysseyTestnet } from 'viem/chains'
 
-export default defineConfig([
-  {
-    out: 'docs/generated.ts',
+const paths = ['docs', 'examples/wagmi/src', 'playground/src', 'test/src']
+
+export default defineConfig(
+  paths.map((path) => ({
+    out: `${path}/_generated/contracts.ts`,
     contracts: [],
     plugins: [
       blockExplorer({
@@ -21,5 +23,5 @@ export default defineConfig([
         ],
       }),
     ],
-  },
-])
+  })),
+)

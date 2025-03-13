@@ -19,8 +19,7 @@ import {
   privateKeyToAddress,
 } from 'viem/accounts'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
-
-import { ExperimentERC20 } from './contracts'
+import { exp1Abi, exp1Address, exp2Address } from './_generated/contracts'
 
 const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'
 
@@ -41,17 +40,17 @@ const permissions = () =>
     permissions: {
       calls: [
         {
-          to: ExperimentERC20.address[0],
+          to: exp1Address,
         },
         {
-          to: ExperimentERC20.address[1],
+          to: exp2Address,
         },
       ],
       spend: [
         {
           limit: Hex.fromNumber(Value.fromEther('50')),
           period: 'minute',
-          token: ExperimentERC20.address[0],
+          token: exp1Address,
         },
       ],
     },
@@ -504,9 +503,9 @@ function SendCalls() {
           if (action === 'mint')
             return [
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
               },
@@ -515,16 +514,16 @@ function SendCalls() {
           if (action === 'transfer')
             return [
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
               },
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     account,
                     '0x0000000000000000000000000000000000000000',
@@ -537,23 +536,23 @@ function SendCalls() {
           if (action === 'mint-transfer')
             return [
               {
-                to: ExperimentERC20.address[1],
+                to: exp2Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
               },
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
               },
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     account,
                     '0x0000000000000000000000000000000000000000',
@@ -566,9 +565,9 @@ function SendCalls() {
           if (action === 'revert')
             return [
               {
-                to: ExperimentERC20.address[1],
+                to: exp2Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     '0x0000000000000000000000000000000000000000',
                     account,
@@ -649,9 +648,9 @@ function SendTransaction() {
             return [
               {
                 from: account,
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
               },
@@ -914,9 +913,9 @@ function PrepareCalls() {
           if (action === 'mint')
             return [
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                  AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
               },
@@ -925,16 +924,16 @@ function PrepareCalls() {
           if (action === 'transfer')
             return [
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'approve'),
+                  AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
               },
               {
-                to: ExperimentERC20.address[0],
+                to: exp1Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     account,
                     '0x0000000000000000000000000000000000000000',
@@ -947,9 +946,9 @@ function PrepareCalls() {
           if (action === 'revert')
             return [
               {
-                to: ExperimentERC20.address[1],
+                to: exp2Address,
                 data: AbiFunction.encodeData(
-                  AbiFunction.fromAbi(ExperimentERC20.abi, 'transferFrom'),
+                  AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     '0x0000000000000000000000000000000000000000',
                     account,

@@ -2,8 +2,11 @@ import { AbiFunction, P256, PublicKey, Value } from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { describe, expect, test } from 'vitest'
 
+import {
+  exp1Abi,
+  exp1Address,
+} from '../../../../test/src/_generated/contracts.js'
 import * as TestActions from '../../../../test/src/actions.js'
-import { ExperimentERC20 } from '../../../../test/src/contracts.js'
 import { getPorto } from '../../../../test/src/porto.js'
 import * as Key from '../key.js'
 import type * as Capabilities from '../relay/typebox/capabilities.js'
@@ -21,30 +24,28 @@ const { client } = getPorto({
   },
 })
 
-const feeToken = ExperimentERC20.address[0]
+const feeToken = exp1Address
 
 describe('createAccount', () => {
   const defaultKey = {
     expiry: 6942069420,
     permissions: [
       {
-        selector: AbiFunction.getSelector(
-          AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
-        ),
-        to: ExperimentERC20.address[0],
+        selector: AbiFunction.getSelector(AbiFunction.fromAbi(exp1Abi, 'mint')),
+        to: exp1Address,
         type: 'call',
       },
       {
         selector: AbiFunction.getSelector(
-          AbiFunction.fromAbi(ExperimentERC20.abi, 'transfer'),
+          AbiFunction.fromAbi(exp1Abi, 'transfer'),
         ),
-        to: ExperimentERC20.address[0],
+        to: exp1Address,
         type: 'call',
       },
       {
         limit: Value.fromEther('100'),
         period: 'minute',
-        token: ExperimentERC20.address[0],
+        token: exp1Address,
         type: 'spend',
       },
     ],
@@ -200,10 +201,10 @@ describe('prepareCalls + sendPreparedCalls', () => {
       account: account.address,
       calls: [
         {
-          abi: ExperimentERC20.abi,
+          abi: exp1Abi,
           functionName: 'mint',
           args: [account.address, Value.fromEther('1')],
-          to: ExperimentERC20.address[0],
+          to: exp1Address,
         },
       ],
       capabilities: {

@@ -4,8 +4,13 @@ import { describe, expect, test } from 'vitest'
 
 import { generatePrivateKey } from 'viem/accounts'
 import { privateKeyToAccount } from 'viem/accounts'
+import {
+  exp1Address,
+  exp2Abi,
+  exp2Address,
+  exp2Config,
+} from '../../../test/src/_generated/contracts.js'
 import * as TestActions from '../../../test/src/actions.js'
-import { ExperimentERC20 } from '../../../test/src/contracts.js'
 import { getPorto } from '../../../test/src/porto.js'
 import * as Delegation from './delegation.js'
 import * as Key from './key.js'
@@ -106,7 +111,7 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
     const request = await Relay.prepareUpgradeAccount(client, {
       address: eoa.address,
       keys: [key],
-      feeToken: ExperimentERC20.address[0],
+      feeToken: exp1Address,
     })
 
     const signatures = await Promise.all(
@@ -133,13 +138,13 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: ExperimentERC20.address[1],
-          abi: ExperimentERC20.abi,
+          to: exp2Address,
+          abi: exp2Abi,
           functionName: 'mint',
           args: [account.address, 100n],
         },
       ],
-      feeToken: ExperimentERC20.address[0],
+      feeToken: exp1Address,
       nonce: randomNonce(),
     })
 
@@ -147,8 +152,7 @@ describe('sendCalls', () => {
 
     expect(
       await readContract(client, {
-        address: ExperimentERC20.address[1],
-        abi: ExperimentERC20.abi,
+        ...exp2Config,
         functionName: 'balanceOf',
         args: [account.address],
       }),
@@ -167,13 +171,13 @@ describe('prepareCalls + sendPreparedCalls', () => {
       account,
       calls: [
         {
-          to: ExperimentERC20.address[1],
-          abi: ExperimentERC20.abi,
+          to: exp2Address,
+          abi: exp2Abi,
           functionName: 'mint',
           args: [account.address, 100n],
         },
       ],
-      feeToken: ExperimentERC20.address[0],
+      feeToken: exp1Address,
       key,
       nonce: randomNonce(),
     })
@@ -191,8 +195,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
 
     expect(
       await readContract(client, {
-        address: ExperimentERC20.address[1],
-        abi: ExperimentERC20.abi,
+        ...exp2Config,
         functionName: 'balanceOf',
         args: [account.address],
       }),
@@ -220,13 +223,13 @@ describe.each([
         account,
         calls: [
           {
-            to: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            to: exp2Address,
+            abi: exp2Abi,
             functionName: 'mint',
             args: [account.address, 100n],
           },
         ],
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
       expect(id).toBeDefined()
@@ -234,8 +237,8 @@ describe.each([
       // 3. Verify that Account has 100 ERC20 tokens.
       expect(
         await readContract(client, {
-          address: ExperimentERC20.address[1],
-          abi: ExperimentERC20.abi,
+          address: exp2Address,
+          abi: exp2Abi,
           functionName: 'balanceOf',
           args: [account.address],
         }),
@@ -255,8 +258,8 @@ describe.each([
         account,
         calls: [
           {
-            to: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            to: exp2Address,
+            abi: exp2Abi,
             functionName: 'mint',
             args: [account.address, 100n],
           },
@@ -268,8 +271,8 @@ describe.each([
       // 3. Verify that Account has 100 ERC20 tokens.
       expect(
         await readContract(client, {
-          address: ExperimentERC20.address[1],
-          abi: ExperimentERC20.abi,
+          address: exp2Address,
+          abi: exp2Abi,
           functionName: 'balanceOf',
           args: [account.address],
         }),
@@ -291,7 +294,7 @@ describe.each([
             to: '0x0000000000000000000000000000000000000000',
           },
         ],
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
 
@@ -311,13 +314,13 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
             },
           ],
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         }),
       ).rejects.toThrowError('Error: InsufficientBalance()')
@@ -340,7 +343,7 @@ describe.each([
               value: Value.fromEther('100000000'),
             },
           ],
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         }),
       ).rejects.toThrowError('Reason: CallError')
@@ -366,7 +369,7 @@ describe.each([
         account,
         authorizeKeys: keys,
         calls: [],
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
       expect(id).toBeDefined()
@@ -405,7 +408,7 @@ describe.each([
         const { id } = await Relay.sendCalls(client, {
           account,
           authorizeKeys: [newKey],
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -417,14 +420,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: newKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -432,8 +435,8 @@ describe.each([
         // 4. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -456,14 +459,14 @@ describe.each([
           authorizeKeys: [newKey],
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: newKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -471,8 +474,8 @@ describe.each([
         // 4. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -486,7 +489,7 @@ describe.each([
     test.skip('admin key', async () => {
       // 1. Initialize Account with Admin Key.
       const key = Key.createP256({
-        permissions: { calls: [{ to: ExperimentERC20.address[1] }] },
+        permissions: { calls: [{ to: exp2Address }] },
         role: 'admin',
       })
       const { account } = await initializeAccount(client, {
@@ -499,13 +502,13 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -513,8 +516,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -530,7 +533,7 @@ describe.each([
         permissions: {
           calls: [
             {
-              to: ExperimentERC20.address[1],
+              to: exp2Address,
             },
           ],
         },
@@ -545,14 +548,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -560,8 +563,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -577,7 +580,7 @@ describe.each([
         permissions: {
           calls: [
             {
-              to: ExperimentERC20.address[1],
+              to: exp2Address,
             },
           ],
         },
@@ -592,14 +595,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -607,8 +610,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -621,14 +624,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -636,8 +639,8 @@ describe.each([
         // 5. Verify that Account now has 200 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -653,7 +656,7 @@ describe.each([
         permissions: {
           calls: [
             {
-              to: ExperimentERC20.address[1],
+              to: exp2Address,
             },
           ],
         },
@@ -668,14 +671,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: adminKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -683,8 +686,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -697,14 +700,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -712,8 +715,8 @@ describe.each([
         // 5. Verify that Account now has 200 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -749,8 +752,8 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
@@ -760,7 +763,7 @@ describe.each([
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -768,8 +771,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -785,7 +788,7 @@ describe.each([
         permissions: {
           calls: [
             {
-              to: ExperimentERC20.address[0],
+              to: exp1Address,
             },
           ],
         },
@@ -800,14 +803,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         }),
       ).rejects.toThrowError('Reason: Unauthorized')
@@ -837,14 +840,14 @@ describe.each([
             account,
             calls: [
               {
-                to: ExperimentERC20.address[1],
-                abi: ExperimentERC20.abi,
+                to: exp2Address,
+                abi: exp2Abi,
                 functionName: 'mint',
                 args: [account.address, 100n],
               },
             ],
             key: sessionKey,
-            feeToken: ExperimentERC20.address[0],
+            feeToken: exp1Address,
             nonce: randomNonce(),
           }),
         // TODO: expect human-readable signature
@@ -857,9 +860,7 @@ describe.each([
       // 1. Initialize Account with Admin Key (with spend permission).
       const adminKey = Key.createP256({
         permissions: {
-          spend: [
-            { limit: 100n, token: ExperimentERC20.address[1], period: 'day' },
-          ],
+          spend: [{ limit: 100n, token: exp2Address, period: 'day' }],
         },
         role: 'admin',
       })
@@ -872,13 +873,13 @@ describe.each([
         account,
         calls: [
           {
-            to: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            to: exp2Address,
+            abi: exp2Abi,
             functionName: 'mint',
             args: [account.address, 100n],
           },
         ],
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
 
@@ -887,13 +888,13 @@ describe.each([
         account,
         calls: [
           {
-            to: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            to: exp2Address,
+            abi: exp2Abi,
             functionName: 'transfer',
             args: ['0x0000000000000000000000000000000000000000', 50n],
           },
         ],
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
 
@@ -903,13 +904,13 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
             },
           ],
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         }),
       ).rejects.toThrowError('Error: InsufficientBalance()')
@@ -923,12 +924,10 @@ describe.each([
         permissions: {
           calls: [
             {
-              to: ExperimentERC20.address[1],
+              to: exp2Address,
             },
           ],
-          spend: [
-            { limit: 100n, token: ExperimentERC20.address[1], period: 'day' },
-          ],
+          spend: [{ limit: 100n, token: exp2Address, period: 'day' }],
         },
       })
       const { account } = await initializeAccount(client, {
@@ -941,14 +940,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'mint',
               args: [account.address, 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         })
         expect(id).toBeDefined()
@@ -956,8 +955,8 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            address: exp2Address,
+            abi: exp2Abi,
             functionName: 'balanceOf',
             args: [account.address],
           }),
@@ -969,14 +968,14 @@ describe.each([
         account,
         calls: [
           {
-            to: ExperimentERC20.address[1],
-            abi: ExperimentERC20.abi,
+            to: exp2Address,
+            abi: exp2Abi,
             functionName: 'transfer',
             args: ['0x0000000000000000000000000000000000000000', 50n],
           },
         ],
         key: sessionKey,
-        feeToken: ExperimentERC20.address[0],
+        feeToken: exp1Address,
         nonce: randomNonce(),
       })
 
@@ -986,14 +985,14 @@ describe.each([
           account,
           calls: [
             {
-              to: ExperimentERC20.address[1],
-              abi: ExperimentERC20.abi,
+              to: exp2Address,
+              abi: exp2Abi,
               functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
             },
           ],
           key: sessionKey,
-          feeToken: ExperimentERC20.address[0],
+          feeToken: exp1Address,
           nonce: randomNonce(),
         }),
       ).rejects.toThrowError('Error: InsufficientBalance()')
