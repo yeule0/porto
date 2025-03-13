@@ -1,3 +1,4 @@
+import * as AbiFunction from 'ox/AbiFunction'
 import * as AbiParameters from 'ox/AbiParameters'
 import * as Address from 'ox/Address'
 import * as Bytes from 'ox/Bytes'
@@ -10,7 +11,17 @@ import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
 import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import * as WebCryptoP256 from 'ox/WebCryptoP256'
-import type { OneOf, Undefined } from './types.js'
+
+import * as Call from './call.js'
+import type * as RelayKey from './relay/typebox/key.js'
+import type * as RelayPermission from './relay/typebox/permission.js'
+import type {
+  Mutable,
+  OneOf,
+  Undefined,
+  UnionOmit,
+  UnionPartialBy,
+} from './types.js'
 
 type PrivateKeyFn = () => Hex.Hex
 
@@ -37,6 +48,8 @@ export type WebAuthnKey = BaseKey<
 /** Key on a delegated account. */
 export type BaseKey<type extends string, properties> = {
   expiry: number
+  hash: Hex.Hex
+  initialized: boolean
   permissions?: Permissions | undefined
   publicKey: Hex.Hex
   role: 'admin' | 'session'
@@ -50,7 +63,7 @@ export type BaseKey<type extends string, properties> = {
     } & Undefined<properties>)
 >
 
-export type CallScope = OneOf<
+export type CallPermission = OneOf<
   | {
       signature: string
       to: Address.Address
@@ -62,13 +75,16 @@ export type CallScope = OneOf<
       to: Address.Address
     }
 >
-export type CallScopes = readonly CallScope[]
+export type CallPermissions = readonly CallPermission[]
 
-export type Permissions<bigintType = bigint> = {
-  calls?: CallScopes | undefined
-  signatureVerification?: SignatureVerification | undefined
-  spend?: SpendLimits<bigintType> | undefined
+export type Permissions = {
+  calls?: CallPermissions | undefined
+  signatureVerification?: SignatureVerificationPermission | undefined
+  spend?: SpendPermissions | undefined
 }
+
+/** RPC (relay-compatible) format of a key. */
+export type Relay = RelayKey.WithPermissions
 
 /** Serialized (contract-compatible) format of a key. */
 export type Serialized = {
@@ -78,25 +94,38 @@ export type Serialized = {
   publicKey: Hex.Hex
 }
 
-export type SignatureVerification = {
+export type SignatureVerificationPermission = {
   addresses: readonly Address.Address[]
 }
 
-export type SpendLimit<bigintType = bigint> = {
-  limit: bigintType
+export type SpendPermission = {
+  limit: bigint
   period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
   token?: Address.Address | undefined
 }
-export type SpendLimits<bigintType = bigint> = readonly SpendLimit<bigintType>[]
+export type SpendPermissions = readonly SpendPermission[]
 
-/** Serialized key type to key type mapping. */
+/** Relay key type to key type mapping. */
+export const fromRelayKeyType = {
+  p256: 'p256',
+  webauthnp256: 'webauthn-p256',
+  secp256k1: 'secp256k1',
+} as const
+
+/** Relay key role to key role mapping. */
+export const fromRelayKeyRole = {
+  admin: 'admin',
+  normal: 'session',
+} as const
+
+/** Serialized (contract-compatible) key type to key type mapping. */
 export const fromSerializedKeyType = {
   0: 'p256',
   1: 'webauthn-p256',
   2: 'secp256k1',
 } as const
 
-/** Serialized spend period to period mapping. */
+/** Serialized (contract-compatible) spend period to period mapping. */
 export const fromSerializedSpendPeriod = {
   0: 'minute',
   1: 'hour',
@@ -106,14 +135,27 @@ export const fromSerializedSpendPeriod = {
   5: 'year',
 } as const
 
-/** Key type to serialized key type mapping. */
+/** Key type to relay key type mapping. */
+export const toRelayKeyType = {
+  p256: 'p256',
+  'webauthn-p256': 'webauthnp256',
+  secp256k1: 'secp256k1',
+} as const
+
+/** Key role to relay key role mapping. */
+export const toRelayKeyRole = {
+  admin: 'admin',
+  session: 'normal',
+} as const
+
+/** Key type to serialized (contract-compatible) key type mapping. */
 export const toSerializedKeyType = {
   p256: 0,
   'webauthn-p256': 1,
   secp256k1: 2,
 } as const
 
-/** Period to serialized period mapping. */
+/** Period to serialized (contract-compatible) spend period mapping. */
 export const toSerializedSpendPeriod = {
   minute: 0,
   hour: 1,
@@ -356,12 +398,19 @@ export declare namespace createWebCryptoP256 {
  * @returns Key.
  */
 export function deserialize(serialized: Serialized): Key {
+  const publicKey = serialized.publicKey
+  const type = (fromSerializedKeyType as any)[serialized.keyType]
   return {
     expiry: serialized.expiry,
-    publicKey: serialized.publicKey,
+    hash: hash({
+      publicKey,
+      type,
+    }),
+    initialized: true,
+    publicKey,
     role: serialized.isSuperAdmin ? 'admin' : 'session',
     canSign: false,
-    type: (fromSerializedKeyType as any)[serialized.keyType],
+    type,
   }
 }
 
@@ -390,11 +439,29 @@ export function deserialize(serialized: Serialized): Key {
  * @param key - Key.
  * @returns Key.
  */
-export function from<const key extends Key>(
-  key: key | Key | Serialized,
-): key extends Key ? key : Key {
+export function from<const key extends from.Value>(
+  key: from.Parameters<key>,
+): from.ReturnType<key> {
   if ('isSuperAdmin' in key) return deserialize(key) as never
-  return { ...key, expiry: key.expiry ?? 0 } as never
+  return {
+    ...key,
+    initialized: key.initialized ?? true,
+    hash: hash({
+      publicKey: key.publicKey,
+      type: key.type,
+    }),
+    expiry: key.expiry ?? 0,
+  } as never
+}
+
+export declare namespace from {
+  type Value = UnionPartialBy<UnionOmit<Key, 'hash'>, 'initialized'>
+
+  type Parameters<key extends from.Value> = key | Key | Serialized
+
+  type ReturnType<key extends from.Value> = key extends from.Value
+    ? key & Pick<Key, 'initialized' | 'hash'>
+    : Key
 }
 
 /**
@@ -432,6 +499,7 @@ export function fromP256<const role extends Key['role']>(
   return from({
     canSign: true,
     expiry: parameters.expiry ?? 0,
+    initialized: parameters.initialized,
     publicKey,
     role: parameters.role as Key['role'],
     permissions: parameters.permissions,
@@ -446,6 +514,8 @@ export declare namespace fromP256 {
   type Parameters<role extends Key['role'] = Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
+    /** Whether the key has been initialized on the Account. */
+    initialized?: boolean | undefined
     /** Permissions. */
     permissions?: Permissions | undefined
     /** P256 private key. */
@@ -453,6 +523,49 @@ export declare namespace fromP256 {
     /** Role. */
     role: role | Key['role']
   }
+}
+
+/**
+ * Converts a relay-formatted key to a key.
+ *
+ * @example
+ * TODO
+ *
+ * @param relay - Relay key.
+ * @returns Key.
+ */
+export function fromRelay(relay: Relay): Key {
+  const permissions: {
+    calls?: Mutable<CallPermissions> | undefined
+    spend?: Mutable<SpendPermissions> | undefined
+  } = {}
+
+  for (const permission of relay.permissions) {
+    if (permission.type === 'call') {
+      permissions.calls ??= []
+      permissions.calls.push({
+        signature: permission.selector,
+        to: permission.to === Call.anyTarget ? undefined : permission.to,
+      })
+    }
+    if (permission.type === 'spend') {
+      permissions.spend ??= []
+      permissions.spend.push({
+        limit: permission.limit,
+        period: permission.period,
+        token: permission.token as Address.Address,
+      })
+    }
+  }
+
+  return from({
+    canSign: false,
+    expiry: relay.expiry,
+    permissions,
+    publicKey: relay.publicKey,
+    role: fromRelayKeyRole[relay.role],
+    type: fromRelayKeyType[relay.type],
+  })
 }
 
 /**
@@ -495,6 +608,7 @@ export function fromSecp256k1<const role extends Key['role']>(
   return from({
     canSign: Boolean(privateKey),
     expiry: parameters.expiry ?? 0,
+    initialized: parameters.initialized,
     publicKey,
     role,
     permissions: parameters.permissions,
@@ -507,6 +621,8 @@ export declare namespace fromSecp256k1 {
   type Parameters<role extends Key['role'] = Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
+    /** Whether the key has been initialized on the Account. */
+    initialized?: boolean | undefined
     /** Permissions. */
     permissions?: Permissions | undefined
     /** Role. */
@@ -565,6 +681,7 @@ export function fromWebAuthnP256<const role extends Key['role']>(
     canSign: true,
     credential,
     expiry: parameters.expiry ?? 0,
+    initialized: parameters.initialized,
     permissions: parameters.permissions,
     publicKey,
     role: parameters.role as Key['role'],
@@ -579,6 +696,8 @@ export declare namespace fromWebAuthnP256 {
     expiry?: Key['expiry'] | undefined
     /** WebAuthnP256 Credential. */
     credential: Pick<WebAuthnP256.P256Credential, 'id' | 'publicKey'>
+    /** Whether the key has been initialized on the Account. */
+    initialized?: boolean | undefined
     /** Permissions. */
     permissions?: Permissions | undefined
     /** Role. */
@@ -626,6 +745,7 @@ export function fromWebCryptoP256<const role extends Key['role']>(
   return from({
     canSign: true,
     expiry: parameters.expiry ?? 0,
+    initialized: parameters.initialized,
     permissions: parameters.permissions,
     publicKey,
     role: parameters.role as Key['role'],
@@ -638,6 +758,8 @@ export declare namespace fromWebCryptoP256 {
   type Parameters<role extends Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
+    /** Whether the key has been initialized on the Account. */
+    initialized?: boolean | undefined
     /** P256 private key. */
     keyPair: Awaited<ReturnType<typeof WebCryptoP256.createKeyPair>>
     /** Permissions. */
@@ -749,7 +871,7 @@ export async function sign(
 
       const response = raw.response as AuthenticatorAssertionResponse
       const userHandle = Bytes.toHex(new Uint8Array(response.userHandle!))
-      if (address !== userHandle)
+      if (address && !Address.isEqual(address, userHandle))
         throw new Error(
           `supplied address "${address}" does not match signature address "${userHandle}"`,
         )
@@ -783,6 +905,64 @@ export async function sign(
     publicKey,
     prehash,
   })
+}
+
+/**
+ * Converts a key to a relay-compatible format.
+ *
+ * @example
+ * TODO
+ *
+ * @param key - Key.
+ * @returns Relay key.
+ */
+export function toRelay(
+  key: Pick<Key, 'expiry' | 'permissions' | 'publicKey' | 'role' | 'type'>,
+): Relay {
+  const { expiry, publicKey, role, type } = key
+
+  // biome-ignore lint/complexity/useFlatMap:
+  const permissions = Object.entries(key.permissions ?? {})
+    .map(([key, v]) => {
+      if (key === 'calls') {
+        const calls = v as CallPermissions
+        return calls.map(({ signature, to }) => {
+          const selector = (() => {
+            if (!signature) return Call.anySelector
+            if (Hex.validate(signature)) return signature
+            return AbiFunction.getSelector(signature)
+          })()
+          return {
+            type: 'call',
+            to: to ?? Call.anyTarget,
+            selector,
+          } as const satisfies RelayPermission.CallPermission
+        })
+      }
+
+      if (key === 'spend') {
+        const value = v as SpendPermissions
+        return value.map(({ limit, period, token }) => {
+          return {
+            type: 'spend',
+            limit,
+            period,
+            token,
+          } as const satisfies RelayPermission.SpendPermission
+        })
+      }
+
+      throw new Error(`Invalid permission type "${key}".`)
+    })
+    .flat()
+
+  return {
+    expiry,
+    permissions: permissions ?? [],
+    publicKey,
+    role: toRelayKeyRole[role],
+    type: toRelayKeyType[type],
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////

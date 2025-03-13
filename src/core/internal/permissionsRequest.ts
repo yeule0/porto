@@ -30,7 +30,10 @@ export declare namespace fromKey {
 
 export async function toKey(
   request: PermissionsRequest | undefined,
+  options: toKey.Options = {},
 ): Promise<Key.Key | undefined> {
+  const { initialized = true } = options
+
   if (!request) return undefined
 
   const expiry = request.expiry ?? 0
@@ -46,14 +49,15 @@ export async function toKey(
   )
     publicKey = Address.fromPublicKey(publicKey)
 
-  const key = {
+  const key = Key.from({
     canSign: false,
     expiry,
+    initialized,
     permissions,
     publicKey,
     role: 'session',
-    type: type === 'contract' ? 'secp256k1' : type,
-  } as const
+    type: type === 'address' ? 'secp256k1' : type,
+  })
   if (request?.key) return key
 
   return await Key.createWebCryptoP256({
@@ -64,9 +68,7 @@ export async function toKey(
 
 export declare namespace toKey {
   export type Options = {
-    key: {
-      publicKey: Hex.Hex
-      type: Key.Key['type'] | 'contract'
-    }
+    /** Whether the Key has been initialized on the Account. */
+    initialized?: boolean | undefined
   }
 }

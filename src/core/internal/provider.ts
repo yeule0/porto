@@ -4,11 +4,12 @@ import * as Hex from 'ox/Hex'
 import * as ox_Provider from 'ox/Provider'
 
 import type * as Chains from '../Chains.js'
-import * as Porto from '../Porto.js'
+import type * as Porto from '../Porto.js'
 import type * as RpcSchema from '../RpcSchema.js'
 import * as Account from './account.js'
-import * as Key from './key.js'
+import type * as Key from './key.js'
 import * as Permissions from './permissions.js'
+import * as Porto_internal from './porto.js'
 import * as Rpc from './typebox/rpc.js'
 import * as Schema from './typebox/schema.js'
 
@@ -37,7 +38,7 @@ export function from<
   function getClient(chainId_?: Hex.Hex | number | undefined) {
     const chainId =
       typeof chainId_ === 'string' ? Hex.toNumber(chainId_) : chainId_
-    return Porto.getClient({ _internal: parameters }, { chainId })
+    return Porto_internal.getClient({ _internal: parameters }, { chainId })
   }
 
   const emitter = ox_Provider.createEmitter()
@@ -65,12 +66,12 @@ export function from<
             throw new ox_Provider.DisconnectedError()
           return state.accounts.map(
             (account) => account.address,
-          ) satisfies Schema.Static<typeof Rpc.eth_accounts.ReturnType>
+          ) satisfies Schema.Static<typeof Rpc.eth_accounts.Response>
         }
 
         case 'eth_chainId': {
           return Hex.fromNumber(state.chain.id) satisfies Schema.Static<
-            typeof Rpc.eth_chainId.ReturnType
+            typeof Rpc.eth_chainId.Response
           >
         }
 
@@ -78,7 +79,7 @@ export function from<
           if (state.accounts.length > 0)
             return state.accounts.map(
               (account) => account.address,
-            ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.ReturnType>
+            ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.Response>
 
           const client = getClient()
 
@@ -99,7 +100,7 @@ export function from<
 
           return accounts.map(
             (account) => account.address,
-          ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.ReturnType>
+          ) satisfies Schema.Static<typeof Rpc.eth_requestAccounts.Response>
         }
 
         case 'eth_sendTransaction': {
@@ -119,7 +120,7 @@ export function from<
           )
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await implementation.actions.execute({
+          const hash = await implementation.actions.sendCalls({
             account,
             calls: [
               {
@@ -137,7 +138,7 @@ export function from<
           })
 
           return hash satisfies Schema.Static<
-            typeof Rpc.eth_sendTransaction.ReturnType
+            typeof Rpc.eth_sendTransaction.Response
           >
         }
 
@@ -166,7 +167,7 @@ export function from<
           })
 
           return signature satisfies Schema.Static<
-            typeof Rpc.eth_signTypedData_v4.ReturnType
+            typeof Rpc.eth_signTypedData_v4.Response
           >
         }
 
@@ -225,20 +226,17 @@ export function from<
               address: account.address,
             }),
           ) satisfies Schema.Static<
-            typeof Rpc.experimental_grantPermissions.ReturnType
+            typeof Rpc.experimental_grantPermissions.Response
           >
         }
 
         case 'experimental_createAccount': {
-          const [{ chainId, label, context, signatures }] = request._decoded
-            .params ?? [{}]
+          const [{ chainId, label }] = request._decoded.params ?? [{}]
 
           const client = getClient(chainId)
 
           const { account } = await implementation.actions.createAccount({
-            context,
             label,
-            signatures,
             internal: {
               client,
               config,
@@ -262,11 +260,11 @@ export function from<
               ...(permissions.length > 0 ? { permissions } : {}),
             },
           } satisfies Schema.Static<
-            typeof Rpc.experimental_createAccount.ReturnType
+            typeof Rpc.experimental_createAccount.Response
           >
         }
 
-        case 'experimental_prepareCreateAccount': {
+        case 'experimental_prepareUpgradeAccount': {
           const [{ address, capabilities, chainId, label }] = request._decoded
             .params ?? [{}]
 
@@ -275,7 +273,7 @@ export function from<
           const client = getClient(chainId)
 
           const { context, signPayloads } =
-            await implementation.actions.prepareCreateAccount({
+            await implementation.actions.prepareUpgradeAccount({
               address,
               permissions,
               label,
@@ -291,7 +289,7 @@ export function from<
             context,
             signPayloads: signPayloads.map((x) => x as never),
           } satisfies Schema.Static<
-            typeof Rpc.experimental_prepareCreateAccount.ReturnType
+            typeof Rpc.experimental_prepareUpgradeAccount.Response
           >
         }
 
@@ -362,10 +360,43 @@ export function from<
           return
         }
 
-        case 'porto_ping': {
-          return 'pong' satisfies Schema.Static<
-            typeof Rpc.porto_ping.ReturnType
+        case 'experimental_upgradeAccount': {
+          const [{ context, signatures }] = request._decoded.params ?? [{}]
+
+          const client = getClient()
+
+          const { account } = await implementation.actions.upgradeAccount({
+            context,
+            signatures,
+            internal: {
+              client,
+              config,
+              request,
+              store,
+            },
+          })
+
+          const permissions = getActivePermissions(account.keys ?? [], {
+            address: account.address,
+          })
+
+          store.setState((x) => ({ ...x, accounts: [account] }))
+
+          emitter.emit('connect', {
+            chainId: Hex.fromNumber(client.chain.id),
+          })
+          return {
+            address: account.address,
+            capabilities: {
+              ...(permissions.length > 0 ? { permissions } : {}),
+            },
+          } satisfies Schema.Static<
+            typeof Rpc.experimental_createAccount.Response
           >
+        }
+
+        case 'porto_ping': {
+          return 'pong' satisfies Schema.Static<typeof Rpc.porto_ping.Response>
         }
 
         case 'personal_sign': {
@@ -393,7 +424,7 @@ export function from<
           })
 
           return signature satisfies Schema.Static<
-            typeof Rpc.personal_sign.ReturnType
+            typeof Rpc.personal_sign.Response
           >
         }
 
@@ -475,7 +506,7 @@ export function from<
                   : [],
               },
             })),
-          } satisfies Schema.Static<typeof Rpc.wallet_connect.ReturnType>
+          } satisfies Schema.Static<typeof Rpc.wallet_connect.Response>
         }
 
         case 'wallet_disconnect': {
@@ -498,7 +529,7 @@ export function from<
           return {
             receipts: [receipt],
             status: 'CONFIRMED',
-          } satisfies Schema.Static<typeof Rpc.wallet_getCallsStatus.ReturnType>
+          } satisfies Schema.Static<typeof Rpc.wallet_getCallsStatus.Response>
         }
 
         case 'wallet_getCapabilities': {
@@ -519,13 +550,13 @@ export function from<
             capabilities[Hex.fromNumber(chain.id)] = value
 
           return capabilities satisfies Schema.Static<
-            typeof Rpc.wallet_getCapabilities.ReturnType
+            typeof Rpc.wallet_getCapabilities.Response
           >
         }
 
         case 'wallet_prepareCalls': {
           const [parameters] = request._decoded.params
-          const { calls, chainId, from, version = '1.0' } = parameters
+          const { calls, chainId, from } = parameters
 
           const client = getClient(chainId)
 
@@ -535,10 +566,18 @@ export function from<
           if (chainId && chainId !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
-          const { signPayloads, request: context } =
-            await implementation.actions.prepareExecute({
+          const key = {
+            publicKey: parameters.key.publicKey,
+            type:
+              parameters.key.type === 'address'
+                ? 'secp256k1'
+                : parameters.key.type,
+          } as const
+
+          const { signPayloads, ...rest } =
+            await implementation.actions.prepareCalls({
               calls,
-              client,
+              key,
               internal: {
                 client,
                 config,
@@ -548,34 +587,45 @@ export function from<
               account: Account.from(account),
             })
 
-          return {
-            chainId: chainId ? Hex.fromNumber(chainId) : undefined,
-            version,
-            context: context as never,
+          return Schema.Encode(Rpc.wallet_prepareCalls.Response, {
+            chainId: Hex.fromNumber(client.chain.id),
+            context: {
+              ...rest.context,
+              account: {
+                address: rest.account.address,
+                type: rest.account.type,
+              },
+              calls: rest.context.calls,
+              nonce: rest.context.nonce,
+            },
             digest: signPayloads[0]!,
-          } satisfies Schema.Static<typeof Rpc.wallet_prepareCalls.ReturnType>
+            key,
+          }) satisfies Schema.Static<typeof Rpc.wallet_prepareCalls.Response>
         }
 
         case 'wallet_sendPreparedCalls': {
           const [parameters] = request._decoded.params
-          const { signature, chainId } = parameters
-          const { account, calls, nonce } = parameters.context
+          const { chainId, signature } = parameters
+          const { account } = parameters.context
 
           const client = getClient(chainId)
 
           if (chainId && Hex.toNumber(chainId) !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
-          const wrappedSignature = Key.wrapSignature(signature.value, {
-            keyType: signature.type as never,
-            publicKey: signature.publicKey,
-          })
+          const key = {
+            publicKey: parameters.key.publicKey,
+            type:
+              parameters.key.type === 'address'
+                ? 'secp256k1'
+                : parameters.key.type,
+          } as const
 
-          const hash = await implementation.actions.execute({
+          const hash = await implementation.actions.sendPreparedCalls({
             account,
-            calls,
-            nonce,
-            signature: wrappedSignature,
+            context: parameters.context,
+            key,
+            signature: signature,
             internal: {
               client,
               config,
@@ -585,7 +635,7 @@ export function from<
           })
 
           return [{ id: hash }] satisfies Schema.Static<
-            typeof Rpc.wallet_sendPreparedCalls.ReturnType
+            typeof Rpc.wallet_sendPreparedCalls.Response
           >
         }
 
@@ -608,7 +658,7 @@ export function from<
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await implementation.actions.execute({
+          const hash = await implementation.actions.sendCalls({
             account,
             calls,
             permissionsId: capabilities?.permissions?.id,
@@ -621,7 +671,7 @@ export function from<
           })
 
           return hash satisfies Schema.Static<
-            typeof Rpc.wallet_sendCalls.ReturnType
+            typeof Rpc.wallet_sendCalls.Response
           >
         }
       }
@@ -671,6 +721,7 @@ export declare namespace from {
     ],
   > = {
     config: Porto.Config<chains>
+    id: string
     store: Porto.Store
   }
 }
@@ -694,7 +745,7 @@ function getActivePermissions(
     address,
     chainId,
   }: { address: Address.Address; chainId?: number | undefined },
-): Schema.Static<typeof Rpc.experimental_permissions.ReturnType> {
+): Schema.Static<typeof Rpc.experimental_permissions.Response> {
   return keys
     .map((key) => {
       if (key.role !== 'session') return undefined
