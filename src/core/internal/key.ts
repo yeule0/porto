@@ -25,7 +25,10 @@ import type {
 
 type PrivateKeyFn = () => Hex.Hex
 
-export type Key = OneOf<P256Key | Secp256k1Key | WebCryptoKey | WebAuthnKey>
+export type Key = OneOf<
+  AddressKey | P256Key | Secp256k1Key | WebCryptoKey | WebAuthnKey
+>
+export type AddressKey = BaseKey<'address'>
 export type P256Key = BaseKey<'p256', { privateKey: PrivateKeyFn }>
 export type Secp256k1Key = BaseKey<'secp256k1', { privateKey: PrivateKeyFn }>
 export type WebCryptoKey = BaseKey<
@@ -46,7 +49,7 @@ export type WebAuthnKey = BaseKey<
 >
 
 /** Key on a delegated account. */
-export type BaseKey<type extends string, properties> = {
+export type BaseKey<type extends string, properties = {}> = {
   expiry: number
   hash: Hex.Hex
   initialized: boolean
@@ -137,6 +140,7 @@ export const fromSerializedSpendPeriod = {
 
 /** Key type to relay key type mapping. */
 export const toRelayKeyType = {
+  address: 'secp256k1',
   p256: 'p256',
   'webauthn-p256': 'webauthnp256',
   secp256k1: 'secp256k1',
@@ -153,6 +157,7 @@ export const toSerializedKeyType = {
   p256: 0,
   'webauthn-p256': 1,
   secp256k1: 2,
+  address: 2,
 } as const
 
 /** Period to serialized (contract-compatible) spend period mapping. */

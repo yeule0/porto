@@ -56,7 +56,7 @@ export async function toKey(
     permissions,
     publicKey,
     role: 'session',
-    type: type === 'address' ? 'secp256k1' : type,
+    type,
   })
   if (request?.key) return key
 

@@ -37,7 +37,7 @@ exports[`local > experimental_grantPermissions > behavior: provided key 2`] = `
   "id": "0x0000000000000000000000000000000000000000",
   "key": {
     "publicKey": "0x0000000000000000000000000000000000000000",
-    "type": "secp256k1",
+    "type": "address",
   },
   "permissions": {
     "calls": [
@@ -104,7 +104,7 @@ exports[`local > experimental_grantPermissions > behavior: provided key 3`] = `
     },
     "publicKey": null,
     "role": "session",
-    "type": "secp256k1",
+    "type": "address",
   },
 ]
 `;
@@ -375,7 +375,7 @@ exports[`relay > experimental_grantPermissions > behavior: provided key 2`] = `
   "id": "0x0000000000000000000000000000000000000000",
   "key": {
     "publicKey": "0x0000000000000000000000000000000000000000",
-    "type": "secp256k1",
+    "type": "address",
   },
   "permissions": {
     "calls": [
@@ -442,7 +442,7 @@ exports[`relay > experimental_grantPermissions > behavior: provided key 3`] = `
     },
     "publicKey": null,
     "role": "session",
-    "type": "secp256k1",
+    "type": "address",
   },
 ]
 `;
