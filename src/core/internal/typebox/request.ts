@@ -299,7 +299,7 @@ export const wallet_prepareCallsParams0 = Type.Object({
   capabilities: Schema.Optional(Capabilities.SendCalls),
   chainId: Schema.Optional(Primitive.Number),
   from: Schema.Optional(Primitive.Address),
-  version: Schema.Optional(Type.Literal('1')),
+  version: Schema.Optional(Type.String()),
 })
 export const wallet_prepareCallsReturnType = Type.Object({
   capabilities: Schema.Optional(Type.Record(Type.String(), Type.Any())),
