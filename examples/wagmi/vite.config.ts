@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 const https = {
-  key: resolve(import.meta.dirname, '../localhost-key.pem'),
-  cert: resolve(import.meta.dirname, '../localhost.pem'),
+  key: resolve(import.meta.dirname, '../../localhost-key.pem'),
+  cert: resolve(import.meta.dirname, '../../localhost.pem'),
 } as const
 const enableHttps = existsSync(https.cert) && existsSync(https.key)
 
