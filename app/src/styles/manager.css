@@ -1,9 +1,3 @@
-@import "tailwindcss";
-@import "./shared.css";
-@import "./theme.css";
-
-@plugin "tailwindcss-animate";
-
 @custom-variant dark (&:is(.dark *));
 
 @layer utilities {
@@ -54,12 +48,6 @@ body,
   body {
     @apply bg-background text-foreground;
   }
-}
-
-[data-dialog] {
-  --height-button: 36px;
-
-  --radius-default: 8px;
 }
 
 .backdrop {

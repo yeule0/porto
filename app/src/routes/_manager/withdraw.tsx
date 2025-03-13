@@ -13,7 +13,7 @@ import { Header } from '~/components/Header'
 import { Pill } from '~/components/Pill'
 import { StringFormatter, cn } from '~/utils'
 
-export const Route = createFileRoute('/_app/withdraw')({
+export const Route = createFileRoute('/_manager/withdraw')({
   component: RouteComponent,
 })
 

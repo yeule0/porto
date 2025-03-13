@@ -10,7 +10,9 @@ import XIcon from '~icons/lucide/x'
 import { Button } from '~/components/Button'
 import { cn } from '~/utils'
 
-export const Route = createFileRoute('/_app/settings/recovery/wallet/phrase')({
+export const Route = createFileRoute(
+  '/_manager/settings/recovery/wallet/phrase',
+)({
   component: RouteComponent,
 })
 

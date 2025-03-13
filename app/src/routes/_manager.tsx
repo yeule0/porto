@@ -1,9 +1,12 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
-import '../styles/app.css'
+import managerCss from '../styles/manager.css?url'
 
-export const Route = createFileRoute('/_app')({
+export const Route = createFileRoute('/_manager')({
   component: RouteComponent,
+  head: () => ({
+    links: [{ rel: 'stylesheet', href: managerCss }],
+  }),
 })
 
 function RouteComponent() {
