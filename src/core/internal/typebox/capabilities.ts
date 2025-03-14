@@ -25,56 +25,6 @@ export namespace permissions {
   })
   export type Request = Schema.StaticDecode<typeof Request>
 
-  export const Response = Type.Array(
-    Type.Object({
-      address: Primitive.Address,
-      chainId: Schema.Optional(Primitive.Hex),
-      expiry: Type.Number(),
-      id: Primitive.Hex,
-      key: Type.Object({
-        publicKey: Primitive.Hex,
-        type: Type.String(),
-      }),
-      permissions: Type.Object({
-        calls: Schema.Optional(
-          Type.Array(
-            Type.Union([
-              Type.Object({
-                signature: Type.String(),
-                to: Primitive.Address,
-              }),
-              Type.Object({
-                signature: Type.String(),
-              }),
-              Type.Object({
-                to: Primitive.Address,
-              }),
-            ]),
-          ),
-        ),
-        signatureVerification: Schema.Optional(
-          Type.Object({
-            addresses: Type.Array(Primitive.Address),
-          }),
-        ),
-        spend: Schema.Optional(
-          Type.Array(
-            Type.Object({
-              limit: Primitive.BigInt,
-              period: Type.Union([
-                Type.Literal('minute'),
-                Type.Literal('hour'),
-                Type.Literal('day'),
-                Type.Literal('week'),
-                Type.Literal('month'),
-                Type.Literal('year'),
-              ]),
-              token: Schema.Optional(Primitive.Address),
-            }),
-          ),
-        ),
-      }),
-    }),
-  )
+  export const Response = Type.Array(Permissions.Permissions)
   export type Response = Schema.StaticDecode<typeof Response>
 }

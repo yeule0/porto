@@ -13,9 +13,11 @@ import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import * as WebCryptoP256 from 'ox/WebCryptoP256'
 
 import * as Call from './call.js'
-import type * as RelayKey from './relay/typebox/key.js'
-import type * as RelayPermission from './relay/typebox/permission.js'
+import type * as RelayKey_typebox from './relay/typebox/key.js'
+import type * as RelayPermission_typebox from './relay/typebox/permission.js'
+import type * as Key_typebox from './typebox/key.js'
 import type {
+  Compute,
   Mutable,
   OneOf,
   Undefined,
@@ -24,6 +26,21 @@ import type {
 } from './types.js'
 
 type PrivateKeyFn = () => Hex.Hex
+
+export type BaseKey<type extends string, properties = {}> = Compute<
+  Key_typebox.Base & {
+    initialized: boolean
+    permissions?: Permissions | undefined
+    type: type
+  } & OneOf<
+      | ({
+          canSign: true
+        } & properties)
+      | ({
+          canSign: false
+        } & Undefined<properties>)
+    >
+>
 
 export type Key = OneOf<
   AddressKey | P256Key | Secp256k1Key | WebCryptoKey | WebAuthnKey
@@ -48,46 +65,10 @@ export type WebAuthnKey = BaseKey<
   }
 >
 
-/** Key on a delegated account. */
-export type BaseKey<type extends string, properties = {}> = {
-  expiry: number
-  hash: Hex.Hex
-  initialized: boolean
-  permissions?: Permissions | undefined
-  publicKey: Hex.Hex
-  role: 'admin' | 'session'
-  type: type
-} & OneOf<
-  | ({
-      canSign: true
-    } & properties)
-  | ({
-      canSign: false
-    } & Undefined<properties>)
->
-
-export type CallPermission = OneOf<
-  | {
-      signature: string
-      to: Address.Address
-    }
-  | {
-      signature: string
-    }
-  | {
-      to: Address.Address
-    }
->
-export type CallPermissions = readonly CallPermission[]
-
-export type Permissions = {
-  calls?: CallPermissions | undefined
-  signatureVerification?: SignatureVerificationPermission | undefined
-  spend?: SpendPermissions | undefined
-}
+export type Permissions = Key_typebox.Permissions
 
 /** RPC (relay-compatible) format of a key. */
-export type Relay = RelayKey.WithPermissions
+export type Relay = RelayKey_typebox.WithPermissions
 
 /** Serialized (contract-compatible) format of a key. */
 export type Serialized = {
@@ -96,17 +77,6 @@ export type Serialized = {
   keyType: number
   publicKey: Hex.Hex
 }
-
-export type SignatureVerificationPermission = {
-  addresses: readonly Address.Address[]
-}
-
-export type SpendPermission = {
-  limit: bigint
-  period: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-  token?: Address.Address | undefined
-}
-export type SpendPermissions = readonly SpendPermission[]
 
 /** Relay key type to key type mapping. */
 export const fromRelayKeyType = {
@@ -541,8 +511,8 @@ export declare namespace fromP256 {
  */
 export function fromRelay(relay: Relay): Key {
   const permissions: {
-    calls?: Mutable<CallPermissions> | undefined
-    spend?: Mutable<SpendPermissions> | undefined
+    calls?: Mutable<Key_typebox.CallPermissions> | undefined
+    spend?: Mutable<Key_typebox.SpendPermissions> | undefined
   } = {}
 
   for (const permission of relay.permissions) {
@@ -566,7 +536,7 @@ export function fromRelay(relay: Relay): Key {
   return from({
     canSign: false,
     expiry: relay.expiry,
-    permissions,
+    permissions: permissions as Permissions,
     publicKey: relay.publicKey,
     role: fromRelayKeyRole[relay.role],
     type: fromRelayKeyType[relay.type],
@@ -930,7 +900,7 @@ export function toRelay(
   const permissions = Object.entries(key.permissions ?? {})
     .map(([key, v]) => {
       if (key === 'calls') {
-        const calls = v as CallPermissions
+        const calls = v as Key_typebox.CallPermissions
         return calls.map(({ signature, to }) => {
           const selector = (() => {
             if (!signature) return Call.anySelector
@@ -941,19 +911,19 @@ export function toRelay(
             type: 'call',
             to: to ?? Call.anyTarget,
             selector,
-          } as const satisfies RelayPermission.CallPermission
+          } as const satisfies RelayPermission_typebox.CallPermission
         })
       }
 
       if (key === 'spend') {
-        const value = v as SpendPermissions
+        const value = v as Key_typebox.SpendPermissions
         return value.map(({ limit, period, token }) => {
           return {
             type: 'spend',
             limit,
             period,
             token,
-          } as const satisfies RelayPermission.SpendPermission
+          } as const satisfies RelayPermission_typebox.SpendPermission
         })
       }
 

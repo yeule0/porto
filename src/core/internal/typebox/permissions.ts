@@ -1,3 +1,4 @@
+import * as Key from './key.js'
 import * as Primitive from './primitive.js'
 import * as Schema from './schema.js'
 import { Type } from './schema.js'
@@ -7,56 +8,11 @@ export const Permissions = Type.Object({
   chainId: Schema.Optional(Primitive.Number),
   expiry: Type.Number(),
   id: Primitive.Hex,
-  key: Type.Object({
-    publicKey: Primitive.Hex,
-    type: Type.Union([
-      Type.Literal('p256'),
-      Type.Literal('secp256k1'),
-      Type.Literal('webauthn-p256'),
-      Type.Literal('address'),
-    ]),
+  key: Type.Pick(Key.Base, ['publicKey', 'type']),
+  permissions: Type.Object({
+    calls: Key.CallPermissions,
+    spend: Schema.Optional(Key.SpendPermissions),
   }),
-  permissions: Type.Object(
-    {
-      calls: Type.Array(
-        Type.Union([
-          Type.Object({
-            signature: Type.String(),
-            to: Primitive.Address,
-          }),
-          Type.Object({
-            signature: Type.String(),
-          }),
-          Type.Object({
-            to: Primitive.Address,
-          }),
-        ]),
-        { minItems: 1 },
-      ),
-      signatureVerification: Schema.Optional(
-        Type.Object({
-          addresses: Type.Array(Primitive.Address),
-        }),
-      ),
-      spend: Schema.Optional(
-        Type.Array(
-          Type.Object({
-            limit: Primitive.BigInt,
-            period: Type.Union([
-              Type.Literal('minute'),
-              Type.Literal('hour'),
-              Type.Literal('day'),
-              Type.Literal('week'),
-              Type.Literal('month'),
-              Type.Literal('year'),
-            ]),
-            token: Schema.Optional(Primitive.Address),
-          }),
-        ),
-      ),
-    },
-    { minProperties: 1 },
-  ),
 })
 export type Permissions = Schema.StaticDecode<typeof Permissions>
 
