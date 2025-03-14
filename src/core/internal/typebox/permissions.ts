@@ -11,6 +11,7 @@ export const Permissions = Type.Object({
   key: Type.Pick(Key.Base, ['publicKey', 'type']),
   permissions: Type.Object({
     calls: Key.CallPermissions,
+    signatureVerification: Schema.Optional(Key.SignatureVerificationPermission),
     spend: Schema.Optional(Key.SpendPermissions),
   }),
 })
