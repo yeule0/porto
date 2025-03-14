@@ -277,6 +277,7 @@ function Mint() {
             calls: [
               {
                 ...exp1Config,
+                to: exp1Address,
                 functionName: 'mint',
                 args: [address!, parseEther('100')],
               },
