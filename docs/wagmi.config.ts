@@ -5,7 +5,7 @@ import { odysseyTestnet } from 'wagmi/chains'
 if (typeof window !== 'undefined')
   Porto.create({
     implementation: Implementation.dialog({
-      host: import.meta.env.VITE_DIALOG_HOST ?? 'https://localhost:5174/dialog',
+      host: import.meta.env.VITE_DIALOG_HOST,
     }),
   })
 

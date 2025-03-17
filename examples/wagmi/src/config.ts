@@ -7,7 +7,7 @@ const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'
 const implementation = DISABLE_DIALOG
   ? Implementation.local()
   : Implementation.dialog({
-      host: import.meta.env.VITE_DIALOG_HOST ?? 'https://localhost:5174/dialog',
+      host: import.meta.env.VITE_DIALOG_HOST,
     })
 
 Porto.create({ implementation })

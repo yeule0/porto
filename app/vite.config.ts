@@ -1,6 +1,3 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-
 import Tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import React from '@vitejs/plugin-react'

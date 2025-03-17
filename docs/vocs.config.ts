@@ -372,6 +372,17 @@ export default defineConfig({
     },
   ],
   vite: {
+    define:
+      process.env.NODE_ENV === 'development'
+        ? {
+            'import.meta.env.VITE_DIALOG_HOST': JSON.stringify(
+              'https://localhost:5174/dialog',
+            ),
+          }
+        : undefined,
     plugins: [Mkcert(), Icons({ compiler: 'jsx', jsx: 'react' }) as never],
+    server: {
+      proxy: {},
+    },
   },
 })
