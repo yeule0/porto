@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { createServer } from 'prool'
 import { anvil } from 'prool/instances'
@@ -23,6 +24,7 @@ export default defineConfig({
       : undefined,
   plugins: [
     react(),
+    tailwindcss(),
     {
       name: 'anvil',
       async configureServer() {

@@ -64,7 +64,11 @@ export function iframe() {
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
       iframe.setAttribute('src', host)
       iframe.setAttribute('title', 'Porto')
-      Object.assign(iframe.style, styles.iframe)
+      Object.assign(iframe.style, {
+        ...styles.iframe,
+        display: 'none',
+        position: 'fixed',
+      })
 
       root.appendChild(document.createElement('style')).textContent = `
         dialog[data-porto]::backdrop {
@@ -171,6 +175,7 @@ export function iframe() {
           this.close()
           document.removeEventListener('keydown', onEscape)
           messenger.destroy()
+          root.remove()
         },
         async syncRequests(requests) {
           if (!open) this.open()
@@ -257,6 +262,7 @@ export function popup() {
           this.close()
           window.removeEventListener('focus', onBlur)
           messenger?.destroy()
+          root.remove()
         },
         async syncRequests(requests) {
           if (!popup || popup.closed) this.open()
@@ -268,10 +274,99 @@ export function popup() {
   })
 }
 
-const width = 360
-const height = 282
+/**
+ * Instantiates an inline iframe dialog rendered on a provided `element`.
+ *
+ * @param options - Options.
+ * @returns Inline iframe dialog.
+ */
+export function debug_inline(options: inline.Options) {
+  const { element } = options
+  return from({
+    setup(parameters) {
+      const { host, internal } = parameters
+      const { store } = internal
 
-const styles = {
+      let open = false
+
+      const hostUrl = new URL(host)
+
+      const root = document.createElement('div')
+      root.dataset.porto = ''
+      element().appendChild(root)
+
+      const iframe = document.createElement('iframe')
+      iframe.setAttribute(
+        'allow',
+        `publickey-credentials-get ${hostUrl.origin}; publickey-credentials-create ${hostUrl.origin}`,
+      )
+      iframe.setAttribute('aria-label', 'Porto Wallet')
+      iframe.setAttribute('tabindex', '0')
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+      iframe.setAttribute('src', host)
+      iframe.setAttribute('title', 'Porto')
+      Object.assign(iframe.style, styles.iframe)
+
+      root.appendChild(iframe)
+
+      const messenger = Messenger.bridge({
+        from: Messenger.fromWindow(window, { targetOrigin: hostUrl.origin }),
+        to: Messenger.fromWindow(iframe.contentWindow!, {
+          targetOrigin: hostUrl.origin,
+        }),
+        waitForReady: true,
+      })
+
+      messenger.on('ready', () => {
+        messenger.send('__internal', {
+          type: 'init',
+          mode: 'iframe',
+          referrer: getReferrer(),
+        })
+      })
+      messenger.on('rpc-response', (response) =>
+        handleResponse(store, response),
+      )
+      messenger.on('__internal', (payload) => {
+        if (payload.type === 'resize') {
+          iframe.style.height = `${payload.height}px`
+        }
+      })
+
+      return {
+        open() {
+          if (open) return
+          open = true
+
+          messenger.send('__internal', {
+            type: 'init',
+            mode: 'iframe',
+            referrer: getReferrer(),
+          })
+        },
+        close() {},
+        destroy() {
+          messenger.destroy()
+          root.remove()
+        },
+        async syncRequests(requests) {
+          messenger.send('rpc-requests', requests)
+        },
+      }
+    },
+  })
+}
+
+export namespace inline {
+  export type Options = {
+    element: () => HTMLElement
+  }
+}
+
+export const width = 360
+export const height = 282
+
+export const styles = {
   backdrop: {
     display: 'none',
     position: 'fixed',
@@ -281,17 +376,11 @@ const styles = {
     zIndex: '2147483647',
   },
   iframe: {
-    display: 'none',
     border: 'none',
-    position: 'fixed',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
 
-/////////////////////////////////////////////////////////////////////
-// Internal
-/////////////////////////////////////////////////////////////////////
-
-function getReferrer() {
+export function getReferrer() {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const icon = isDark
     ? (document.querySelector(
@@ -305,7 +394,7 @@ function getReferrer() {
   }
 }
 
-function handleBlur(store: Store) {
+export function handleBlur(store: Store) {
   store.setState((x) => ({
     ...x,
     requestQueue: x.requestQueue.map((x) => ({
@@ -316,7 +405,10 @@ function handleBlur(store: Store) {
   }))
 }
 
-function handleResponse(store: Store, response: RpcResponse.RpcResponse) {
+export function handleResponse(
+  store: Store,
+  response: RpcResponse.RpcResponse,
+) {
   store.setState((x) => ({
     ...x,
     requestQueue: x.requestQueue.map((queued) => {

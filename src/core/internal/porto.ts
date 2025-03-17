@@ -9,6 +9,7 @@ import {
 } from 'viem'
 
 import type * as Chains from '../Chains.js'
+import type * as Implementation from '../Implementation.js'
 import type { Config, Store } from '../Porto.js'
 import type * as RpcSchema_relay from './relay/rpcSchema.js'
 
@@ -27,6 +28,8 @@ export type Internal<
 > = {
   config: Config<chains>
   id: string
+  implementation: Implementation.Implementation
+  setImplementation: (i: Implementation.Implementation) => void
   store: Store<chains>
 }
 

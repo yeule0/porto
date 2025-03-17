@@ -19,6 +19,7 @@ import { Route as ManagerWithdrawImport } from './routes/_manager/withdraw'
 import { Route as ManagerTransferImport } from './routes/_manager/transfer'
 import { Route as ManagerCreateAccountImport } from './routes/_manager/create-account'
 import { Route as ManagerSettingsIndexImport } from './routes/_manager/settings/index'
+import { Route as DialogDialogIndexImport } from './routes/_dialog.dialog/index'
 import { Route as ManagerSettingsPermissionsImport } from './routes/_manager/settings/permissions'
 import { Route as DialogDialogWalletsendCallsImport } from './routes/_dialog.dialog/wallet_sendCalls'
 import { Route as DialogDialogWalletconnectImport } from './routes/_dialog.dialog/wallet_connect'
@@ -78,6 +79,12 @@ const ManagerSettingsIndexRoute = ManagerSettingsIndexImport.update({
   id: '/settings/',
   path: '/settings/',
   getParentRoute: () => ManagerRoute,
+} as any)
+
+const DialogDialogIndexRoute = DialogDialogIndexImport.update({
+  id: '/dialog/',
+  path: '/dialog/',
+  getParentRoute: () => DialogRoute,
 } as any)
 
 const ManagerSettingsPermissionsRoute = ManagerSettingsPermissionsImport.update(
@@ -278,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManagerSettingsPermissionsImport
       parentRoute: typeof ManagerImport
     }
+    '/_dialog/dialog/': {
+      id: '/_dialog/dialog/'
+      path: '/dialog'
+      fullPath: '/dialog'
+      preLoaderRoute: typeof DialogDialogIndexImport
+      parentRoute: typeof DialogImport
+    }
     '/_manager/settings/': {
       id: '/_manager/settings/'
       path: '/settings'
@@ -320,6 +334,7 @@ interface DialogRouteChildren {
   DialogDialogPersonalsignRoute: typeof DialogDialogPersonalsignRoute
   DialogDialogWalletconnectRoute: typeof DialogDialogWalletconnectRoute
   DialogDialogWalletsendCallsRoute: typeof DialogDialogWalletsendCallsRoute
+  DialogDialogIndexRoute: typeof DialogDialogIndexRoute
 }
 
 const DialogRouteChildren: DialogRouteChildren = {
@@ -333,6 +348,7 @@ const DialogRouteChildren: DialogRouteChildren = {
   DialogDialogPersonalsignRoute: DialogDialogPersonalsignRoute,
   DialogDialogWalletconnectRoute: DialogDialogWalletconnectRoute,
   DialogDialogWalletsendCallsRoute: DialogDialogWalletsendCallsRoute,
+  DialogDialogIndexRoute: DialogDialogIndexRoute,
 }
 
 const DialogRouteWithChildren =
@@ -383,6 +399,7 @@ export interface FileRoutesByFullPath {
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
   '/settings/permissions': typeof ManagerSettingsPermissionsRoute
+  '/dialog': typeof DialogDialogIndexRoute
   '/settings': typeof ManagerSettingsIndexRoute
   '/settings/recovery': typeof ManagerSettingsRecoveryIndexRoute
   '/settings/recovery/wallet/phrase': typeof ManagerSettingsRecoveryWalletPhraseRoute
@@ -405,6 +422,7 @@ export interface FileRoutesByTo {
   '/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
   '/settings/permissions': typeof ManagerSettingsPermissionsRoute
+  '/dialog': typeof DialogDialogIndexRoute
   '/settings': typeof ManagerSettingsIndexRoute
   '/settings/recovery': typeof ManagerSettingsRecoveryIndexRoute
   '/settings/recovery/wallet/phrase': typeof ManagerSettingsRecoveryWalletPhraseRoute
@@ -429,6 +447,7 @@ export interface FileRoutesById {
   '/_dialog/dialog/wallet_connect': typeof DialogDialogWalletconnectRoute
   '/_dialog/dialog/wallet_sendCalls': typeof DialogDialogWalletsendCallsRoute
   '/_manager/settings/permissions': typeof ManagerSettingsPermissionsRoute
+  '/_dialog/dialog/': typeof DialogDialogIndexRoute
   '/_manager/settings/': typeof ManagerSettingsIndexRoute
   '/_manager/settings/recovery/': typeof ManagerSettingsRecoveryIndexRoute
   '/_manager/settings/recovery/wallet/phrase': typeof ManagerSettingsRecoveryWalletPhraseRoute
@@ -453,6 +472,7 @@ export interface FileRouteTypes {
     | '/dialog/wallet_connect'
     | '/dialog/wallet_sendCalls'
     | '/settings/permissions'
+    | '/dialog'
     | '/settings'
     | '/settings/recovery'
     | '/settings/recovery/wallet/phrase'
@@ -474,6 +494,7 @@ export interface FileRouteTypes {
     | '/dialog/wallet_connect'
     | '/dialog/wallet_sendCalls'
     | '/settings/permissions'
+    | '/dialog'
     | '/settings'
     | '/settings/recovery'
     | '/settings/recovery/wallet/phrase'
@@ -496,6 +517,7 @@ export interface FileRouteTypes {
     | '/_dialog/dialog/wallet_connect'
     | '/_dialog/dialog/wallet_sendCalls'
     | '/_manager/settings/permissions'
+    | '/_dialog/dialog/'
     | '/_manager/settings/'
     | '/_manager/settings/recovery/'
     | '/_manager/settings/recovery/wallet/phrase'
@@ -540,7 +562,8 @@ export const routeTree = rootRoute
         "/_dialog/dialog/experimental_grantPermissions",
         "/_dialog/dialog/personal_sign",
         "/_dialog/dialog/wallet_connect",
-        "/_dialog/dialog/wallet_sendCalls"
+        "/_dialog/dialog/wallet_sendCalls",
+        "/_dialog/dialog/"
       ]
     },
     "/_manager": {
@@ -611,6 +634,10 @@ export const routeTree = rootRoute
     "/_manager/settings/permissions": {
       "filePath": "_manager/settings/permissions.tsx",
       "parent": "/_manager"
+    },
+    "/_dialog/dialog/": {
+      "filePath": "_dialog.dialog/index.tsx",
+      "parent": "/_dialog"
     },
     "/_manager/settings/": {
       "filePath": "_manager/settings/index.tsx",

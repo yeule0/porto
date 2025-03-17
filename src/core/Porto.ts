@@ -46,20 +46,21 @@ export function create<
 export function create(
   parameters: ExactPartial<Config> | undefined = {},
 ): Porto {
-  const {
-    announceProvider = defaultConfig.announceProvider,
-    chains = defaultConfig.chains,
-    implementation = defaultConfig.implementation,
-    storage = defaultConfig.storage,
-    transports = defaultConfig.transports,
-  } = parameters
+  const config = {
+    announceProvider:
+      parameters.announceProvider ?? defaultConfig.announceProvider,
+    chains: parameters.chains ?? defaultConfig.chains,
+    implementation: parameters.implementation ?? defaultConfig.implementation,
+    storage: parameters.storage ?? defaultConfig.storage,
+    transports: parameters.transports ?? defaultConfig.transports,
+  } satisfies Config
 
   const store = createStore(
     subscribeWithSelector(
       persist<State>(
         (_) => ({
           accounts: [],
-          chain: chains[0],
+          chain: config.chains[0],
           requestQueue: [],
         }),
         {
@@ -80,32 +81,40 @@ export function create(
               chain: state.chain,
             } as unknown as State
           },
-          storage,
+          storage: config.storage,
         },
       ),
     ),
   )
   store.persist.rehydrate()
 
-  const config = {
-    announceProvider,
-    chains,
-    implementation,
-    storage,
-    transports,
-  } satisfies Config
+  let implementation = config.implementation
 
   const internal = {
     config,
+    get implementation() {
+      return implementation
+    },
     id: crypto.randomUUID(),
+    setImplementation(i) {
+      destroy()
+      implementation = i
+      destroy = i.setup({
+        internal,
+      })
+      return destroy
+    },
     store,
   } satisfies internal.Internal
 
   const provider = Provider.from(internal)
 
-  const destroy = implementation.setup({
-    internal,
-  })
+  let destroy =
+    implementation !== null
+      ? implementation.setup({
+          internal,
+        })
+      : () => {}
 
   return {
     destroy() {
@@ -136,7 +145,7 @@ export type Config<
    * Implementation to use.
    * @default Implementation.dialog()
    */
-  implementation: Implementation.Implementation
+  implementation: Implementation.Implementation | null
   /**
    * Storage to use.
    * @default Storage.idb()

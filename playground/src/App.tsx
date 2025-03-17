@@ -9,10 +9,9 @@ import {
   TypedData,
   Value,
 } from 'ox'
-import { Chains, Porto } from 'porto'
-import { Implementation } from 'porto'
-import { useEffect, useState, useSyncExternalStore } from 'react'
-import { createClient, custom } from 'viem'
+import { Chains, Dialog, Implementation, Porto } from 'porto'
+import { getClient } from 'porto/core/internal/porto'
+import * as React from 'react'
 import {
   generatePrivateKey,
   privateKeyToAccount,
@@ -20,19 +19,6 @@ import {
 } from 'viem/accounts'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 import { exp1Abi, exp1Address, exp2Address } from './_generated/contracts'
-
-const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'
-
-const implementation = DISABLE_DIALOG
-  ? Implementation.local()
-  : Implementation.dialog({
-      host: import.meta.env.VITE_DIALOG_HOST ?? 'https://exp.porto.sh/dialog',
-    })
-
-export const porto = Porto.create({ implementation })
-const client = createClient({
-  transport: custom(porto.provider),
-})
 
 const permissions = () =>
   ({
@@ -56,63 +42,115 @@ const permissions = () =>
     },
   }) as const
 
+const host = import.meta.env.VITE_DIALOG_HOST ?? 'https://exp.porto.sh/dialog'
+const implementations = {
+  local: Implementation.local(),
+  'iframe-dialog': Implementation.dialog({
+    host,
+  }),
+  'popup-dialog': Implementation.dialog({
+    host,
+    renderer: Dialog.popup(),
+  }),
+  'inline-dialog': Implementation.dialog({
+    host,
+    renderer: Dialog.debug_inline({
+      element: () => document.getElementById('porto')!,
+    }),
+  }),
+}
+type ImplementationType = keyof typeof implementations
+
+const porto = Porto.create({
+  // We will be deferring implementation setup until after hydration.
+  implementation: null,
+})
+
 export function App() {
+  const [implementation, setImplementation] =
+    React.useState<ImplementationType>('iframe-dialog')
+  React.useEffect(
+    () => porto._internal.setImplementation(implementations[implementation]),
+    [implementation],
+  )
+
   return (
-    <div>
-      <State />
-      <Events />
-      <div>
-        <br />
+    <>
+      <div className="max-w-[768px] p-2">
+        <h1>Playground</h1>
+        <div className="flex gap-2">
+          Implementation:
+          <select
+            onChange={(e) =>
+              setImplementation(e.target.value as ImplementationType)
+            }
+            value={implementation}
+          >
+            <option value="iframe-dialog">Dialog (iframe)</option>
+            <option value="popup-dialog">Dialog (popup)</option>
+            <option value="inline-dialog">Dialog (inline)</option>
+            <option value="local">Local</option>
+          </select>
+        </div>
         <hr />
-        <br />
+        <State />
+        <Events />
+        <div>
+          <br />
+          <hr />
+          <br />
+        </div>
+        <h2>Account Management</h2>
+        <Connect />
+        <Login />
+        <Register />
+        <Accounts />
+        <Disconnect />
+        <UpgradeAccount />
+        <div>
+          <br />
+          <hr />
+          <br />
+        </div>
+        <h2>Permissions</h2>
+        <GrantPermissions />
+        <GetPermissions />
+        <RevokePermissions />
+        <div>
+          <br />
+          <hr />
+          <br />
+        </div>
+        <h2>Actions</h2>
+        <SendCalls />
+        <SendTransaction />
+        <SignMessage />
+        <SignTypedData />
+        <div>
+          <br />
+          <hr />
+          <br />
+        </div>
+        <h2>App-managed Signing</h2>
+        <GrantKeyPermissions />
+        <PrepareCalls />
+        <div>
+          <br />
+          <hr />
+          <br />
+        </div>
+        <h2>Misc.</h2>
+        <GetCapabilities />
       </div>
-      <h2>Account Management</h2>
-      <Connect />
-      <Login />
-      <Register />
-      <Accounts />
-      <Disconnect />
-      <UpgradeAccount />
-      <div>
-        <br />
-        <hr />
-        <br />
+      <div className="fixed top-0 left-[calc(768px+var(--spacing)*2)] p-4">
+        <div id="porto" />
       </div>
-      <h2>Permissions</h2>
-      <GrantPermissions />
-      <GetPermissions />
-      <RevokePermissions />
-      <div>
-        <br />
-        <hr />
-        <br />
-      </div>
-      <h2>Actions</h2>
-      <SendCalls />
-      <SendTransaction />
-      <SignMessage />
-      <SignTypedData />
-      <div>
-        <br />
-        <hr />
-        <br />
-      </div>
-      <h2>App-managed Signing</h2>
-      <GrantKeyPermissions />
-      <PrepareCalls />
-      <div>
-        <br />
-        <hr />
-        <br />
-      </div>
-      <h2>Misc.</h2>
-      <GetCapabilities />
-    </div>
+    </>
   )
 }
 
 function State() {
-  const state = useSyncExternalStore(
+  const state = React.useSyncExternalStore(
     porto._internal.store.subscribe,
     () => porto._internal.store.getState(),
     () => porto._internal.store.getState(),
@@ -137,8 +175,8 @@ function State() {
 }
 
 function Events() {
-  const [responses, setResponses] = useState<Record<string, unknown>>({})
-  useEffect(() => {
+  const [responses, setResponses] = React.useState<Record<string, unknown>>({})
+  React.useEffect(() => {
     const handleResponse = (event: string) => (response: unknown) =>
       setResponses((responses) => ({
         ...responses,
@@ -164,6 +202,7 @@ function Events() {
       porto.provider.removeListener('message', handleMessage)
     }
   }, [])
+
   return (
     <div>
       <h3>Events</h3>
@@ -173,8 +212,8 @@ function Events() {
 }
 
 function Connect() {
-  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
-  const [result, setResult] = useState<unknown | null>(null)
+  const [grantPermissions, setGrantPermissions] = React.useState<boolean>(true)
+  const [result, setResult] = React.useState<unknown | null>(null)
   return (
     <div>
       <h3>wallet_connect</h3>
@@ -237,7 +276,7 @@ function Connect() {
 }
 
 function Accounts() {
-  const [result, setResult] = useState<readonly string[] | null>(null)
+  const [result, setResult] = React.useState<readonly string[] | null>(null)
   return (
     <div>
       <h3>eth_accounts</h3>
@@ -255,7 +294,7 @@ function Accounts() {
 }
 
 function Register() {
-  const [result, setResult] = useState<unknown | null>(null)
+  const [result, setResult] = React.useState<unknown | null>(null)
   return (
     <div>
       <h3>experimental_createAccount</h3>
@@ -275,7 +314,7 @@ function Register() {
 }
 
 function Login() {
-  const [result, setResult] = useState<readonly string[] | null>(null)
+  const [result, setResult] = React.useState<readonly string[] | null>(null)
   return (
     <div>
       <h3>eth_requestAccounts</h3>
@@ -309,7 +348,9 @@ function Disconnect() {
 }
 
 function GetCapabilities() {
-  const [result, setResult] = useState<Record<string, unknown> | null>(null)
+  const [result, setResult] = React.useState<Record<string, unknown> | null>(
+    null,
+  )
   return (
     <div>
       <h3>wallet_getCapabilities</h3>
@@ -329,7 +370,7 @@ function GetCapabilities() {
 }
 
 function GrantPermissions() {
-  const [result, setResult] = useState<any | null>(null)
+  const [result, setResult] = React.useState<any | null>(null)
   return (
     <div>
       <h3>experimental_grantPermissions</h3>
@@ -351,7 +392,7 @@ function GrantPermissions() {
 }
 
 function RevokePermissions() {
-  const [revoked, setRevoked] = useState(false)
+  const [revoked, setRevoked] = React.useState(false)
   return (
     <div>
       <h3>experimental_revokePermissions</h3>
@@ -378,7 +419,7 @@ function RevokePermissions() {
 }
 
 function GetPermissions() {
-  const [result, setResult] = useState<unknown>(null)
+  const [result, setResult] = React.useState<unknown>(null)
 
   return (
     <div>
@@ -399,13 +440,13 @@ function GetPermissions() {
 }
 
 function UpgradeAccount() {
-  const [accountData, setAccountData] = useState<{
+  const [accountData, setAccountData] = React.useState<{
     address: string
     privateKey: string
   } | null>(null)
-  const [grantPermissions, setGrantPermissions] = useState<boolean>(true)
-  const [privateKey, setPrivateKey] = useState<string>('')
-  const [result, setResult] = useState<unknown | null>(null)
+  const [grantPermissions, setGrantPermissions] = React.useState<boolean>(true)
+  const [privateKey, setPrivateKey] = React.useState<string>('')
+  const [result, setResult] = React.useState<unknown | null>(null)
 
   return (
     <div>
@@ -487,7 +528,7 @@ function UpgradeAccount() {
 }
 
 function SendCalls() {
-  const [hash, setHash] = useState<string | null>(null)
+  const [hash, setHash] = React.useState<string | null>(null)
   return (
     <form
       onSubmit={async (e) => {
@@ -630,7 +671,7 @@ function SendCalls() {
 }
 
 function SendTransaction() {
-  const [hash, setHash] = useState<Hex.Hex | null>(null)
+  const [hash, setHash] = React.useState<Hex.Hex | null>(null)
   return (
     <form
       onSubmit={async (e) => {
@@ -695,8 +736,8 @@ function SendTransaction() {
 }
 
 function SignMessage() {
-  const [signature, setSignature] = useState<string | null>(null)
-  const [valid, setValid] = useState<boolean | null>(null)
+  const [signature, setSignature] = React.useState<string | null>(null)
+  const [valid, setValid] = React.useState<boolean | null>(null)
 
   return (
     <>
@@ -776,7 +817,7 @@ function SignMessage() {
             method: 'eth_accounts',
           })
 
-          const valid = await verifyMessage(client, {
+          const valid = await verifyMessage(getClient(porto), {
             address: account,
             message,
             signature,
@@ -798,8 +839,8 @@ function SignMessage() {
 }
 
 function SignTypedData() {
-  const [signature, setSignature] = useState<string | null>(null)
-  const [valid, setValid] = useState<boolean | null>(null)
+  const [signature, setSignature] = React.useState<string | null>(null)
+  const [valid, setValid] = React.useState<boolean | null>(null)
 
   return (
     <>
@@ -840,7 +881,7 @@ function SignTypedData() {
             method: 'eth_accounts',
           })
 
-          const valid = await verifyTypedData(client, {
+          const valid = await verifyTypedData(getClient(porto), {
             ...typedData,
             address: account,
             signature,
@@ -864,7 +905,7 @@ let keyPair: {
 } | null = null
 
 function GrantKeyPermissions() {
-  const [result, setResult] = useState<any | null>(null)
+  const [result, setResult] = React.useState<any | null>(null)
   return (
     <div>
       <button
@@ -897,7 +938,7 @@ function GrantKeyPermissions() {
 }
 
 function PrepareCalls() {
-  const [hash, setHash] = useState<string | null>(null)
+  const [hash, setHash] = React.useState<string | null>(null)
   return (
     <form
       onSubmit={async (e) => {

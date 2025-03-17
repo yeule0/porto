@@ -32,8 +32,8 @@ export function from<
     ...Chains.Chain[],
   ],
 >(parameters: from.Parameters<chains>): Provider {
-  const { config, store } = parameters
-  const { announceProvider, implementation } = config
+  const { config, implementation, store } = parameters
+  const { announceProvider } = config
 
   function getClient(chainId_?: Hex.Hex | number | undefined) {
     const chainId =
@@ -703,11 +703,7 @@ export declare namespace from {
       Chains.Chain,
       ...Chains.Chain[],
     ],
-  > = {
-    config: Porto.Config<chains>
-    id: string
-    store: Porto.Store
-  }
+  > = Porto_internal.Internal<chains> & { store: Porto.Store }
 }
 
 export function announce(provider: Provider) {
