@@ -96,7 +96,7 @@ function RouteComponent() {
     return (
       <SignIn
         loading={respond.isPending}
-        onApprove={() => respond.mutate({ signIn: true })}
+        onApprove={(x) => respond.mutate(x)}
         onReject={() => Actions.reject(porto, queued!)}
       />
     )

@@ -54,7 +54,7 @@ const implementations = {
   }),
   'inline-dialog': Implementation.dialog({
     host,
-    renderer: Dialog.debug_inline({
+    renderer: Dialog.experimental_inline({
       element: () => document.getElementById('porto')!,
     }),
   }),

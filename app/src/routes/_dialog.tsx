@@ -47,7 +47,7 @@ function RouteComponent() {
 
           if (mode === 'popup') {
             window.resizeTo(width, totalHeight)
-          } else if (mode === 'iframe') {
+          } else if (mode === 'iframe' || mode === 'inline-iframe') {
             porto.messenger.send('__internal', {
               type: 'resize',
               height: totalHeight,
@@ -67,12 +67,16 @@ function RouteComponent() {
 
   const id = request?.request.id ? request.request.id.toString() : '-1'
 
+  const dataMode = `data-${mode === 'inline-iframe' ? 'iframe' : mode}`
+
   return (
     <div data-dialog>
       <header
         ref={titlebarRef}
         data-element="dialog-header"
-        {...{ [`data-${mode}`]: '' }}
+        {...{
+          [dataMode]: '',
+        }}
         className="fixed flex h-navbar w-full items-center justify-between border border-primary bg-secondary px-3 pt-2 pb-1.5 data-iframe:rounded-t-[14px]"
       >
         <div className="flex items-center gap-2">
@@ -94,18 +98,20 @@ function RouteComponent() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => Actions.rejectAll(porto)}
-          title="Close Dialog"
-        >
-          <LucideX className="size-4.5 text-secondary" />
-        </button>
+        {mode !== 'inline-iframe' && (
+          <button
+            type="button"
+            onClick={() => Actions.rejectAll(porto)}
+            title="Close Dialog"
+          >
+            <LucideX className="size-4.5 text-secondary" />
+          </button>
+        )}
       </header>
 
       <div
         ref={contentRef}
-        {...{ [`data-${mode}`]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
+        {...{ [dataMode]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
         className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-primary bg-primary pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border"
       >
         <div

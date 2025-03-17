@@ -280,7 +280,7 @@ export function popup() {
  * @param options - Options.
  * @returns Inline iframe dialog.
  */
-export function debug_inline(options: inline.Options) {
+export function experimental_inline(options: inline.Options) {
   const { element } = options
   return from({
     setup(parameters) {
@@ -320,7 +320,7 @@ export function debug_inline(options: inline.Options) {
       messenger.on('ready', () => {
         messenger.send('__internal', {
           type: 'init',
-          mode: 'iframe',
+          mode: 'inline-iframe',
           referrer: getReferrer(),
         })
       })
@@ -377,6 +377,7 @@ export const styles = {
   },
   iframe: {
     border: 'none',
+    borderRadius: '14px',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
 

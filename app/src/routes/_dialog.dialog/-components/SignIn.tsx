@@ -25,15 +25,15 @@ export function SignIn(props: SignIn.Props) {
 
       <Layout.Footer>
         <Layout.Footer.Actions>
-          <Button type="button" onClick={onReject}>
-            No thanks
+          <Button type="button" onClick={() => onApprove({ signIn: false })}>
+            Sign up
           </Button>
 
           <Button
             className="flex-grow"
             type="button"
             variant="accent"
-            onClick={onApprove}
+            onClick={() => onApprove({ signIn: true })}
           >
             Sign in
           </Button>
@@ -48,7 +48,7 @@ export function SignIn(props: SignIn.Props) {
 export declare namespace SignIn {
   type Props = {
     loading: boolean
-    onApprove: () => void
+    onApprove: (p: { signIn?: boolean }) => void
     onReject: () => void
   }
 }

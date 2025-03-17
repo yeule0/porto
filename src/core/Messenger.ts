@@ -53,7 +53,7 @@ export type Schema = [
     payload:
       | {
           type: 'init'
-          mode: 'iframe' | 'popup' | 'popup-standalone'
+          mode: 'inline-iframe' | 'iframe' | 'popup' | 'popup-standalone'
           referrer: {
             icon?: string | undefined
             origin: string

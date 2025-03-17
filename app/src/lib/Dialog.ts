@@ -9,7 +9,7 @@ export const store = createStore<store.State>(() => ({
 
 export declare namespace store {
   type State = {
-    mode: 'iframe' | 'popup' | 'popup-standalone'
+    mode: 'inline-iframe' | 'iframe' | 'popup' | 'popup-standalone'
     referrer:
       | {
           icon?: string | undefined
