@@ -3,12 +3,15 @@ import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { Link } from 'react-router'
 import {
+  ConnectorAlreadyConnectedError,
   useAccount,
   useAccountEffect,
   useConnectors,
   useReadContract,
 } from 'wagmi'
 
+import LucideChevronLeft from '~icons/lucide/chevron-left'
+import LucideChevronRight from '~icons/lucide/chevron-right'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
 import { exp1Config, exp2Config } from '../_generated/contracts'
 import { Button } from './Button'
@@ -253,14 +256,14 @@ function Demo() {
           className="flex items-center gap-1 font-[400] text-[14px] text-blue9 tracking-[-2.8%]"
           to="/demo"
         >
-          Full Demo →
+          Discover →
         </Link>
       </div>
       <div className="flex-1">
         {isMounted && (
           <div className="relative flex h-full w-full items-center justify-center">
             <div className="w-full max-w-[277px]">
-              {step === 'sign-in' && <SignIn />}
+              {step === 'sign-in' && <SignIn next={() => setStep('mint')} />}
               {step === 'mint' && (
                 <MintDemo
                   address={account.address}
@@ -289,63 +292,94 @@ function Demo() {
           </div>
         )}
       </div>
-      <div className="flex w-full flex-col items-center justify-center">
+      <div className="flex w-full flex-col items-center justify-center space-y-1">
         {isMounted && (
-          <div className="max-w-[24ch] space-y-1">
-            {step === 'sign-in' && (
-              <>
-                <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                  Sign in or sign up
-                </p>
-                <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                  With Ithaca, you can create a wallet within seconds.
-                </p>
-              </>
-            )}
-            {step === 'mint' && (
-              <>
-                <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                  Transact with ease
-                </p>
-                <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                  Simple, friendly transaction previews that get out of the way.
-                </p>
-              </>
-            )}
-            {step === 'swap' && (
-              <>
-                <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                  Swap spontaneously
-                </p>
-                <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                  Transactions like swaps are simple, easy, and fast.
-                </p>
-              </>
-            )}
-            {step === 'send' && (
-              <>
-                <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                  Flexibility with fees
-                </p>
-                <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                  Pay network or transaction fees in the token of your choice.
-                </p>
-              </>
-            )}
-            {step === 'spend' && (
-              <>
-                <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                  Get rid of clicks
-                </p>
-                <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                  Allow applications to spend on your behalf with custom rules.
-                </p>
-              </>
-            )}
+          <div className="w-full space-y-1">
+            <div className="flex w-full items-center justify-between">
+              <div>
+                {account.isConnected && (
+                  <button
+                    disabled={step === steps[0]}
+                    className="flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray8"
+                    onClick={() => setStep(steps[steps.indexOf(step) - 1])}
+                    type="button"
+                  >
+                    <LucideChevronLeft className="-ml-0.5 size-5" />
+                  </button>
+                )}
+              </div>
+              <div className="max-w-[24ch] space-y-1">
+                {step === 'sign-in' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Sign in or sign up
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      With Ithaca, you can create a wallet within seconds.
+                    </p>
+                  </>
+                )}
+                {step === 'mint' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Transact with ease
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Simple, friendly transaction previews that get out of the
+                      way.
+                    </p>
+                  </>
+                )}
+                {step === 'swap' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Swap spontaneously
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Transactions like swaps are simple, easy, and fast.
+                    </p>
+                  </>
+                )}
+                {step === 'send' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Flexibility with fees
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Pay network or transaction fees in the token of your
+                      choice.
+                    </p>
+                  </>
+                )}
+                {step === 'spend' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Get rid of clicks
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Allow applications to spend on your behalf with custom
+                      rules.
+                    </p>
+                  </>
+                )}
+              </div>
+              <div>
+                {account.isConnected && (
+                  <button
+                    disabled={step === steps[steps.length - 1]}
+                    className="flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray8"
+                    onClick={() => setStep(steps[steps.indexOf(step) + 1])}
+                    type="button"
+                  >
+                    <LucideChevronRight className="-mr-0.5 size-5" />
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="h-4" />
             <div className="flex items-center justify-center gap-1">
               {steps.map((s) => (
-                <div
+                <button
                   key={s}
                   data-active={s === step}
                   data-disabled={!account.isConnected}
@@ -353,6 +387,7 @@ function Demo() {
                   onClick={() => {
                     if (account.isConnected) setStep(s)
                   }}
+                  type="button"
                 />
               ))}
             </div>
@@ -363,8 +398,14 @@ function Demo() {
   )
 }
 
-function SignIn() {
-  const connect = Hooks.useConnect()
+function SignIn({ next }: { next: () => void }) {
+  const connect = Hooks.useConnect({
+    mutation: {
+      onError(error) {
+        if (error instanceof ConnectorAlreadyConnectedError) next()
+      },
+    },
+  })
   const connector = usePortoConnector()
 
   if (connect.isPending)
