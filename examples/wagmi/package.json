@@ -22,6 +22,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "globals": "catalog:",
     "typescript": "catalog:",
-    "vite": "^6.0.7"
+    "vite": "catalog:",
+    "vite-plugin-mkcert": "catalog:"
   }
 }

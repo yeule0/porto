@@ -1,13 +1,6 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
 import Icons from 'unplugin-icons/vite'
+import Mkcert from 'vite-plugin-mkcert'
 import { defineConfig } from 'vocs'
-
-const https = {
-  key: resolve(import.meta.dirname, '../localhost-key.pem'),
-  cert: resolve(import.meta.dirname, '../localhost.pem'),
-} as const
-const enableHttps = existsSync(https.cert) && existsSync(https.key)
 
 export default defineConfig({
   rootDir: '.',
@@ -379,18 +372,6 @@ export default defineConfig({
     },
   ],
   vite: {
-    define:
-      process.env.NODE_ENV === 'development'
-        ? {
-            'import.meta.env.VITE_DIALOG_HOST': JSON.stringify(
-              (enableHttps ? 'https' : 'http') + '://localhost:5174/dialog',
-            ),
-          }
-        : undefined,
-    plugins: [Icons({ compiler: 'jsx', jsx: 'react' }) as never],
-    server: {
-      https: enableHttps ? https : undefined,
-      proxy: {},
-    },
+    plugins: [Mkcert(), Icons({ compiler: 'jsx', jsx: 'react' }) as never],
   },
 })

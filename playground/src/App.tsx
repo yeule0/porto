@@ -42,7 +42,7 @@ const permissions = () =>
     },
   }) as const
 
-const host = import.meta.env.VITE_DIALOG_HOST ?? 'https://exp.porto.sh/dialog'
+const host = import.meta.env.VITE_DIALOG_HOST ?? 'https://localhost:5174/dialog'
 const implementations = {
   local: Implementation.local(),
   'iframe-dialog': Implementation.dialog({

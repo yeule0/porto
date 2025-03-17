@@ -22,7 +22,8 @@
     "globals": "catalog:",
     "prool": "^0.0.23",
     "typescript": "catalog:",
-    "vite": "^6.0.7"
+    "vite": "catalog:",
+    "vite-plugin-mkcert": "catalog:"
   },
   "packageManager": "pnpm@10.5.2"
 }
