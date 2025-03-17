@@ -4,7 +4,7 @@ import * as Dialog from '~/lib/Dialog'
 import LucideLogIn from '~icons/lucide/log-in'
 
 export function SignIn(props: SignIn.Props) {
-  const { loading, onApprove, onReject } = props
+  const { loading, onApprove } = props
 
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
@@ -49,6 +49,5 @@ export declare namespace SignIn {
   type Props = {
     loading: boolean
     onApprove: (p: { signIn?: boolean }) => void
-    onReject: () => void
   }
 }
