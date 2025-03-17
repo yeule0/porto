@@ -97,7 +97,6 @@ function RouteComponent() {
       <SignIn
         loading={respond.isPending}
         onApprove={(x) => respond.mutate(x)}
-        onReject={() => Actions.reject(porto, queued!)}
       />
     )
   if (step === 'signUp' && shouldAuthorize)
