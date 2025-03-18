@@ -6,7 +6,7 @@ import {
   useConnectors,
   useReadContract,
 } from 'wagmi'
-import { useCallsStatus, useSendCalls } from 'wagmi/experimental'
+import { useSendCalls, useWaitForCallsStatus } from 'wagmi/experimental'
 
 import { useState } from 'react'
 import {
@@ -256,16 +256,10 @@ function Mint() {
   const { address } = useAccount()
   const { data: id, error, isPending, sendCalls } = useSendCalls()
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useCallsStatus({
-    id: id as string,
-    query: {
-      enabled: !!id,
-      refetchInterval({ state }) {
-        if (state.data?.status === 'CONFIRMED') return false
-        return 1_000
-      },
-    },
-  })
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForCallsStatus({
+      id,
+    })
 
   return (
     <div>

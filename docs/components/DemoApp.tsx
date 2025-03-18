@@ -18,7 +18,7 @@ import {
   useConnectors,
   useReadContract,
 } from 'wagmi'
-import { useCallsStatus } from 'wagmi/experimental'
+import { useWaitForCallsStatus } from 'wagmi/experimental'
 import LucideCheck from '~icons/lucide/check'
 import LucideInfo from '~icons/lucide/info'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
@@ -77,18 +77,10 @@ export function DemoApp() {
       mint.reset()
     },
   })
-  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } = useCallsStatus(
-    {
-      id: mint.data as string,
-      query: {
-        enabled: !!mint.data,
-        refetchInterval({ state }) {
-          if (state.data?.status === 'CONFIRMED') return false
-          return pollingInterval
-        },
-      },
-    },
-  )
+  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } =
+    useWaitForCallsStatus({
+      id: mint.data,
+    })
 
   if (!isMountedFn()) return null
 
@@ -323,18 +315,10 @@ export function MintDemo(props: MintDemo.Props) {
       console.error('mint', error)
     },
   })
-  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } = useCallsStatus(
-    {
-      id: mint.data as string,
-      query: {
-        enabled: !!mint.data,
-        refetchInterval({ state }) {
-          if (state.data?.status === 'CONFIRMED') return false
-          return pollingInterval
-        },
-      },
-    },
-  )
+  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } =
+    useWaitForCallsStatus({
+      id: mint.data,
+    })
 
   const amount = '100'
   const symbol = 'exp1'
@@ -469,18 +453,10 @@ export function SwapDemo(props: SwapDemo.Props) {
     toValue: string
     fromValue: string
   }
-  const { isLoading: swapIsLoading, isSuccess: swapIsSuccess } = useCallsStatus(
-    {
-      id: swap.data as string,
-      query: {
-        enabled: !!swap.data,
-        refetchInterval({ state }) {
-          if (state.data?.status === 'CONFIRMED') return false
-          return pollingInterval
-        },
-      },
-    },
-  )
+  const { isLoading: swapIsLoading, isSuccess: swapIsSuccess } =
+    useWaitForCallsStatus({
+      id: swap.data,
+    })
 
   const form = Ariakit.useFormStore<Variables>({
     defaultValues: {
@@ -545,18 +521,10 @@ export function SwapDemo(props: SwapDemo.Props) {
       setTimeout(() => mint.reset(), successTimeout)
     },
   })
-  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } = useCallsStatus(
-    {
-      id: mint.data as string,
-      query: {
-        enabled: !!mint.data,
-        refetchInterval({ state }) {
-          if (state.data?.status === 'CONFIRMED') return false
-          return pollingInterval
-        },
-      },
-    },
-  )
+  const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } =
+    useWaitForCallsStatus({
+      id: mint.data,
+    })
   const mintAmount = '100'
   const mintSymbol = 'exp1'
   const onClickMint = React.useCallback(
@@ -763,16 +731,10 @@ export function PayDemo(props: PayDemo.Props) {
       console.error('pay', error)
     },
   })
-  const { isLoading: payIsLoading, isSuccess: payIsSuccess } = useCallsStatus({
-    id: pay.data as string,
-    query: {
-      enabled: !!pay.data,
-      refetchInterval({ state }) {
-        if (state.data?.status === 'CONFIRMED') return false
-        return pollingInterval
-      },
-    },
-  })
+  const { isLoading: payIsLoading, isSuccess: payIsSuccess } =
+    useWaitForCallsStatus({
+      id: pay.data,
+    })
 
   const form = Ariakit.useFormStore({
     defaultValues: {
