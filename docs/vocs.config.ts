@@ -15,6 +15,10 @@ export default defineConfig({
         link: '/sdk',
       },
       {
+        text: 'Demo',
+        link: '/demo',
+      },
+      {
         text: 'GitHub',
         link: 'https://github.com/ithacaxyz/porto',
       },
