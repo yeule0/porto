@@ -706,7 +706,7 @@ export declare namespace from {
   > = Porto_internal.Internal<chains> & { store: Porto.Store }
 }
 
-export function announce(provider: Provider) {
+function announce(provider: Provider) {
   if (typeof window === 'undefined') return () => {}
   return Mipd.announceProvider({
     info: {
