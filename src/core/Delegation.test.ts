@@ -152,7 +152,7 @@ describe('simulate', () => {
               "transactionIndex": 3,
             },
           ],
-          "result": undefined,
+          "result": null,
           "status": "success",
         },
       ]
