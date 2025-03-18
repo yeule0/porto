@@ -32,6 +32,10 @@
   "tailwindCSS.includeLanguages": {
     "plaintext": "html"
   },
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
   "files.associations": {
     ".env.example": "dotenv",
     ".dev.vars": "dotenv",
@@ -39,8 +43,10 @@
     "*.css": "tailwindcss",
     "biome.json": "jsonc",
     ".vscode/*.json": "jsonc",
-    "**/wrangler.json": "jsonc"
+    "**/wrangler.json": "jsonc",
+    "*.svg": "html"
   },
+
   "files.exclude": {
     "**/.vercel/**": true,
     "**/.wrangler/**": true,
@@ -56,5 +62,8 @@
   },
   "files.readonlyInclude": {
     "**/routeTree.gen.ts": true
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
   }
 }
