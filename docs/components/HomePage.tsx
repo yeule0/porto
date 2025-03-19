@@ -28,7 +28,7 @@ export function HomePage() {
 
         <div className="h-1" />
 
-        <div className="-ml-[4px] h-[45px]">
+        <div className="w-[128px]">
           <Logo />
         </div>
 
