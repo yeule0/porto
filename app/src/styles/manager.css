@@ -10,20 +10,47 @@
 }
 
 :root {
-  --font-serif: "SF Pro", "serif";
-  --font-sans: "SF Pro", "sans-serif";
-  --font-sf-pro: "SF Pro", "sans-serif";
+  --font-serif: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, serif;
+  --font-sans: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sf-pro: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", sans-serif;
 }
 
 @theme {
-  --font-serif: "SF Pro", "serif";
-  --font-sans: "SF Pro", "sans-serif";
-  --font-sf-pro: "SF Pro", "sans-serif";
+  --font-serif: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, serif;
+  --font-sans: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sf-pro: "SF Pro", system-ui, -apple-system, BlinkMacSystemFont,
+    "Helvetica Neue", sans-serif;
 }
 
 @layer base {
   html {
-    /* color-scheme: light !important; */
+    color-scheme: light !important;
+  }
+}
+
+.deets summary {
+  list-style: none;
+  cursor: default;
+  padding-right: 1.5em;
+  position: relative;
+
+  &::after {
+    content: "[–]";
+    position: absolute;
+    right: 0.75em;
+    height: 0.75em;
+    width: 0.75em;
+    font-size: 0.85em;
+    @apply text-gray9 font-normal;
+  }
+
+  &:focus {
+    outline-offset: 1px;
   }
 }
 
@@ -36,12 +63,6 @@ body,
   max-width: 100vw;
 }
 
-@layer base {
-  html {
-    color-scheme: light dark;
-  }
-}
-
 @layer utilities {
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
@@ -50,6 +71,11 @@ body,
 
   input[type="number"]::-webkit-inner-spin-button {
     @apply appearance-none;
+  }
+
+  .text-md {
+    font-size: 16px;
+    line-height: 1.25rem;
   }
 
   .size-max {

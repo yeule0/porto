@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useAccount } from 'wagmi'
 
+import { DevOnly } from '~/components/DevOnly'
 import { Dashboard } from './-components/Dashboard'
+import { Intro } from './-components/Intro'
 import { Landing } from './-components/Landing'
 
 export const Route = createFileRoute('/_manager/')({
@@ -10,6 +12,13 @@ export const Route = createFileRoute('/_manager/')({
 
 function RouteComponent() {
   const account = useAccount()
-  if (account.isConnected) return <Dashboard />
-  return <Landing />
+
+  return (
+    <main className="mx-auto flex size-full max-w-[1400px] flex-col bg-gray2 *:px-4 md:flex-row md:py-6 md:*:w-1/2">
+      <DevOnly />
+
+      <Intro />
+      {account.isConnected ? <Dashboard /> : <Landing />}
+    </main>
+  )
 }

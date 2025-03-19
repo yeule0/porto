@@ -1,13 +1,12 @@
 import { AbiFunction, Json, Value } from 'ox'
 import { Hooks } from 'porto/wagmi'
 import { Drawer } from 'vaul-base'
-import { parseEther } from 'viem'
 import { useAccount } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
 
+import { parseEther } from 'viem'
 import { ExperimentERC20 } from '~/lib/Constants'
 import { Button } from './Button'
-import { IndeterminateLoader } from './IndeterminateLoader'
 
 const key = () =>
   ({
@@ -36,21 +35,16 @@ export function DevOnly() {
 
   const send = useSendCalls()
 
-  const isBusy =
-    permissions.isPending ||
-    revokePermissions.isPending ||
-    grantPermissions.isPending
-
-  if (isBusy) return <IndeterminateLoader title="cooking" />
+  if (!account.isConnected) return null
 
   return (
     <Drawer.Root>
-      <Drawer.Trigger className="absolute top-0 right-0 p-4 font-mono text-gray11 text-md sm:p-3">
-        {import.meta.env.DEV ? 'dev tools' : ''}
+      <Drawer.Trigger className="absolute top-0 right-0 font-mono text-gray11 text-md">
+        --
       </Drawer.Trigger>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="fixed right-0 bottom-0 left-0 h-fit bg-gray-100 outline-none">
+        <Drawer.Overlay className="fixed inset-0" />
+        <Drawer.Content className="fixed right-0 bottom-0 left-0 h-fit w-1/2 bg-gray-100 outline-none">
           <div className="bg-white p-4">
             <div className="flex justify-center gap-x-2">
               <Button
