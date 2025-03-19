@@ -34,7 +34,10 @@ export function SignUp(props: SignUp.Props) {
       <Layout.Footer>
         <Layout.Footer.Actions>
           {enableSignIn ? (
-            <Button type="button" onClick={() => onApprove({ signIn: true })}>
+            <Button
+              type="button"
+              onClick={() => onApprove({ signIn: true, selectAccount: true })}
+            >
               Sign in
             </Button>
           ) : (
@@ -77,7 +80,7 @@ export namespace SignUp {
   export type Props = {
     enableSignIn?: boolean
     loading?: boolean
-    onApprove: (p: { signIn?: boolean }) => void
+    onApprove: (p: { signIn?: boolean; selectAccount?: boolean }) => void
     onReject: () => void
   }
 

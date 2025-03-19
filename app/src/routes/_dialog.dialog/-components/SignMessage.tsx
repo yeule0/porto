@@ -60,7 +60,7 @@ export function SignMessage({ message }: SignMessage.Props) {
           </Button>
         </Layout.Footer.Actions>
 
-        <Layout.Footer.Wallet />
+        <Layout.Footer.Account />
       </Layout.Footer>
     </Layout>
   )
@@ -116,7 +116,7 @@ export namespace SignMessage {
             </Button>
           </Layout.Footer.Actions>
 
-          <Layout.Footer.Wallet />
+          <Layout.Footer.Account />
         </Layout.Footer>
       </Layout>
     )

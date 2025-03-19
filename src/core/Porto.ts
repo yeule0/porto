@@ -92,12 +92,12 @@ export function create(
 
   const internal = {
     config,
-    get implementation() {
+    id: crypto.randomUUID(),
+    getImplementation() {
       return implementation
     },
-    id: crypto.randomUUID(),
     setImplementation(i) {
-      destroy()
+      destroy?.()
       implementation = i
       destroy = i.setup({
         internal,

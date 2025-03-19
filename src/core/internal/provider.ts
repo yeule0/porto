@@ -32,7 +32,7 @@ export function from<
     ...Chains.Chain[],
   ],
 >(parameters: from.Parameters<chains>): Provider {
-  const { config, implementation, store } = parameters
+  const { config, getImplementation, store } = parameters
   const { announceProvider } = config
 
   function getClient(chainId_?: Hex.Hex | number | undefined) {
@@ -83,7 +83,7 @@ export function from<
 
           const client = getClient()
 
-          const { accounts } = await implementation.actions.loadAccounts({
+          const { accounts } = await getImplementation().actions.loadAccounts({
             internal: {
               client,
               config,
@@ -120,7 +120,7 @@ export function from<
           )
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await implementation.actions.sendCalls({
+          const hash = await getImplementation().actions.sendCalls({
             account,
             calls: [
               {
@@ -155,7 +155,7 @@ export function from<
 
           const client = getClient()
 
-          const signature = await implementation.actions.signTypedData({
+          const signature = await getImplementation().actions.signTypedData({
             account,
             data,
             internal: {
@@ -187,7 +187,7 @@ export function from<
 
           const client = getClient(chainId)
 
-          const { key } = await implementation.actions.grantPermissions({
+          const { key } = await getImplementation().actions.grantPermissions({
             account,
             permissions,
             internal: {
@@ -235,7 +235,7 @@ export function from<
 
           const client = getClient(chainId)
 
-          const { account } = await implementation.actions.createAccount({
+          const { account } = await getImplementation().actions.createAccount({
             label,
             internal: {
               client,
@@ -273,7 +273,7 @@ export function from<
           const client = getClient(chainId)
 
           const { context, signPayloads } =
-            await implementation.actions.prepareUpgradeAccount({
+            await getImplementation().actions.prepareUpgradeAccount({
               address,
               permissions,
               label,
@@ -325,7 +325,7 @@ export function from<
 
           const client = getClient()
 
-          await implementation.actions.revokePermissions({
+          await getImplementation().actions.revokePermissions({
             account,
             id,
             internal: {
@@ -365,7 +365,7 @@ export function from<
 
           const client = getClient()
 
-          const { account } = await implementation.actions.upgradeAccount({
+          const { account } = await getImplementation().actions.upgradeAccount({
             context,
             signatures,
             internal: {
@@ -412,16 +412,17 @@ export function from<
 
           const client = getClient()
 
-          const signature = await implementation.actions.signPersonalMessage({
-            account,
-            data,
-            internal: {
-              client,
-              config,
-              request,
-              store,
-            },
-          })
+          const signature =
+            await getImplementation().actions.signPersonalMessage({
+              account,
+              data,
+              internal: {
+                client,
+                config,
+                request,
+                store,
+              },
+            })
 
           return signature satisfies Schema.Static<
             typeof Rpc.personal_sign.Response
@@ -433,8 +434,11 @@ export function from<
 
           const client = getClient()
 
-          const { createAccount, grantPermissions: permissions } =
-            capabilities ?? {}
+          const {
+            createAccount,
+            grantPermissions: permissions,
+            selectAccount,
+          } = capabilities ?? {}
 
           const internal = {
             client,
@@ -447,16 +451,18 @@ export function from<
             if (createAccount) {
               const { label = undefined } =
                 typeof createAccount === 'object' ? createAccount : {}
-              const { account } = await implementation.actions.createAccount({
-                permissions,
-                label,
-                internal,
-              })
+              const { account } =
+                await getImplementation().actions.createAccount({
+                  permissions,
+                  label,
+                  internal,
+                })
               return { accounts: [account] }
             }
             const account = state.accounts[0]
-            const address = account?.address
+            const address = !selectAccount ? account?.address : undefined
             const credentialId = (() => {
+              if (selectAccount) return undefined
               for (const key of account?.keys ?? []) {
                 if (
                   key.expiry > 0 &&
@@ -474,15 +480,18 @@ export function from<
             }
             try {
               // try to restore from stored account (`address`/`credentialId`) to avoid multiple prompts
-              return await implementation.actions.loadAccounts({
+              return await getImplementation().actions.loadAccounts({
                 address,
                 credentialId,
                 ...loadAccountsParams,
               })
             } catch (error) {
+              if (error instanceof ox_Provider.UserRejectedRequestError)
+                throw error
+
               // error with `address`/`credentialId` likely means one or both are stale, retry
               if (address && credentialId)
-                return await implementation.actions.loadAccounts(
+                return await getImplementation().actions.loadAccounts(
                   loadAccountsParams,
                 )
               throw error
@@ -567,7 +576,7 @@ export function from<
             throw new ox_Provider.ChainDisconnectedError()
 
           const { signPayloads, ...rest } =
-            await implementation.actions.prepareCalls({
+            await getImplementation().actions.prepareCalls({
               calls,
               key,
               internal: {
@@ -605,7 +614,7 @@ export function from<
           if (chainId && Hex.toNumber(chainId) !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
-          const hash = await implementation.actions.sendPreparedCalls({
+          const hash = await getImplementation().actions.sendPreparedCalls({
             account,
             context,
             key,
@@ -642,7 +651,7 @@ export function from<
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await implementation.actions.sendCalls({
+          const hash = await getImplementation().actions.sendCalls({
             account,
             calls,
             permissionsId: capabilities?.permissions?.id,

@@ -56,7 +56,10 @@ function RouteComponent() {
 
   const queued = Hooks.useRequest(porto)
   const respond = useMutation({
-    mutationFn({ signIn }: { signIn?: boolean }) {
+    mutationFn({
+      signIn,
+      selectAccount,
+    }: { signIn?: boolean; selectAccount?: boolean }) {
       if (!queued) throw new Error('no request queued.')
       if (queued.request.method !== 'wallet_connect')
         throw new Error('request is not a wallet_connect request.')
@@ -73,6 +76,7 @@ function RouteComponent() {
               capabilities: {
                 ...params[0]?.capabilities,
                 createAccount: !signIn,
+                selectAccount,
               },
             },
           ],

@@ -219,7 +219,7 @@ export function ActionRequest(props: ActionRequest.Props) {
             </Button>
           </Layout.Footer.Actions>
         )}
-        <Layout.Footer.Wallet />
+        <Layout.Footer.Account />
       </Layout.Footer>
     </Layout>
   )

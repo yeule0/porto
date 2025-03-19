@@ -4,6 +4,7 @@ import type * as React from 'react'
 
 import { porto } from '~/lib/Porto'
 import { StringFormatter } from '~/utils'
+import ChevronDown from '~icons/lucide/chevron-down'
 import { IndeterminateLoader } from './IndeterminateLoader'
 
 export function Layout(props: Layout.Props) {
@@ -141,28 +142,37 @@ export namespace Layout {
       }
     }
 
-    // Wallet Footer
-    export function Wallet(props: Wallet.Props) {
+    // Account Footer
+    export function Account(props: Account.Props) {
+      const { onClick } = props
+
       const address = props.address ?? Hooks.useAccount(porto)?.address
       if (!address) return null
       return (
         <div className="flex justify-between border-primary border-t px-3 pt-3">
           <div className="text-[13px] text-secondary leading-[22px]">
-            Wallet
+            Account
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <button
+            disabled={!onClick}
+            className="-my-1 -mx-2 flex items-center gap-1.5 rounded-lg px-2 py-1 hover:not-disabled:bg-surface"
+            onClick={onClick}
+            type="button"
+          >
             <div className="font-medium text-[14px] text-primary">
-              {StringFormatter.truncate(address, { start: 6, end: 4 })}
+              {StringFormatter.truncate(address, { start: 8, end: 6 })}
             </div>
-          </div>
+            {onClick && <ChevronDown className="size-4 text-secondary" />}
+          </button>
         </div>
       )
     }
 
-    export namespace Wallet {
+    export namespace Account {
       export type Props = {
         address?: string | undefined
+        onClick?: () => void
       }
     }
   }

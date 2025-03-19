@@ -39,7 +39,9 @@ export function SignIn(props: SignIn.Props) {
           </Button>
         </Layout.Footer.Actions>
 
-        <Layout.Footer.Wallet />
+        <Layout.Footer.Account
+          onClick={() => onApprove({ signIn: true, selectAccount: true })}
+        />
       </Layout.Footer>
     </Layout>
   )
@@ -48,6 +50,6 @@ export function SignIn(props: SignIn.Props) {
 export declare namespace SignIn {
   type Props = {
     loading: boolean
-    onApprove: (p: { signIn?: boolean }) => void
+    onApprove: (p: { signIn?: boolean; selectAccount?: boolean }) => void
   }
 }

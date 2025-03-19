@@ -28,7 +28,7 @@ export type Internal<
 > = {
   config: Config<chains>
   id: string
-  implementation: Implementation.Implementation
+  getImplementation: () => Implementation.Implementation
   setImplementation: (i: Implementation.Implementation) => void
   store: Store<chains>
 }

@@ -48,7 +48,7 @@ export function GrantPermissions(props: GrantPermissions.Props) {
           </Button>
         </Layout.Footer.Actions>
 
-        <Layout.Footer.Wallet address={address} />
+        <Layout.Footer.Account address={address} />
       </Layout.Footer>
     </Layout>
   )

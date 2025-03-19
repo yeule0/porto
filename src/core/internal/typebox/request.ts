@@ -219,6 +219,7 @@ export namespace wallet_connect {
   export const Capabilities = Type.Object({
     createAccount: Schema.Optional(C.createAccount.Request),
     grantPermissions: Schema.Optional(C.grantPermissions.Request),
+    selectAccount: Schema.Optional(Type.Boolean()),
   })
   export type Capabilities = Schema.StaticDecode<typeof Capabilities>
 
