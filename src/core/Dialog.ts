@@ -60,29 +60,24 @@ export function iframe() {
       root.style.top = '-10000px'
       document.body.appendChild(root)
 
-      function initIframe() {
-        const iframe = document.createElement('iframe')
-        iframe.setAttribute(
-          'allow',
-          `publickey-credentials-get ${hostUrl.origin}; publickey-credentials-create ${hostUrl.origin}`,
-        )
-        iframe.setAttribute('aria-closed', 'true')
-        iframe.setAttribute('aria-label', 'Porto Wallet')
-        iframe.setAttribute('hidden', 'until-found')
-        iframe.setAttribute('role', 'dialog')
-        iframe.setAttribute('tabindex', '0')
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
-        iframe.setAttribute('src', host)
-        iframe.setAttribute('title', 'Porto')
-        Object.assign(iframe.style, {
-          ...styles.iframe,
-          display: 'none',
-          position: 'fixed',
-        })
-        root.appendChild(iframe)
-        return iframe
-      }
-      const iframe = initIframe()
+      const iframe = document.createElement('iframe')
+      iframe.setAttribute(
+        'allow',
+        `publickey-credentials-get ${hostUrl.origin}; publickey-credentials-create ${hostUrl.origin}`,
+      )
+      iframe.setAttribute('aria-closed', 'true')
+      iframe.setAttribute('aria-label', 'Porto Wallet')
+      iframe.setAttribute('hidden', 'until-found')
+      iframe.setAttribute('role', 'dialog')
+      iframe.setAttribute('tabindex', '0')
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+      iframe.setAttribute('src', host)
+      iframe.setAttribute('title', 'Porto')
+      Object.assign(iframe.style, {
+        ...styles.iframe,
+        display: 'none',
+        position: 'fixed',
+      })
 
       root.appendChild(document.createElement('style')).textContent = `
         dialog[data-porto]::backdrop {
@@ -120,6 +115,8 @@ export function iframe() {
         }
       `
 
+      root.appendChild(iframe)
+
       function onBlur() {
         handleBlur(store)
       }
@@ -145,10 +142,7 @@ export function iframe() {
           // reload iframe to rehydrate storage state if an
           // unsupported request routed via another renderer.
           const src = iframe.src
-          iframe.src = ''
-          setTimeout(() => {
-            iframe.src = src
-          }, 100)
+          iframe.src = src
         }
         handleResponse(store, response)
       })
