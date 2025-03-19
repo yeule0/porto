@@ -84,10 +84,13 @@ export function iframe() {
           background-color: rgba(0, 0, 0, 0.5);
         }
 
+        dialog iframe {
+          border-radius: 14px;
+        }
+
         @media (min-width: 460px) {
           dialog iframe {
-            animation: porto-fade-in-from-top 0.1s ease-in-out;
-            border-radius: 14px;
+            animation: porto_fadeFromTop 0.1s cubic-bezier(0.32, 0.72, 0, 1);
             top: 16px;
             inset-inline-end: calc(50% - ${width}px / 2);
             width: ${width}px;
@@ -96,7 +99,9 @@ export function iframe() {
 
         @media (max-width: 460px) {
           dialog iframe {
-            animation: porto-fade-in-from-bottom 0.1s ease-in-out;
+            animation: porto_slideFromBottom 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
             bottom: 0;
             left: 0;
             right: 0;
@@ -104,14 +109,18 @@ export function iframe() {
           }
         }
 
-        @keyframes porto-fade-in-from-top {
+        @keyframes porto_fadeFromTop {
           from { opacity: 0; transform: translateY(-20px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes porto-fade-in-from-bottom {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes porto_slideFromBottom {
+          from {
+            transform: translate3d(0, 100%, 0);
+          }
+          to {
+            transform: translate3d(0, 0, 0);
+          }
         }
       `
 
@@ -398,7 +407,6 @@ export const styles = {
   },
   iframe: {
     border: 'none',
-    borderRadius: '14px',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
 

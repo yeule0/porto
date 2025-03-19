@@ -77,7 +77,7 @@ function RouteComponent() {
         {...{
           [dataMode]: '',
         }}
-        className="fixed flex h-navbar w-full items-center justify-between border border-primary bg-secondary px-3 pt-2 pb-1.5 data-iframe:rounded-t-[14px]"
+        className="fixed flex h-navbar w-full items-center justify-between border border-primary bg-secondary px-3 pt-2 pb-1.5"
       >
         <div className="flex items-center gap-2">
           <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
@@ -112,7 +112,7 @@ function RouteComponent() {
       <div
         ref={contentRef}
         {...{ [dataMode]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-        className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-primary bg-primary pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border"
+        className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-primary bg-primary pt-titlebar data-popup-standalone:min-h-dvh"
       >
         <div
           className="flex flex-grow *:w-full"
