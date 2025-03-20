@@ -2,11 +2,16 @@ import { Button } from '@porto/apps/components'
 import { AbiFunction, Json, Value } from 'ox'
 import { Hooks } from 'porto/wagmi'
 import { Drawer } from 'vaul-base'
-import { parseEther } from 'viem'
 import { useAccount } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
 
-import { ExperimentERC20 } from '~/lib/Constants'
+import { parseEther } from 'viem'
+import {
+  exp1Abi,
+  exp1Address,
+  exp2Abi,
+  exp2Address,
+} from '../../_generated/contracts'
 
 const key = () =>
   ({
@@ -75,16 +80,16 @@ export function DevOnly() {
                   send.sendCalls({
                     calls: [
                       {
-                        to: ExperimentERC20.address[0],
+                        to: exp1Address,
                         data: AbiFunction.encodeData(
-                          AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                          AbiFunction.fromAbi(exp1Abi, 'mint'),
                           [account.address, Value.fromEther('100')],
                         ),
                       },
                       {
-                        to: ExperimentERC20.address[1],
+                        to: exp2Address,
                         data: AbiFunction.encodeData(
-                          AbiFunction.fromAbi(ExperimentERC20.abi, 'mint'),
+                          AbiFunction.fromAbi(exp2Abi, 'mint'),
                           [account.address, Value.fromEther('100')],
                         ),
                       },

@@ -26,7 +26,10 @@ export function Landing() {
       )}
     >
       {account.isConnecting ? (
-        <IndeterminateLoader title="Signing in…" className="mt-20" />
+        <IndeterminateLoader
+          title="Signing in…"
+          className="mx-auto mt-20 max-w-[60px] flex-col text-nowrap text-center"
+        />
       ) : (
         <form className="mt-auto flex w-full max-w-[400px] flex-col gap-y-4">
           <p className="text-center text-3xl">Create account</p>

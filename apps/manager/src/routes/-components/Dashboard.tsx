@@ -1,5 +1,6 @@
-import * as Ariakit from '@ariakit/react'
 import { IndeterminateLoader } from '@porto/apps/components'
+
+import * as Ariakit from '@ariakit/react'
 import { cx } from 'cva'
 import { Address, Value } from 'ox'
 import { formatEther } from 'ox/Value'
@@ -9,18 +10,17 @@ import { toast } from 'sonner'
 import { encodeFunctionData, erc20Abi } from 'viem'
 import { useAccount } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
+import { config } from '~/lib/Wagmi'
+import CopyIcon from '~icons/lucide/copy'
+import ExternalLinkIcon from '~icons/lucide/external-link'
+import XIcon from '~icons/lucide/x'
 
-import { ExpIcon } from '~/components/Exp'
 import { QrCode } from '~/components/QrCode'
 import {
   useAddressTransfers,
   useTokenBalances,
 } from '~/hooks/use-blockscout-api'
-import { config } from '~/lib/Wagmi'
 import { DateFormatter, StringFormatter, ValueFormatter, sum } from '~/utils'
-import CopyIcon from '~icons/lucide/copy'
-import ExternalLinkIcon from '~icons/lucide/external-link'
-import XIcon from '~icons/lucide/x'
 
 export function Dashboard() {
   const account = useAccount()
@@ -56,13 +56,9 @@ export function Dashboard() {
     return ValueFormatter.format(total, 18)
   }, [assets])
 
-  const [sendAmount, setSendAmount] = React.useState<string>('')
-  const [sendRecipient, setSendRecipient] = React.useState<string>('')
   const sendCalls = useSendCalls({
     mutation: {
       onSuccess: (data) => {
-        setSendAmount('')
-        setSendRecipient('')
         toast.success('Tokens sent', {
           description: () => (
             <a
@@ -80,6 +76,52 @@ export function Dashboard() {
           description: error.message,
         }),
     },
+  })
+
+  const selectAssets = React.useMemo(() => {
+    return assets
+      ?.map((asset) => ({
+        label: asset.token.name,
+        value: asset.token.address,
+        icon:
+          asset.token.icon_url ??
+          `/icons/${asset.token.name.toLowerCase()}.svg`,
+      }))
+      .reverse()
+  }, [assets])
+
+  const form = Ariakit.useFormStore({
+    defaultValues: {
+      amount: '',
+      recipient: '',
+      asset: selectAssets.at(0)?.label,
+    },
+  })
+
+  const selectedAsset = form.useValue(form.names.asset)
+
+  form.useSubmit((state) => {
+    if (!Address.validate(state.values.recipient) || !state.values.amount)
+      return
+    const asset = selectAssets.find(
+      (a) => a.label.toLowerCase() === state.values.asset?.toLowerCase(),
+    )
+    if (!asset) return
+    sendCalls.sendCalls({
+      calls: [
+        {
+          to: asset.value,
+          data: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: 'transfer',
+            args: [
+              state.values.recipient,
+              Value.fromEther(state.values.amount),
+            ],
+          }),
+        },
+      ],
+    })
   })
 
   return (
@@ -108,7 +150,7 @@ export function Dashboard() {
           >
             Help
           </a>
-          <button
+          <Ariakit.Button
             type="button"
             onClick={() => disconnect.mutate({})}
             className={cx(
@@ -117,7 +159,7 @@ export function Dashboard() {
             )}
           >
             Sign out
-          </button>
+          </Ariakit.Button>
         </div>
         <h1
           className={cx(
@@ -125,74 +167,124 @@ export function Dashboard() {
             'col-start-3 row-start-2 mr-1 place-self-end',
           )}
         >
-          ${ValueFormatter.formatToPrice(totalBalance.toLocaleString())}
+          ${totalBalance.toLocaleString()}
         </h1>
       </nav>
       <div className="flex w-full flex-col divide-y-2 divide-gray5 border-gray5 border-y-2 lg:flex-row lg:divide-x-2 lg:divide-y-0 lg:*:w-1/2">
-        <div className="py-3 lg:pr-4">
+        <div className="pt-3 pb-6 lg:pr-4">
           <h2 className="font-semibold text-lg">Send</h2>
-          {sendCalls.isPending ? (
-            <div className="flex h-full w-full items-start justify-center pt-14">
-              <IndeterminateLoader
-                hint=""
-                description=""
-                title="Sending…"
-                className="m-auto"
-              />
-            </div>
-          ) : (
-            <div className="flex flex-col gap-y-2">
-              <div className="flex items-center justify-between gap-x-2">
-                <input
-                  type="number"
-                  value={sendAmount}
-                  onChange={(e) => setSendAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="mt-2 w-full max-w-[120px] rounded-full px-4 py-2 font-mono text-gray12 text-xl tabular-nums focus:outline-gray5"
+          <div className="relative">
+            {sendCalls.isPending && (
+              <div className="-mt-2 -mb-6 -mx-4 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+                <IndeterminateLoader
+                  hint=""
+                  description=""
+                  title="Sending…"
+                  className="mb-10 max-w-[60px] flex-col"
                 />
-                <div className="mt-2 flex items-center gap-x-2 rounded-full border border-gray6 p-2">
-                  <ExpIcon className="size-5" />
-                  <span className="font-mono text-md">EXP</span>
-                </div>
+              </div>
+            )}
+            <Ariakit.Form
+              className={cx(
+                'flex flex-col gap-y-2',
+                sendCalls.isPending && ' bg-opacity-70',
+              )}
+              store={form}
+            >
+              <div className="flex items-center justify-between gap-x-2">
+                <Ariakit.VisuallyHidden>
+                  <Ariakit.FormLabel name={form.names.amount}>
+                    Amount
+                  </Ariakit.FormLabel>
+                </Ariakit.VisuallyHidden>
+                <Ariakit.FormInput
+                  required
+                  name={form.names.amount}
+                  type="number"
+                  placeholder="0.00"
+                  className="mt-2 w-full max-w-[120px] rounded-full px-4 py-2 font-mono text-gray12 text-xl tabular-nums focus:outline-none focus:ring-0"
+                />
+
+                <Ariakit.VisuallyHidden>
+                  <Ariakit.FormLabel name={form.names.asset}>
+                    Asset
+                  </Ariakit.FormLabel>
+                </Ariakit.VisuallyHidden>
+                <Ariakit.FormControl
+                  name={form.names.asset}
+                  render={
+                    <Ariakit.SelectProvider
+                      setValueOnMove
+                      value={selectedAsset}
+                      setValue={(value) =>
+                        form.setValue(form.names.asset, value)
+                      }
+                    >
+                      <Ariakit.Select className="mt-2 flex items-center gap-x-2 rounded-full border border-gray6 px-2.5 py-2 uppercase">
+                        <img
+                          alt="asset icon"
+                          className="size-6"
+                          src={`/icons/${selectedAsset?.toLowerCase()}.svg`}
+                        />
+                        <Ariakit.SelectValue />
+                      </Ariakit.Select>
+                      <Ariakit.SelectPopover
+                        gutter={8}
+                        className="z-[999999] w-full rounded-lg outline outline-gray6"
+                      >
+                        <Ariakit.SelectList className="rounded-xl">
+                          <Ariakit.SelectGroup className="rounded-xl">
+                            {selectAssets.map((asset) => (
+                              <Ariakit.SelectItem
+                                key={asset.label}
+                                value={asset.label}
+                                className="flex items-center justify-start gap-2 space-y-1 bg-gray2 px-3 py-2 hover:bg-gray4"
+                              >
+                                <img
+                                  src={asset.icon}
+                                  alt={asset.label}
+                                  className="size-6"
+                                />
+                                <span className="my-auto font-mono text-md">
+                                  {asset.label.toUpperCase()}
+                                </span>
+                              </Ariakit.SelectItem>
+                            ))}
+                          </Ariakit.SelectGroup>
+                        </Ariakit.SelectList>
+                      </Ariakit.SelectPopover>
+                    </Ariakit.SelectProvider>
+                  }
+                />
               </div>
 
               <div
                 className={cx(
-                  'flex flex-row items-center gap-x-3 gap-y-2',
+                  'flex flex-row items-center gap-x-3 gap-y-3',
                   '*:my-auto sm:mt-2 lg:flex-col',
                 )}
               >
-                <input
-                  value={sendRecipient}
+                <Ariakit.VisuallyHidden>
+                  <Ariakit.FormLabel name={form.names.recipient}>
+                    Recipient
+                  </Ariakit.FormLabel>
+                </Ariakit.VisuallyHidden>
+                <Ariakit.FormInput
+                  required
+                  type="text"
+                  name={form.names.recipient}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  pattern="^0x[a-fA-F0-9]{40}$"
                   placeholder="Recipient address…"
-                  onChange={(e) => setSendRecipient(e.target.value)}
                   className={cx(
-                    'mt-2 h-10 w-[80%] rounded-full border border-gray6 px-4 py-2 text-gray12 text-lg tabular-nums sm:text-sm',
+                    'mt-2 h-10 w-[80%] rounded-full border border-gray6 px-4 py-2 text-gray12 text-lg tabular-nums focus:outline-gray6 sm:text-sm',
                     'lg:w-full',
                   )}
                 />
-                <Ariakit.Button
-                  disabled={!sendRecipient || !sendAmount}
-                  onClick={() => {
-                    if (
-                      !sendAmount ||
-                      !account.address ||
-                      !Address.validate(sendRecipient)
-                    )
-                      return
-                    sendCalls.sendCalls({
-                      calls: [
-                        {
-                          to: '0x706Aa5C8e5cC2c67Da21ee220718f6f6B154E75c',
-                          data: encodeFunctionData({
-                            abi: erc20Abi,
-                            functionName: 'transfer',
-                            args: [sendRecipient, Value.fromEther(sendAmount)],
-                          }),
-                        },
-                      ],
-                    })
-                  }}
+                <Ariakit.FormSubmit
                   className={cx(
                     'w-[20%] rounded-full bg-sky-500 px-4 py-2 font-normal text-lg text-white hover:bg-sky-600',
                     'lg:w-full',
@@ -200,10 +292,10 @@ export function Dashboard() {
                   )}
                 >
                   Send
-                </Ariakit.Button>
+                </Ariakit.FormSubmit>
               </div>
-            </div>
-          )}
+            </Ariakit.Form>
+          </div>
         </div>
         <div className={cx('flex flex-row py-3', 'lg:flex-col lg:pl-4')}>
           <div className="flex w-full justify-between gap-x-3">
@@ -217,7 +309,7 @@ export function Dashboard() {
                   .catch(() => toast.error('Failed to copy address'))
               }}
               className={cx(
-                'max-h-8 rounded-2xl bg-zinc-200/70 px-2 py-1 font-semibold text-sm text-zinc-500 hover:bg-zinc-200',
+                'max-h-8 rounded-2xl bg-gray4 px-2 py-1 font-semibold text-gray10 text-sm hover:bg-zinc-200',
                 'mr-auto lg:mr-0 lg:ml-auto',
               )}
             >
@@ -235,8 +327,10 @@ export function Dashboard() {
         </div>
       </div>
       <div className="border-gray5 border-b-2 pb-2">
-        <details className="deets" open>
-          <summary className="font-semibold text-lg">Assets</summary>
+        <details className="group" open>
+          <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
+            Assets
+          </summary>
 
           <table className="my-3 w-full">
             <thead>
@@ -275,10 +369,12 @@ export function Dashboard() {
         </details>
       </div>
       <div className="border-gray5 border-b-2 pb-2">
-        <details className="deets" open={filteredTransfers?.length > 0}>
-          <summary className="font-semibold text-lg">History</summary>
+        <details className="group" open={filteredTransfers?.length > 0}>
+          <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
+            History
+          </summary>
 
-          <table className="my-3 w-full">
+          <table className="my-3 w-full table-fixed">
             <thead>
               <tr className="text-gray10 *:font-normal *:text-sm">
                 <th className="text-left">Timestamp</th>
@@ -298,23 +394,23 @@ export function Dashboard() {
                       target="_blank"
                       rel="noreferrer"
                       href={`https://explorer.ithaca.xyz/tx/${transfer?.transaction_hash}`}
-                      className="flex flex-row items-center gap-x-2 text-gray11"
+                      className="flex flex-row items-center"
                     >
-                      <span className="min-w-[60px]">
+                      <span className="min-w-[55px] text-gray11">
                         {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))}{' '}
                         ago
                       </span>
                       <ExternalLinkIcon className="size-4" />
                     </a>
                   </td>
-                  <td className="text-left">
+                  <td className="text-left font-medium">
                     {StringFormatter.truncate(transfer?.to.hash ?? '', {
                       start: 4,
                       end: 4,
                     })}
                   </td>
-                  <td className="text-left">{transfer?.type}</td>
-                  <td className="text-right">
+                  <td className="text-left text-gray10">{transfer?.type}</td>
+                  <td className="text-right text-gray10">
                     {Value.format(
                       BigInt(transfer?.total.value ?? 0),
                       Number(transfer?.token.decimals ?? 0),
@@ -328,12 +424,12 @@ export function Dashboard() {
       </div>
       <div className="border-gray5 border-b-2 pb-2">
         <details
-          className="deets pb-1"
+          className="group pb-1"
           open={!!permissions?.data?.length && permissions?.data?.length > 0}
         >
-          <summary className="my-auto font-semibold text-lg">
-            Permissions
-            <button
+          <summary className='relative my-auto cursor-default list-none space-x-1 pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
+            <span>Permissions</span>
+            <Ariakit.Button
               type="button"
               onClick={() => {
                 permissions?.data?.map((permission) => {
@@ -346,7 +442,7 @@ export function Dashboard() {
               )}
             >
               Revoke all
-            </button>
+            </Ariakit.Button>
           </summary>
 
           <table className="my-3 w-full">
@@ -361,6 +457,7 @@ export function Dashboard() {
             <tbody className="border-transparent border-t-10">
               {permissions?.data?.map((permission, index) => {
                 const [spend] = permission?.permissions?.spend ?? []
+                const [calls] = permission?.permissions?.calls ?? []
                 return (
                   <tr
                     key={`${permission.id}-${index}`}
@@ -369,7 +466,7 @@ export function Dashboard() {
                     <td className="text-left">
                       {StringFormatter.truncate(permission?.address ?? '')}
                     </td>
-                    <td className="text-right">{spend?.period}</td>
+                    <td className="text-right">{calls?.signature ?? '––'}</td>
                     <td className="text-right">
                       {spend?.limit ? Value.format(spend?.limit ?? 0n, 18) : 0}{' '}
                       / {spend?.period}
@@ -385,18 +482,18 @@ export function Dashboard() {
         </details>
       </div>
       <div className="pb-3">
-        <details className="deets" open>
-          <summary className="font-semibold text-lg">
+        <details className="group" open>
+          <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
             Recovery
-            <button
+            <Ariakit.Button
               type="button"
               className={cx(
-                'rounded-2xl bg-zinc-200/70 px-2 py-1 font-semibold text-sm text-zinc-500 hover:bg-zinc-200',
+                'rounded-2xl bg-gray4 px-2 py-1 font-semibold text-gray10 text-sm hover:bg-zinc-200',
                 'ml-2',
               )}
             >
               Add wallet
-            </button>
+            </Ariakit.Button>
           </summary>
           <table className="my-3 w-full">
             <thead>
@@ -418,8 +515,12 @@ export function Dashboard() {
                 </td>
                 <td className="ml-auto flex w-[100px] justify-end">
                   <div className="flex flex-row gap-x-2">
-                    <CopyIcon className="my-auto size-5" />
-                    <XIcon className="size-6 text-red9" />
+                    <Ariakit.Button type="button">
+                      <CopyIcon className="my-auto size-5 hover:text-gray6" />
+                    </Ariakit.Button>
+                    <Ariakit.Button type="button">
+                      <XIcon className="size-6 text-red9" />
+                    </Ariakit.Button>
                   </div>
                 </td>
               </tr>

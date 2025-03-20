@@ -2,7 +2,13 @@ import { defineConfig } from '@wagmi/cli'
 import { blockExplorer, foundry } from '@wagmi/cli/plugins'
 import { odysseyTestnet } from 'viem/chains'
 
-const paths = ['docs', 'examples/wagmi/src', 'playground/src', 'test/src']
+const paths = [
+  'apps/docs',
+  'examples/wagmi/src',
+  'apps/playground/src',
+  'test/src',
+  'apps/manager',
+]
 
 export default defineConfig(
   paths.map((path) => ({
