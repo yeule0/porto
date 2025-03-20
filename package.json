@@ -16,10 +16,11 @@
     "check:types": "pnpm run --r --parallel check:types && tsc --noEmit",
     "clean": "rm -rf src/_dist ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
     "deps": "pnpx taze -r",
-    "dev": "pnpm preconstruct && pnpm --filter playground --filter app dev",
-    "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi-example --filter app dev",
+    "dev": "pnpm preconstruct && pnpm --filter playground --filter dialog dev",
+    "dev:manager": "pnpm preconstruct && pnpm --filter manager --filter dialog dev",
+    "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi-example --filter dialog dev",
     "docs:build": "pnpm --filter docs build",
-    "docs:dev": "pnpm --filter docs --filter app dev",
+    "docs:dev": "pnpm --filter docs --filter dialog dev",
     "format": "biome format --write",
     "postinstall": "git submodule update --init --recursive && pnpm preconstruct",
     "preconstruct": "tsx ./scripts/preconstruct.ts",
@@ -64,12 +65,10 @@
     "entry": ["src/{index,remote/index,test/index,wagmi/index}.ts!"],
     "project": ["src/**"],
     "ignore": [
-      "app/**",
+      "apps/**",
       "examples/**",
-      "docs/**",
       "extension/**",
       "**/internal/**",
-      "playground/**",
       "src/core/internal/generated.ts"
     ],
     "ignoreDependencies": ["@tanstack/react-query", "react", "wagmi"]
