@@ -1,3 +1,4 @@
+import { exp1Abi, exp1Address, exp2Address } from '@porto/apps/contracts'
 import {
   AbiFunction,
   Hex,
@@ -18,7 +19,6 @@ import {
   privateKeyToAddress,
 } from 'viem/accounts'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
-import { exp1Abi, exp1Address, exp2Address } from './_generated/contracts.js'
 
 const permissions = () =>
   ({

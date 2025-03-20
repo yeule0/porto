@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { exp1Config, exp2Config } from '@porto/apps/contracts'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { type VariantProps, cva, cx } from 'cva'
 import {
@@ -22,8 +23,6 @@ import { useWaitForCallsStatus } from 'wagmi/experimental'
 import LucideCheck from '~icons/lucide/check'
 import LucideInfo from '~icons/lucide/info'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
-
-import { exp1Config, exp2Config } from '../_generated/contracts'
 
 type Provider = Porto.Porto['provider']
 const pollingInterval = 800

@@ -5,6 +5,7 @@
   "exports": {
     ".": "./lib/index.ts",
     "./components": "./components/index.ts",
+    "./contracts": "./_generated/contracts.ts",
     "./styles.css": "./styles/index.css"
   },
   "scripts": {
