@@ -1,7 +1,7 @@
 import { Button } from '@porto/apps/components'
 
-import { Layout } from '~/components/Layout'
 import * as Dialog from '~/lib/Dialog'
+import { Layout } from '~/routes/-components/Layout'
 import LucideLogIn from '~icons/lucide/log-in'
 
 export function SignIn(props: SignIn.Props) {

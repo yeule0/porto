@@ -3,8 +3,8 @@ import { Button } from '@porto/apps/components'
 import { useMutation } from '@tanstack/react-query'
 import { Actions, Hooks } from 'porto/remote'
 
-import { Layout } from '~/components/Layout'
 import * as Dialog from '~/lib/Dialog'
+import { Layout } from '~/routes/-components/Layout'
 import LucideLogIn from '~icons/lucide/log-in'
 
 const porto = Porto.porto
