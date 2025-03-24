@@ -115,6 +115,7 @@ export function local(parameters: local.Parameters = {}) {
         })
         const signatures = await Account.sign(account, {
           payloads: signPayloads,
+          storage: internal.config.storage,
         })
 
         // Execute the account creation.
@@ -123,6 +124,7 @@ export function local(parameters: local.Parameters = {}) {
           ...(context as any),
           account,
           signatures,
+          storage: internal.config.storage,
         })
 
         address_internal = account.address
@@ -143,6 +145,7 @@ export function local(parameters: local.Parameters = {}) {
           account,
           // Extract calls to authorize the key.
           calls: Implementation.getAuthorizeCalls([key]),
+          storage: internal.config.storage,
         })
 
         return { key }
@@ -223,6 +226,7 @@ export function local(parameters: local.Parameters = {}) {
           await Delegation.execute(client, {
             account,
             calls: Implementation.getAuthorizeCalls([extraKey]),
+            storage: internal.config.storage,
           })
 
         return {
@@ -273,6 +277,7 @@ export function local(parameters: local.Parameters = {}) {
         await Delegation.execute(client, {
           account,
           calls: [Call.setCanExecute({ key, enabled: false })],
+          storage: internal.config.storage,
         })
       },
 
@@ -293,6 +298,7 @@ export function local(parameters: local.Parameters = {}) {
           account,
           calls,
           key,
+          storage: internal.config.storage,
         })
 
         return hash
@@ -315,13 +321,14 @@ export function local(parameters: local.Parameters = {}) {
           calls: context.calls,
           nonce: context.nonce,
           signatures: [signature],
+          storage: internal.config.storage,
         })
 
         return hash
       },
 
       async signPersonalMessage(parameters) {
-        const { account, data } = parameters
+        const { account, data, internal } = parameters
 
         // Only admin keys can sign personal messages.
         const key = account.keys?.find(
@@ -332,13 +339,14 @@ export function local(parameters: local.Parameters = {}) {
         const [signature] = await Account.sign(account, {
           key,
           payloads: [PersonalMessage.getSignPayload(data)],
+          storage: internal.config.storage,
         })
 
         return signature
       },
 
       async signTypedData(parameters) {
-        const { account, data } = parameters
+        const { account, data, internal } = parameters
 
         // Only admin keys can sign typed data.
         const key = account.keys?.find(
@@ -349,6 +357,7 @@ export function local(parameters: local.Parameters = {}) {
         const [signature] = await Account.sign(account, {
           key,
           payloads: [TypedData.getSignPayload(Json.parse(data))],
+          storage: internal.config.storage,
         })
 
         return signature
@@ -365,6 +374,7 @@ export function local(parameters: local.Parameters = {}) {
         await Delegation.execute(client, {
           ...(context as any),
           signatures,
+          storage: internal.config.storage,
         })
 
         const account = preparedAccounts_internal.find(

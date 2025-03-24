@@ -317,7 +317,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
       async sendCalls(parameters) {
         const { account, calls, internal } = parameters
-        const { client, store, request } = internal
+        const { client, config, store, request } = internal
 
         // Try and extract an authorized key to sign the calls with.
         const key = await Implementation.getAuthorizedExecuteKey({
@@ -333,6 +333,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
             account,
             calls,
             key,
+            storage: config.storage,
           })
 
         const provider = getProvider(store)
@@ -350,7 +351,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
       async sendPreparedCalls(parameters) {
         const { account, context, key, internal } = parameters
-        const { client } = internal
+        const { client, config } = internal
 
         if (!context.calls) throw new Error('calls is required')
         if (!context.nonce) throw new Error('nonce is required')
@@ -365,6 +366,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
           calls: context.calls,
           nonce: context.nonce,
           signatures: [signature],
+          storage: config.storage,
         })
 
         return hash

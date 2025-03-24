@@ -12,6 +12,7 @@ import * as Signature from 'ox/Signature'
 import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import * as WebCryptoP256 from 'ox/WebCryptoP256'
 
+import type * as Storage from '../Storage.js'
 import * as Call from './call.js'
 import type * as RelayKey_typebox from './relay/typebox/key.js'
 import type * as RelayPermission_typebox from './relay/typebox/permission.js'
@@ -800,9 +801,13 @@ export function serialize(key: Key): Serialized {
 
 export async function sign(
   key: Key,
-  parameters: { address?: Hex.Hex | undefined; payload: Hex.Hex },
+  parameters: {
+    address?: Hex.Hex | undefined
+    payload: Hex.Hex
+    storage?: Storage.Storage | undefined
+  },
 ) {
-  const { address, payload } = parameters
+  const { address, payload, storage } = parameters
   const { canSign, publicKey, type: keyType } = key
 
   if (!canSign)
@@ -834,6 +839,18 @@ export async function sign(
     }
     if (keyType === 'webauthn-p256') {
       const { credential, rpId } = key
+
+      const cacheKey = `porto.webauthnVerified.${key.hash}`
+      const now = Date.now()
+      const verificationTimeout = 10 * 60 * 1000 // 10 minutes in milliseconds
+
+      let requireVerification = true
+      if (storage) {
+        const lastVerified = await storage.getItem<number>(cacheKey)
+        requireVerification =
+          !lastVerified || now - lastVerified > verificationTimeout
+      }
+
       const {
         signature: { r, s },
         raw,
@@ -842,6 +859,7 @@ export async function sign(
         challenge: payload,
         credentialId: credential.id,
         rpId,
+        userVerification: requireVerification ? 'required' : 'preferred',
       })
 
       const response = raw.response as AuthenticatorAssertionResponse
@@ -850,6 +868,8 @@ export async function sign(
         throw new Error(
           `supplied address "${address}" does not match signature address "${userHandle}"`,
         )
+
+      if (requireVerification && storage) await storage.setItem(cacheKey, now)
 
       const signature = AbiParameters.encode(
         AbiParameters.from([
