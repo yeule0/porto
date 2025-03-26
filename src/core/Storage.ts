@@ -7,6 +7,8 @@ export type Storage = {
   getItem: <value>(name: string) => MaybePromise<value | null>
   removeItem: (name: string) => MaybePromise<void>
   setItem: (name: string, value: unknown) => MaybePromise<void>
+  sizeLimit: number
+  storages?: readonly Storage[] | undefined
 }
 
 export function from(storage: Storage): Storage {
@@ -32,6 +34,8 @@ export function combine(...storages: readonly Storage[]): Storage {
     async setItem(name, value) {
       await Promise.allSettled(storages.map((x) => x.setItem(name, value)))
     },
+    sizeLimit: Math.min(...storages.map((x) => x.sizeLimit)),
+    storages,
   }
 }
 
@@ -50,6 +54,7 @@ export function idb() {
     async setItem(name, value) {
       await set(name, value, store)
     },
+    sizeLimit: 1024 * 1024 * 50, // ≈50MB
   })
 }
 
@@ -70,6 +75,7 @@ export function localStorage() {
     async setItem(name, value) {
       window.localStorage.setItem(name, Json.stringify(value))
     },
+    sizeLimit: 1024 * 1024 * 5, // ≈5MB
   })
 }
 
@@ -92,6 +98,7 @@ export function cookie() {
     async setItem(name, value) {
       document.cookie = `${name}=${Json.stringify(value)};path=/;samesite=None;secure;max-age=31536000`
     },
+    sizeLimit: 1024 * 4, // ≈4kB
   })
 }
 
@@ -107,5 +114,6 @@ export function memory() {
     setItem(name, value) {
       store.set(name, value)
     },
+    sizeLimit: Number.POSITIVE_INFINITY,
   })
 }
