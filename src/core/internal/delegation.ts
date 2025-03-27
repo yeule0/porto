@@ -8,6 +8,7 @@ import * as Signature from 'ox/Signature'
 import * as TypedData from 'ox/TypedData'
 import {
   type Account,
+  type Authorization as Authorization_viem,
   BaseError,
   type Chain,
   type Client,
@@ -16,13 +17,10 @@ import {
 } from 'viem'
 import {
   getEip712Domain as getEip712Domain_viem,
+  prepareAuthorization,
   readContract,
   sendTransaction,
 } from 'viem/actions'
-import {
-  type Authorization as Authorization_viem,
-  prepareAuthorization,
-} from 'viem/experimental'
 import {
   type EncodeExecuteDataParameters,
   encodeExecuteData,
@@ -308,12 +306,12 @@ export async function prepareExecute<
           account: account.address,
           // chainId: 0,
           contractAddress: delegation,
-          delegate: !executor || executor,
+          executor,
         })
         return [
           authorization,
           Authorization.getSignPayload({
-            address: authorization.contractAddress,
+            address: authorization.address,
             chainId: authorization.chainId,
             nonce: BigInt(authorization.nonce),
           }),

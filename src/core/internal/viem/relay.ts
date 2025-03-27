@@ -14,16 +14,14 @@ import * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
 import * as Signature from 'ox/Signature'
 import {
+  type Authorization as Authorization_viem,
   BaseError,
   type Calls,
   type Chain,
   type Client,
   type Narrow,
 } from 'viem'
-import {
-  type Authorization as Authorization_viem,
-  prepareAuthorization,
-} from 'viem/experimental'
+import { prepareAuthorization } from 'viem/actions'
 import { getExecuteError } from 'viem/experimental/erc7821'
 
 import * as Delegation from '../_generated/contracts/Delegation.js'
@@ -314,12 +312,11 @@ export async function prepareUpgradeAccount(
           account: address,
           chainId: 0,
           contractAddress: capabilities.delegation,
-          sponsor: true,
         })
         return [
           authorization,
           Authorization.getSignPayload({
-            address: authorization.contractAddress,
+            address: authorization.address,
             chainId: authorization.chainId,
             nonce: BigInt(authorization.nonce),
           }),
@@ -430,10 +427,10 @@ export async function upgradeAccount(
   const { context, signatures } = parameters
 
   const authorization = (() => {
-    const { contractAddress, chainId, nonce } = context.authorization
+    const { address, chainId, nonce } = context.authorization
     const signature = Signature.from(signatures[1]!)
     return {
-      address: contractAddress,
+      address,
       chainId,
       nonce,
       r: Hex.fromNumber(signature.r),
