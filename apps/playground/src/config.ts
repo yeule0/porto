@@ -5,19 +5,6 @@ import { Dialog, Implementation, Porto } from 'porto'
 
 export const env = Env.get()
 
-const hosts = {
-  local: import.meta.env.PROD
-    ? 'https://localhost:5174/dialog/'
-    : 'https://local.localhost:5174/dialog/',
-  stg: import.meta.env.PROD
-    ? 'https://stg.id.porto.sh/dialog/'
-    : 'https://stg.localhost:5174/dialog/',
-  prod: import.meta.env.PROD
-    ? 'https://id.porto.sh/dialog/'
-    : 'https://localhost:5174/dialog/',
-} as const satisfies Record<Env.Env, string>
-const host = hosts[env]
-
 export const permissions = () =>
   ({
     expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
@@ -40,6 +27,7 @@ export const permissions = () =>
     },
   }) as const
 
+const host = PortoConfig.dialogHosts[env]
 export const implementations = {
   local: Implementation.local(),
   'iframe-dialog': Implementation.dialog({

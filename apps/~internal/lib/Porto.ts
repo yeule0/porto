@@ -42,6 +42,18 @@ export const config = {
   },
 } as const satisfies Record<Env.Env, Partial<Porto.Config>>
 
+export const dialogHosts = {
+  local: import.meta.env.PROD
+    ? undefined
+    : 'https://local.localhost:5174/dialog/',
+  stg: import.meta.env.PROD
+    ? 'https://stg.id.porto.sh/dialog/'
+    : 'https://stg.localhost:5174/dialog/',
+  prod: import.meta.env.PROD
+    ? 'https://id.porto.sh/dialog/'
+    : 'https://localhost:5174/dialog/',
+} as const satisfies Record<Env.Env, string | undefined>
+
 export const porto = Porto.create({
   ...config[Env.get()],
   storage: Storage.combine(Storage.cookie(), Storage.localStorage()),
