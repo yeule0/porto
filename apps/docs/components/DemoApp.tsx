@@ -1076,7 +1076,7 @@ export function LimitDemo(props: LimitDemo.Props) {
           <div className="relative flex flex-1 items-center gap-2 lg:max-w-[79px]">
             <Ariakit.VisuallyHidden>
               <Ariakit.FormLabel name={form.names.limit}>
-                Limit
+                Spending Limit
               </Ariakit.FormLabel>
             </Ariakit.VisuallyHidden>
             <Ariakit.FormInput
