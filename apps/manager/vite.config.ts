@@ -12,7 +12,7 @@ export default defineConfig({
     'process.env': {},
   },
   plugins: [
-    Mkcert(),
+    Mkcert({ hosts: ['localhost', 'stg.localhost'] }),
     Tailwindcss(),
     React(),
     Icons({ compiler: 'jsx', jsx: 'react' }),

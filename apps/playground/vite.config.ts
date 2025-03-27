@@ -8,15 +8,8 @@ import mkcert from 'vite-plugin-mkcert'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  define: {
-    'import.meta.env.VITE_DIALOG_HOST': JSON.stringify(
-      process.env.NODE_ENV === 'development'
-        ? 'https://localhost:5174/dialog/'
-        : 'https://id.porto.sh/dialog/',
-    ),
-  },
   plugins: [
-    mkcert(),
+    mkcert({ hosts: ['localhost', 'stg.localhost'] }),
     react(),
     tailwindcss(),
     {

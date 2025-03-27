@@ -10,10 +10,9 @@ import {
   TypedData,
   Value,
 } from 'ox'
-import { Chains, Dialog, Implementation, Porto } from 'porto'
+import { Chains } from 'porto'
 import { getClient } from 'porto/core/internal/porto'
 import * as React from 'react'
-import { http } from 'viem'
 import {
   generatePrivateKey,
   privateKeyToAccount,
@@ -21,62 +20,12 @@ import {
 } from 'viem/accounts'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
-const permissions = () =>
-  ({
-    expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-    permissions: {
-      calls: [
-        {
-          to: exp1Address,
-        },
-        {
-          to: exp2Address,
-        },
-      ],
-      spend: [
-        {
-          limit: Hex.fromNumber(Value.fromEther('50')),
-          period: 'minute',
-          token: exp1Address,
-        },
-      ],
-    },
-  }) as const
-
-const host = import.meta.env.VITE_DIALOG_HOST + window.location.search
-const implementations = {
-  local: Implementation.local(),
-  'iframe-dialog': Implementation.dialog({
-    host,
-  }),
-  'popup-dialog': Implementation.dialog({
-    host,
-    renderer: Dialog.popup(),
-  }),
-  'inline-dialog': Implementation.dialog({
-    host,
-    renderer: Dialog.experimental_inline({
-      element: () => document.getElementById('porto')!,
-    }),
-  }),
-}
-type ImplementationType = keyof typeof implementations
-
-const searchParams = new URLSearchParams(window.location.search)
-const relay = searchParams.get('relay') !== null
-
-const porto = Porto.create({
-  // We will be deferring implementation setup until after hydration.
-  implementation: null,
-  transports: relay
-    ? {
-        [Chains.odysseyTestnet.id]: {
-          default: http(),
-          relay: http('https://relay-staging.ithaca.xyz'),
-        },
-      }
-    : undefined,
-})
+import {
+  type ImplementationType,
+  implementations,
+  permissions,
+  porto,
+} from './config'
 
 export function App() {
   const [implementation, setImplementation] =
