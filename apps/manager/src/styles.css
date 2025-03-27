@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.scheme-light-dark *));
 
+@custom-variant hocus (&:hover, &:focus);
+
+@theme {
+  --spacing-hero: 45vw;
+}
+
 html,
 :host {
   background-color: var(--background-color-primary);
@@ -12,6 +18,15 @@ html,
   html {
     color-scheme: light dark;
   }
+}
+
+.popover {
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.popover[data-enter] {
+  opacity: 1;
 }
 
 html,
@@ -29,8 +44,8 @@ body,
     @apply appearance-none;
   }
 
-  input[type="number"]::-webkit-inner-spin-button {
-    @apply appearance-none;
+  input[type="number"] {
+    appearance: textfield;
   }
 
   .text-md {
@@ -127,4 +142,15 @@ body,
 [role="button"],
 button:not([type="submit"]) {
   cursor: default;
+}
+
+/* Hide the default arrow for details in major browsers */
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::marker /* Latest Chrome, Edge, Firefox */,
+details > summary::-webkit-details-marker /* Safari */ {
+  display: none;
 }
