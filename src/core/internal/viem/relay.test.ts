@@ -1,4 +1,11 @@
-import { AbiFunction, P256, PublicKey, Value } from 'ox'
+import {
+  AbiFunction,
+  type Hex,
+  P256,
+  PublicKey,
+  Value,
+  WebCryptoP256,
+} from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { describe, expect, test } from 'vitest'
 
@@ -9,10 +16,14 @@ import {
 import * as TestActions from '../../../../test/src/actions.js'
 import { getPorto } from '../../../../test/src/porto.js'
 import * as Key from '../key.js'
+import { sendCalls } from '../relay.js'
 import type * as Capabilities from '../relay/typebox/capabilities.js'
 import {
   createAccount,
+  getAccounts,
+  getKeys,
   prepareCalls,
+  prepareCreateAccount,
   prepareUpgradeAccount,
   sendPreparedCalls,
   upgradeAccount,
@@ -26,59 +37,60 @@ const { client } = getPorto({
 
 const feeToken = exp1Address
 
-describe('createAccount', () => {
-  const defaultKey = {
-    expiry: 6942069420,
-    permissions: [
-      {
-        selector: AbiFunction.getSelector(AbiFunction.fromAbi(exp1Abi, 'mint')),
-        to: exp1Address,
-        type: 'call',
-      },
-      {
-        selector: AbiFunction.getSelector(
-          AbiFunction.fromAbi(exp1Abi, 'transfer'),
-        ),
-        to: exp1Address,
-        type: 'call',
-      },
-      {
-        limit: Value.fromEther('100'),
-        period: 'minute',
-        token: exp1Address,
-        type: 'spend',
-      },
-    ],
-    publicKey: '0x0000000000000000000000000000000000000000',
-    role: 'admin',
-    type: 'p256',
-  } as const satisfies Capabilities.authorizeKeys.Request[number]
+describe('prepareCreateAccount + createAccount', () => {
+  const getKey = (publicKey: Hex.Hex) =>
+    ({
+      expiry: 6942069420,
+      permissions: [
+        {
+          selector: AbiFunction.getSelector(
+            AbiFunction.fromAbi(exp1Abi, 'mint'),
+          ),
+          to: exp1Address,
+          type: 'call',
+        },
+        {
+          selector: AbiFunction.getSelector(
+            AbiFunction.fromAbi(exp1Abi, 'transfer'),
+          ),
+          to: exp1Address,
+          type: 'call',
+        },
+        {
+          limit: Value.fromEther('100'),
+          period: 'minute',
+          token: exp1Address,
+          type: 'spend',
+        },
+      ],
+      publicKey,
+      role: 'admin',
+      type: 'p256',
+    }) as const satisfies Capabilities.authorizeKeys.Request[number]
 
   test('default', async () => {
-    const privateKey = P256.randomPrivateKey()
-    const publicKey = P256.getPublicKey({ privateKey })
+    const tmp = privateKeyToAccount(generatePrivateKey())
 
-    const result = await createAccount(client, {
+    const keyPair = await WebCryptoP256.createKeyPair()
+    const publicKey = PublicKey.toHex(keyPair.publicKey, {
+      includePrefix: false,
+    })
+    const key = getKey(publicKey)
+
+    const request = await prepareCreateAccount(client, {
       capabilities: {
-        authorizeKeys: [
-          {
-            ...defaultKey,
-            publicKey: PublicKey.toHex(publicKey),
-          },
-        ],
+        authorizeKeys: [key],
         delegation: client.chain.contracts.delegation.address,
       },
     })
 
-    expect(result.address).toBeDefined()
-    expect(result.capabilities.authorizeKeys[0]?.expiry).toBe(defaultKey.expiry)
-    expect(result.capabilities.authorizeKeys[0]?.publicKey).toBe(
-      PublicKey.toHex(publicKey),
-    )
-    expect(result.capabilities.authorizeKeys[0]?.role).toBe('admin')
-    expect(result.capabilities.authorizeKeys[0]?.type).toBe('p256')
+    expect(request.context).toBeDefined()
+    expect(request.capabilities.authorizeKeys[0]?.expiry).toBe(key.expiry)
+    expect(request.capabilities.authorizeKeys[0]?.publicKey).toBe(publicKey)
+    expect(request.capabilities.authorizeKeys[0]?.role).toBe(key.role)
+    expect(request.capabilities.authorizeKeys[0]?.type).toBe(key.type)
     expect(
-      result.capabilities.authorizeKeys[0]?.permissions,
+      request.capabilities.authorizeKeys[0]?.permissions,
     ).toMatchInlineSnapshot(`
       [
         {
@@ -99,17 +111,81 @@ describe('createAccount', () => {
         },
       ]
     `)
+
+    const hash = Key.hash(key)
+    const signature = await tmp.sign({ hash: request.digests[0]! })
+
+    await createAccount(client, {
+      ...request,
+      signatures: [
+        {
+          hash,
+          id: tmp.address,
+          signature,
+        },
+      ],
+    })
+  })
+
+  test('behavior: multiple keys', async () => {
+    const key_1 = await (async () => {
+      const keyPair = await WebCryptoP256.createKeyPair()
+      const publicKey = PublicKey.toHex(keyPair.publicKey, {
+        includePrefix: false,
+      })
+      return {
+        ...getKey(publicKey),
+        tmp: privateKeyToAccount(generatePrivateKey()),
+      } as const
+    })()
+    const key_2 = await (async () => {
+      const privateKey = P256.randomPrivateKey()
+      const publicKey = PublicKey.toHex(P256.getPublicKey({ privateKey }), {
+        includePrefix: false,
+      })
+      return {
+        ...getKey(publicKey),
+        tmp: privateKeyToAccount(generatePrivateKey()),
+      } as const
+    })()
+    const keys = [key_1, key_2] as const
+
+    const request = await prepareCreateAccount(client, {
+      capabilities: {
+        authorizeKeys: keys,
+        delegation: client.chain.contracts.delegation.address,
+      },
+    })
+
+    expect(request.context).toBeDefined()
+    expect(request.capabilities.authorizeKeys.length).toBe(keys.length)
+
+    const signatures = await Promise.all(
+      keys.map(async (key, index) => {
+        const hash = Key.hash(key)
+        const signature = await key.tmp.sign({ hash: request.digests[index]! })
+        return {
+          hash,
+          id: key.tmp.address,
+          signature,
+        } as const
+      }),
+    )
+
+    await createAccount(client, {
+      ...request,
+      signatures,
+    })
   })
 
   test('error: schema encoding', async () => {
     await expect(() =>
-      createAccount(client, {
+      prepareCreateAccount(client, {
         capabilities: {
           authorizeKeys: [
             {
-              ...defaultKey,
               // @ts-expect-error
-              publicKey: 'INVALID!',
+              ...getKey('INVALID!'),
             },
           ],
           delegation: client.chain.contracts.delegation.address,
@@ -125,14 +201,15 @@ describe('createAccount', () => {
     `)
 
     await expect(() =>
-      createAccount(client, {
+      prepareCreateAccount(client, {
         capabilities: {
           authorizeKeys: [
             {
-              ...defaultKey,
+              ...getKey(
+                '0x0000000000000000000000000000000000000000000000000000000000000000',
+              ),
               // @ts-expect-error
               role: 'beef',
-              publicKey: '0x0000000000000000000000000000000000000000',
             },
           ],
           delegation: client.chain.contracts.delegation.address,
@@ -149,17 +226,177 @@ describe('createAccount', () => {
   })
 })
 
+describe('getAccounts', () => {
+  test('default', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    const result = await getAccounts(client, {
+      keyId: account.keys[0]!.id!,
+    })
+
+    expect(result.length).toBe(1)
+    expect(result[0]?.address).toBe(account.address)
+    expect(result[0]?.keys.length).toBe(1)
+    expect(result[0]?.keys[0]?.hash).toBe(key.hash)
+    expect(result[0]?.keys[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.keys[0]?.role).toBe(key.role)
+    expect(result[0]?.keys[0]?.type).toBe(key.type)
+  })
+
+  test('behavior: deployed account', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    await sendCalls(client, {
+      account,
+      calls: [],
+      nonce: 0n,
+      feeToken,
+    })
+
+    const result = await getAccounts(client, {
+      keyId: account.keys[0]!.id!,
+    })
+
+    expect(result.length).toBe(1)
+    expect(result[0]?.address).toBe(account.address)
+    expect(result[0]?.keys.length).toBe(1)
+    expect(result[0]?.keys[0]?.hash).toBe(key.hash)
+    expect(result[0]?.keys[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.keys[0]?.role).toBe(key.role)
+    expect(result[0]?.keys[0]?.type).toBe(key.type)
+  })
+})
+
+describe('getKeys', () => {
+  test('default', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    await sendCalls(client, {
+      account,
+      calls: [],
+      nonce: 0n,
+      feeToken,
+    })
+
+    const result = await getKeys(client, {
+      address: account.address,
+    })
+
+    expect(result[0]?.hash).toBe(key.hash)
+    expect(result[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.role).toBe(key.role)
+    expect(result[0]?.type).toBe(key.type)
+  })
+
+  test('behavior: multiple keys', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const key_2 = Key.createSecp256k1({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key, key_2],
+    })
+
+    const result = await getKeys(client, {
+      address: account.address,
+    })
+
+    expect(result[0]?.hash).toBe(key.hash)
+    expect(result[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.role).toBe(key.role)
+    expect(result[0]?.type).toBe(key.type)
+    expect(result[1]?.hash).toBe(key_2.hash)
+    expect(result[1]?.publicKey).toBe(key_2.publicKey)
+    expect(result[1]?.role).toBe(key_2.role)
+    expect(result[1]?.type).toBe(key_2.type)
+  })
+
+  test('behavior: deployed account', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    await sendCalls(client, {
+      account,
+      calls: [],
+      nonce: 0n,
+      feeToken,
+    })
+
+    const result = await getKeys(client, {
+      address: account.address,
+    })
+
+    expect(result[0]?.hash).toBe(key.hash)
+    expect(result[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.role).toBe(key.role)
+    expect(result[0]?.type).toBe(key.type)
+  })
+
+  test('behavior: deployed account; multiple keys', async () => {
+    const key = Key.createP256({
+      role: 'admin',
+    })
+    const key_2 = Key.createSecp256k1({
+      role: 'admin',
+    })
+    const account = await TestActions.createAccount(client, {
+      keys: [key, key_2],
+    })
+
+    await sendCalls(client, {
+      account,
+      calls: [],
+      nonce: 0n,
+      feeToken,
+    })
+
+    const result = await getKeys(client, {
+      address: account.address,
+    })
+
+    expect(result[0]?.hash).toBe(key.hash)
+    expect(result[0]?.publicKey).toBe(key.publicKey)
+    expect(result[0]?.role).toBe(key.role)
+    expect(result[0]?.type).toBe(key.type)
+    expect(result[1]?.hash).toBe(key_2.hash)
+    expect(result[1]?.publicKey).toBe(key_2.publicKey)
+    expect(result[1]?.role).toBe(key_2.role)
+    expect(result[1]?.type).toBe(key_2.type)
+  })
+})
+
 describe('prepareCalls + sendPreparedCalls', () => {
   test('default', async () => {
     const key = Key.createP256({
       role: 'admin',
     })
-    const { account } = await TestActions.createAccount(client, {
+    const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
     const request = await prepareCalls(client, {
-      account: account.address,
+      address: account.address,
       calls: [
         {
           to: '0x0000000000000000000000000000000000000000',
@@ -193,12 +430,12 @@ describe('prepareCalls + sendPreparedCalls', () => {
     const key = Key.createP256({
       role: 'admin',
     })
-    const { account } = await TestActions.createAccount(client, {
+    const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
     const request = await prepareCalls(client, {
-      account: account.address,
+      address: account.address,
       calls: [
         {
           abi: exp1Abi,
@@ -234,13 +471,13 @@ describe('prepareCalls + sendPreparedCalls', () => {
     const key = Key.createP256({
       role: 'admin',
     })
-    const { account } = await TestActions.createAccount(client, {
+    const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
     await expect(() =>
       prepareCalls(client, {
-        account: account.address,
+        address: account.address,
         calls: [],
         capabilities: {
           meta: {
@@ -265,12 +502,12 @@ describe('prepareCalls + sendPreparedCalls', () => {
     const key = Key.createP256({
       role: 'admin',
     })
-    const { account } = await TestActions.createAccount(client, {
+    const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
     const request = await prepareCalls(client, {
-      account: account.address,
+      address: account.address,
       calls: [
         {
           to: '0x0000000000000000000000000000000000000000',

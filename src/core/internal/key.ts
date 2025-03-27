@@ -17,20 +17,12 @@ import * as Call from './call.js'
 import type * as RelayKey_typebox from './relay/typebox/key.js'
 import type * as RelayPermission_typebox from './relay/typebox/permission.js'
 import type * as Key_typebox from './typebox/key.js'
-import type {
-  Compute,
-  Mutable,
-  OneOf,
-  Undefined,
-  UnionOmit,
-  UnionPartialBy,
-} from './types.js'
+import type { Compute, Mutable, OneOf, Undefined, UnionOmit } from './types.js'
 
 type PrivateKeyFn = () => Hex.Hex
 
 export type BaseKey<type extends string, properties = {}> = Compute<
   Key_typebox.Base & {
-    initialized: boolean
     permissions?: Permissions | undefined
     type: type
   } & OneOf<
@@ -285,6 +277,7 @@ export async function createWebAuthnP256<const role extends Key['role']>(
       id: credential.id,
       publicKey: credential.publicKey,
     },
+    id: Bytes.toHex(userId),
   })
 }
 
@@ -382,7 +375,6 @@ export function deserialize(serialized: Serialized): Key {
       publicKey,
       type,
     }),
-    initialized: true,
     publicKey,
     role: serialized.isSuperAdmin ? 'admin' : 'session',
     canSign: false,
@@ -421,7 +413,6 @@ export function from<const key extends from.Value>(
   if ('isSuperAdmin' in key) return deserialize(key) as never
   return {
     ...key,
-    initialized: key.initialized ?? true,
     hash: hash({
       publicKey: key.publicKey,
       type: key.type,
@@ -431,12 +422,12 @@ export function from<const key extends from.Value>(
 }
 
 export declare namespace from {
-  type Value = UnionPartialBy<UnionOmit<Key, 'hash'>, 'initialized'>
+  type Value = UnionOmit<Key, 'hash'>
 
   type Parameters<key extends from.Value> = key | Key | Serialized
 
   type ReturnType<key extends from.Value> = key extends from.Value
-    ? key & Pick<Key, 'initialized' | 'hash'>
+    ? key & Pick<Key, 'hash'>
     : Key
 }
 
@@ -475,7 +466,6 @@ export function fromP256<const role extends Key['role']>(
   return from({
     canSign: true,
     expiry: parameters.expiry ?? 0,
-    initialized: parameters.initialized,
     publicKey,
     role: parameters.role as Key['role'],
     permissions: parameters.permissions,
@@ -490,8 +480,6 @@ export declare namespace fromP256 {
   type Parameters<role extends Key['role'] = Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
-    /** Whether the key has been initialized on the Account. */
-    initialized?: boolean | undefined
     /** Permissions. */
     permissions?: Permissions | undefined
     /** P256 private key. */
@@ -584,7 +572,6 @@ export function fromSecp256k1<const role extends Key['role']>(
   return from({
     canSign: Boolean(privateKey),
     expiry: parameters.expiry ?? 0,
-    initialized: parameters.initialized,
     publicKey,
     role,
     permissions: parameters.permissions,
@@ -597,8 +584,6 @@ export declare namespace fromSecp256k1 {
   type Parameters<role extends Key['role'] = Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
-    /** Whether the key has been initialized on the Account. */
-    initialized?: boolean | undefined
     /** Permissions. */
     permissions?: Permissions | undefined
     /** Role. */
@@ -649,7 +634,7 @@ export declare namespace fromSecp256k1 {
 export function fromWebAuthnP256<const role extends Key['role']>(
   parameters: fromWebAuthnP256.Parameters<role>,
 ) {
-  const { credential, rpId } = parameters
+  const { credential, id, rpId } = parameters
   const publicKey = PublicKey.toHex(credential.publicKey, {
     includePrefix: false,
   })
@@ -657,7 +642,7 @@ export function fromWebAuthnP256<const role extends Key['role']>(
     canSign: true,
     credential,
     expiry: parameters.expiry ?? 0,
-    initialized: parameters.initialized,
+    id,
     permissions: parameters.permissions,
     publicKey,
     role: parameters.role as Key['role'],
@@ -672,8 +657,8 @@ export declare namespace fromWebAuthnP256 {
     expiry?: Key['expiry'] | undefined
     /** WebAuthnP256 Credential. */
     credential: Pick<WebAuthnP256.P256Credential, 'id' | 'publicKey'>
-    /** Whether the key has been initialized on the Account. */
-    initialized?: boolean | undefined
+    /** Key ID. */
+    id: Key['id']
     /** Permissions. */
     permissions?: Permissions | undefined
     /** Role. */
@@ -721,7 +706,6 @@ export function fromWebCryptoP256<const role extends Key['role']>(
   return from({
     canSign: true,
     expiry: parameters.expiry ?? 0,
-    initialized: parameters.initialized,
     permissions: parameters.permissions,
     publicKey,
     role: parameters.role as Key['role'],
@@ -734,8 +718,6 @@ export declare namespace fromWebCryptoP256 {
   type Parameters<role extends Key['role']> = {
     /** Expiry. */
     expiry?: Key['expiry'] | undefined
-    /** Whether the key has been initialized on the Account. */
-    initialized?: boolean | undefined
     /** P256 private key. */
     keyPair: Awaited<ReturnType<typeof WebCryptoP256.createKeyPair>>
     /** Permissions. */
@@ -802,12 +784,11 @@ export function serialize(key: Key): Serialized {
 export async function sign(
   key: Key,
   parameters: {
-    address?: Hex.Hex | undefined
     payload: Hex.Hex
     storage?: Storage.Storage | undefined
   },
 ) {
-  const { address, payload, storage } = parameters
+  const { payload, storage } = parameters
   const { canSign, publicKey, type: keyType } = key
 
   if (!canSign)
@@ -863,10 +844,10 @@ export async function sign(
       })
 
       const response = raw.response as AuthenticatorAssertionResponse
-      const userHandle = Bytes.toHex(new Uint8Array(response.userHandle!))
-      if (address && !Address.isEqual(address, userHandle))
+      const id = Bytes.toHex(new Uint8Array(response.userHandle!))
+      if (key.id && !Address.isEqual(key.id, id))
         throw new Error(
-          `supplied address "${address}" does not match signature address "${userHandle}"`,
+          `supplied webauthn key "${key.id}" does not match signature webauthn key "${id}"`,
         )
 
       if (requireVerification && storage) await storage.setItem(cacheKey, now)
@@ -950,6 +931,14 @@ export function toRelay(
       throw new Error(`Invalid permission type "${key}".`)
     })
     .flat()
+
+  // TODO(relay): remove temporary call scope on EntryPoint.
+  if (key.role === 'session')
+    permissions.push({
+      selector: Call.anySelector,
+      to: '0x5197adb49b4ecaa8e00f60f43757d3f5ad630227',
+      type: 'call',
+    })
 
   return {
     expiry,

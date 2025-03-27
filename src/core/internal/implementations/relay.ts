@@ -1,28 +1,20 @@
-import * as Address from 'ox/Address'
+import type * as Address from 'ox/Address'
 import * as Bytes from 'ox/Bytes'
-import * as Hex from 'ox/Hex'
+import type * as Hex from 'ox/Hex'
 import * as Json from 'ox/Json'
 import * as PersonalMessage from 'ox/PersonalMessage'
 import * as PublicKey from 'ox/PublicKey'
-import * as Secp256k1 from 'ox/Secp256k1'
 import * as TypedData from 'ox/TypedData'
 import * as WebAuthnP256 from 'ox/WebAuthnP256'
-import { readContract } from 'viem/actions'
 
-import * as DelegationContract from '../_generated/contracts/Delegation.js'
+import type * as Storage from '../../Storage.js'
 import * as Account from '../account.js'
-import * as Delegation from '../delegation.js'
+import * as HumanId from '../humanId.js'
 import * as Implementation from '../implementation.js'
 import * as Key from '../key.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
+import type { Client } from '../porto.js'
 import * as Relay from '../relay.js'
-
-// TODO: remove this
-export const tmp: {
-  setBalance: ((address: Address.Address) => Promise<void>) | null
-} = {
-  setBalance: null,
-}
 
 /**
  * Implementation for a WebAuthn-based Relay environment. Account management,
@@ -32,10 +24,10 @@ export const tmp: {
  * @returns Implementation.
  */
 export function relay(config: relay.Parameters = {}) {
-  const { feeToken, mock } = config
+  const { mock } = config
 
-  let address_internal: Address.Address | undefined
-  // TODO
+  let id_internal: Hex.Hex | undefined
+  // TODO(relay)
   // const preparedAccounts_internal: Account.Account[] = []
 
   const keystoreHost = (() => {
@@ -48,132 +40,93 @@ export function relay(config: relay.Parameters = {}) {
     return config.keystoreHost
   })()
 
-  async function prepareAccountKeys(parameters: {
-    address: Address.Address
-    label?: string | undefined
-    keystoreHost?: string | undefined
-    mock?: boolean | undefined
-    permissions: PermissionsRequest.PermissionsRequest | undefined
-  }) {
-    const { address, keystoreHost, mock, permissions } = parameters
-
-    const label =
-      parameters.label ?? `${address.slice(0, 8)}\u2026${address.slice(-6)}`
-
-    const key = !mock
-      ? await Key.createWebAuthnP256({
-          label,
-          role: 'admin',
-          rpId: keystoreHost,
-          userId: Bytes.from(address),
-        })
-      : Key.createP256({
-          role: 'admin',
-        })
-
-    const extraKey = await PermissionsRequest.toKey(permissions)
-
-    const keys = [key, ...(extraKey ? [extraKey] : [])]
-
-    return keys
-  }
-
   return Implementation.from({
     actions: {
       async createAccount(parameters) {
-        const { label, internal, permissions } = parameters
-        const { client } = internal
+        const { permissions } = parameters
+        const { client } = parameters.internal
 
-        ///////////////////////////////////////////////////////////////////////////
-        // START TODO: remove this when refactored to Relay.createAccount
-        ///////////////////////////////////////////////////////////////////////////
+        let id: Hex.Hex | undefined
+        const account = await Relay.createAccount(client, {
+          async keys({ ids }) {
+            id = ids[0]!
+            const label =
+              parameters.label ??
+              HumanId.create({
+                capitalize: true,
+                separator: ' ',
+              })
 
-        // Generate a random private key and derive the address.
-        // The address here will be the address of the account.
-        const privateKey = Secp256k1.randomPrivateKey()
-        const address = Address.fromPublicKey(
-          Secp256k1.getPublicKey({ privateKey }),
-        )
+            const key = !mock
+              ? await Key.createWebAuthnP256({
+                  label,
+                  role: 'admin',
+                  rpId: keystoreHost,
+                  userId: Bytes.from(id),
+                })
+              : Key.createP256({
+                  role: 'admin',
+                })
 
-        ///////////////////////////////////////////////////////////////////////////
-        // END TODO
-        ///////////////////////////////////////////////////////////////////////////
-
-        // Prepare account keys to be authorized.
-        const keys = await prepareAccountKeys({
-          address,
-          keystoreHost,
-          label,
-          mock,
-          permissions,
+            return [key]
+          },
         })
 
-        const delegation = client.chain.contracts.delegation.address
+        if (id) id_internal = id
 
-        ///////////////////////////////////////////////////////////////////////////
-        // START TODO: remove this when refactored to Relay.createAccount
-        ///////////////////////////////////////////////////////////////////////////
+        const authorizeKey = await PermissionsRequest.toKey(permissions)
+        if (authorizeKey)
+          await preauthKey(client, {
+            account,
+            authorizeKey,
+            feeToken: config.feeToken,
+            storage: parameters.internal.config.storage,
+          })
 
-        await tmp.setBalance?.(address)
-
-        const { context, digests } = await Relay.prepareUpgradeAccount(client, {
-          address,
-          keys,
-          delegation,
-          feeToken,
-        })
-
-        const account = Account.fromPrivateKey(privateKey, {
-          keys: context.account.keys,
-        })
-        const signatures = await Account.sign(account, {
-          payloads: digests,
-        })
-
-        await Relay.upgradeAccount(client, {
-          context,
-          signatures,
-        })
-
-        ///////////////////////////////////////////////////////////////////////////
-        // END TODO
-        ///////////////////////////////////////////////////////////////////////////
-
-        address_internal = address
-
-        return { account }
+        return {
+          account: Account.from({
+            ...account,
+            keys: [...account.keys, ...(authorizeKey ? [authorizeKey] : [])],
+          }),
+        }
       },
 
       async grantPermissions(parameters) {
-        const { permissions } = parameters
+        const { account, permissions, internal } = parameters
+        const { client } = internal
 
         // Parse permissions request into a structured key.
-        const key = await PermissionsRequest.toKey(permissions, {
-          // We are going to authorize the key at time of next call bundle
-          // so the user doesn't need to pay fees.
-          initialized: false,
-        })
-        if (!key) throw new Error('key not found.')
+        const authorizeKey = await PermissionsRequest.toKey(permissions)
+        if (!authorizeKey) throw new Error('key to authorize not found.')
 
-        return { key }
+        await preauthKey(client, {
+          account,
+          authorizeKey,
+          feeToken: config.feeToken,
+          storage: internal.config.storage,
+        })
+
+        return { key: authorizeKey }
       },
 
       async loadAccounts(parameters) {
         const { internal, permissions } = parameters
         const { client } = internal
 
-        const { address, credentialId } = await (async () => {
-          if (mock && address_internal)
+        const { credentialId, keyId } = await (async () => {
+          if (mock) {
+            if (!id_internal) throw new Error('id_internal not found.')
             return {
-              address: address_internal,
+              keyId: id_internal,
               credentialId: undefined,
             } as const
+          }
 
           // If the address and credentialId are provided, we can skip the
           // WebAuthn discovery step.
           if (parameters.address && parameters.credentialId)
             return {
-              address: parameters.address,
+              keyId: parameters.address,
               credentialId: parameters.credentialId,
             }
 
@@ -186,35 +139,25 @@ export function relay(config: relay.Parameters = {}) {
           const response = credential.raw
             .response as AuthenticatorAssertionResponse
 
-          const address = Bytes.toHex(new Uint8Array(response.userHandle!))
+          const keyId = Bytes.toHex(new Uint8Array(response.userHandle!))
           const credentialId = credential.raw.id
 
-          return { address, credentialId }
+          return { credentialId, keyId }
         })()
 
-        // Fetch the delegated account's keys.
-        const [keyCount, extraKey] = await Promise.all([
-          readContract(client, {
-            abi: DelegationContract.abi,
-            address,
-            functionName: 'keyCount',
-          }),
-          PermissionsRequest.toKey(permissions, {
-            // We are going to authorize the key at time of next call bundle
-            // so the user doesn't need to pay fees.
-            initialized: false,
-          }),
+        const [accounts, authorizeKey] = await Promise.all([
+          Relay.getAccounts(client, { keyId }),
+          PermissionsRequest.toKey(permissions),
         ])
-        const keys = await Promise.all(
-          Array.from({ length: Number(keyCount) }, (_, index) =>
-            Delegation.keyAt(client, { account: address, index }),
-          ),
-        )
+        if (!accounts[0]) throw new Error('account not found')
 
         // Instantiate the account based off the extracted address and keys.
         const account = Account.from({
-          address,
-          keys: [...keys, ...(extraKey ? [extraKey] : [])].map((key, i) => {
+          ...accounts[0],
+          keys: [
+            ...accounts[0].keys,
+            ...(authorizeKey ? [authorizeKey] : []),
+          ].map((key, i) => {
             const credential = {
               id: credentialId!,
               publicKey: PublicKey.fromHex(key.publicKey),
@@ -222,7 +165,11 @@ export function relay(config: relay.Parameters = {}) {
             // Assume that the first key is the admin WebAuthn key.
             if (i === 0) {
               if (key.type === 'webauthn-p256')
-                return Key.fromWebAuthnP256({ ...key, credential })
+                return Key.fromWebAuthnP256({
+                  ...key,
+                  credential,
+                  id: keyId,
+                })
             }
             // Add credential to session key to be able to restore from storage later
             if ((key.type === 'p256' && key.role === 'session') || mock)
@@ -230,6 +177,14 @@ export function relay(config: relay.Parameters = {}) {
             return key
           }),
         })
+
+        if (authorizeKey)
+          preauthKey(client, {
+            account,
+            authorizeKey,
+            feeToken: config.feeToken,
+            storage: internal.config.storage,
+          })
 
         return {
           accounts: [account],
@@ -244,15 +199,28 @@ export function relay(config: relay.Parameters = {}) {
           feeToken = config.feeToken,
           key,
         } = parameters
-        const { client } = internal
+        const {
+          client,
+          config: { storage },
+        } = internal
+
+        // Get pre-authorized keys to assign to the call bundle.
+        const pre = await PreBundles.get({
+          address: account.address,
+          storage,
+        })
 
         const { context, digest } = await Relay.prepareCalls(client, {
           account,
           calls,
           feeToken,
           key,
-          // TODO: remove this when relay supports optional nonce
-          nonce: randomNonce(),
+          pre,
+        })
+
+        await PreBundles.clear({
+          address: account.address,
+          storage,
         })
 
         return {
@@ -269,7 +237,7 @@ export function relay(config: relay.Parameters = {}) {
       },
 
       async prepareUpgradeAccount(_parameters) {
-        // TODO: implement
+        // TODO(relay): implement
         return null as any
       },
 
@@ -287,8 +255,6 @@ export function relay(config: relay.Parameters = {}) {
           account,
           revokeKeys: [key],
           feeToken,
-          // TODO: remove this when relay supports optional nonce
-          nonce: randomNonce(),
         })
       },
 
@@ -299,7 +265,10 @@ export function relay(config: relay.Parameters = {}) {
           internal,
           feeToken = config.feeToken,
         } = parameters
-        const { client } = internal
+        const {
+          client,
+          config: { storage },
+        } = internal
 
         // Try and extract an authorized key to sign the calls with.
         const key = await Implementation.getAuthorizedExecuteKey({
@@ -308,16 +277,10 @@ export function relay(config: relay.Parameters = {}) {
           permissionsId: parameters.permissionsId,
         })
 
-        // Get uninitialized keys to authorize.
-        const authorizeKeys = account.keys?.filter((key) => !key.initialized)
-
-        // TODO: remove this when relay support batch authorize + calls
-        await Relay.sendCalls(client, {
-          account,
-          authorizeKeys,
-          feeToken,
-          // TODO: remove this when relay supports optional nonce
-          nonce: randomNonce(),
+        // Get pre-authorized keys to assign to the call bundle.
+        const pre = await PreBundles.get({
+          address: account.address,
+          storage,
         })
 
         // Execute the calls (with the key if provided, otherwise it will
@@ -327,8 +290,12 @@ export function relay(config: relay.Parameters = {}) {
           calls,
           feeToken,
           key,
-          // TODO: remove this when relay supports optional nonce
-          nonce: randomNonce(),
+          pre,
+        })
+
+        await PreBundles.clear({
+          address: account.address,
+          storage,
         })
 
         return id as Hex.Hex
@@ -338,7 +305,7 @@ export function relay(config: relay.Parameters = {}) {
         const { context, key, internal } = parameters
         const { client } = internal
 
-        // TODO: remove this once relay uses `innerSignature` as signature.
+        // TODO(relay): remove this once relay uses `innerSignature` as signature.
         const signature = Key.wrapSignature(parameters.signature, {
           keyType: key.type,
           publicKey: key.publicKey,
@@ -346,7 +313,7 @@ export function relay(config: relay.Parameters = {}) {
 
         // Execute the calls (with the key if provided, otherwise it will
         // fall back to an admin key).
-        const { id } = await Relay.sendPreparedCalls(client, {
+        const { id } = await Relay.sendCalls(client, {
           context: {
             ...context,
             key,
@@ -392,7 +359,7 @@ export function relay(config: relay.Parameters = {}) {
       },
 
       async upgradeAccount(_parameters) {
-        // TODO: implement
+        // TODO(relay): implement
         return null as any
       },
     },
@@ -419,16 +386,89 @@ export declare namespace relay {
   }
 }
 
-// TODO: remove this
-function randomNonce() {
-  return Hex.toBigInt(
-    Hex.concat(
-      // multichain flag (0 = single chain, 0xc1d0 = multi-chain)
-      Hex.fromNumber(0, { size: 2 }),
-      // sequence key
-      Hex.random(22),
-      // sequential nonce
-      Hex.fromNumber(0, { size: 8 }),
-    ),
+async function preauthKey(client: Client, parameters: preauthKey.Parameters) {
+  const { account, authorizeKey, feeToken } = parameters
+
+  const adminKey = account.keys?.find(
+    (key) => key.role === 'admin' && key.canSign,
   )
+  if (!adminKey) throw new Error('admin key not found.')
+
+  const { context, digest } = await Relay.prepareCalls(client, {
+    account,
+    authorizeKeys: [authorizeKey],
+    key: adminKey,
+    pre: true,
+    feeToken,
+  })
+  const signature = await Key.sign(adminKey, {
+    payload: digest,
+  })
+
+  await PreBundles.upsert([{ context, signature }], {
+    address: account.address,
+    storage: parameters.storage,
+  })
+}
+
+namespace preauthKey {
+  export type Parameters = {
+    account: Account.Account
+    authorizeKey: Key.Key
+    feeToken?: Address.Address | undefined
+    storage: Storage.Storage
+  }
+}
+
+export namespace PreBundles {
+  export type PreBundles = readonly {
+    context: Relay.prepareCalls.ReturnType['context']
+    signature: Hex.Hex
+  }[]
+
+  export const storageKey = (address: Address.Address) => `porto.pre.${address}`
+
+  export async function upsert(pre: PreBundles, parameters: upsert.Parameters) {
+    const { address } = parameters
+
+    const storage = (() => {
+      const storages = parameters.storage.storages ?? [parameters.storage]
+      return storages.find((x) => x.sizeLimit > 1024 * 1024 * 5)
+    })()
+
+    const value = await storage?.getItem<PreBundles>(storageKey(address))
+    await storage?.setItem(storageKey(address), [...(value ?? []), ...pre])
+  }
+
+  namespace upsert {
+    export type Parameters = {
+      address: Address.Address
+      storage: Storage.Storage
+    }
+  }
+
+  export async function get(parameters: get.Parameters) {
+    const { address, storage } = parameters
+    const pre = await storage?.getItem<PreBundles>(storageKey(address))
+    return pre || undefined
+  }
+
+  export namespace get {
+    export type Parameters = {
+      address: Address.Address
+      storage: Storage.Storage
+    }
+  }
+
+  export async function clear(parameters: clear.Parameters) {
+    const { address, storage } = parameters
+    await storage?.removeItem(storageKey(address))
+  }
+
+  namespace clear {
+    export type Parameters = {
+      address: Address.Address
+      storage: Storage.Storage
+    }
+  }
 }

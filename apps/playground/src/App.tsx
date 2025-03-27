@@ -13,6 +13,7 @@ import {
 import { Chains, Dialog, Implementation, Porto } from 'porto'
 import { getClient } from 'porto/core/internal/porto'
 import * as React from 'react'
+import { http } from 'viem'
 import {
   generatePrivateKey,
   privateKeyToAccount,
@@ -42,7 +43,7 @@ const permissions = () =>
     },
   }) as const
 
-const host = import.meta.env.VITE_DIALOG_HOST
+const host = import.meta.env.VITE_DIALOG_HOST + window.location.search
 const implementations = {
   local: Implementation.local(),
   'iframe-dialog': Implementation.dialog({
@@ -61,9 +62,20 @@ const implementations = {
 }
 type ImplementationType = keyof typeof implementations
 
+const searchParams = new URLSearchParams(window.location.search)
+const relay = searchParams.get('relay') !== null
+
 const porto = Porto.create({
   // We will be deferring implementation setup until after hydration.
   implementation: null,
+  transports: relay
+    ? {
+        [Chains.odysseyTestnet.id]: {
+          default: http(),
+          relay: http('https://relay-staging.ithaca.xyz'),
+        },
+      }
+    : undefined,
 })
 
 export function App() {
@@ -535,10 +547,12 @@ function SendCalls() {
         e.preventDefault()
         const formData = new FormData(e.target as HTMLFormElement)
         const action = formData.get('action') as string | null
+        const address = formData.get('address') as `0x${string}` | null
 
-        const [account] = await porto.provider.request({
+        const result = await porto.provider.request({
           method: 'eth_accounts',
         })
+        const account = address || result[0]!
 
         const calls = (() => {
           if (action === 'mint')
@@ -652,6 +666,7 @@ function SendCalls() {
           <option value="revert">Revert</option>
           <option value="noop">Noop Calls</option>
         </select>
+        <input name="address" placeholder="address" type="text" />
         <button type="submit">Send</button>
       </div>
       {hash && (

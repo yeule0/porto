@@ -13,7 +13,7 @@ import * as Anvil from './anvil.js'
 export async function createAccount(
   client: Client,
   parameters: {
-    keys: readonly Key.Key[]
+    keys: NonNullable<Relay.createAccount.Parameters['keys']>
     setBalance?: false | bigint | undefined
   },
 ) {
@@ -27,9 +27,7 @@ export async function createAccount(
       value: balance,
     })
 
-  return {
-    account,
-  }
+  return account
 }
 
 export async function getAccount(
@@ -82,9 +80,7 @@ export async function getUpgradedAccount(
     signatures,
   })
 
-  return {
-    account,
-  }
+  return account
 }
 
 export async function setBalance(

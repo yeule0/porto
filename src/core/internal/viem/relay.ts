@@ -46,19 +46,20 @@ export async function createAccount(
   client: Client,
   parameters: createAccount.Parameters,
 ): Promise<createAccount.ReturnType> {
-  const { capabilities } = parameters
+  const { context, signatures } = parameters
   try {
     const method = 'wallet_createAccount' as const
     type Schema = Extract<RpcSchema.Viem[number], { Method: typeof method }>
-    const result = await client.request<Schema>({
+    await client.request<Schema>({
       method,
       params: [
         Value.Encode(Rpc.wallet_createAccount.Parameters, {
-          capabilities,
+          context,
+          signatures,
         }),
       ],
     })
-    return Value.Parse(Rpc.wallet_createAccount.Response, result)
+    return undefined
   } catch (error) {
     parseSchemaError(error)
     throw error
@@ -69,6 +70,95 @@ export namespace createAccount {
   export type Parameters = Rpc.wallet_createAccount.Parameters
 
   export type ReturnType = Rpc.wallet_createAccount.Response
+
+  export type ErrorType = parseSchemaError.ErrorType | Errors.GlobalErrorType
+}
+
+/**
+ * Gets the accounts for a given key identifier.
+ *
+ * @example
+ * TODO
+ *
+ * @param client - The client to use.
+ * @param parameters - Parameters.
+ * @returns Result.
+ */
+export async function getAccounts(
+  client: Client,
+  parameters: getAccounts.Parameters,
+): Promise<getAccounts.ReturnType> {
+  const { chain = client.chain, keyId: id } = parameters
+  try {
+    const method = 'wallet_getAccounts' as const
+    type Schema = Extract<RpcSchema.Viem[number], { Method: typeof method }>
+    const result = await client.request<Schema>({
+      method,
+      params: [
+        Value.Encode(Rpc.wallet_getAccounts.Parameters, {
+          chain_id: chain?.id,
+          id,
+        }),
+      ],
+    })
+    return Value.Parse(Rpc.wallet_getAccounts.Response, result)
+  } catch (error) {
+    parseSchemaError(error)
+    throw error
+  }
+}
+
+export namespace getAccounts {
+  export type Parameters = {
+    chain?: Chain | undefined
+    keyId: Hex.Hex
+  }
+
+  export type ReturnType = Rpc.wallet_getAccounts.Response
+
+  export type ErrorType = parseSchemaError.ErrorType | Errors.GlobalErrorType
+}
+
+/**
+ * Gets the keys for a given account.
+ *
+ * @example
+ * TODO
+ *
+ * @param client - The client to use.
+ * @param parameters - Parameters.
+ * @returns Result.
+ */
+export async function getKeys(
+  client: Client,
+  parameters: getKeys.Parameters,
+): Promise<getKeys.ReturnType> {
+  const { address, chain = client.chain } = parameters
+  try {
+    const method = 'wallet_getKeys' as const
+    type Schema = Extract<RpcSchema.Viem[number], { Method: typeof method }>
+    const result = await client.request<Schema>({
+      method,
+      params: [
+        Value.Encode(Rpc.wallet_getKeys.Parameters, {
+          address,
+          chain_id: chain?.id,
+        }),
+      ],
+    })
+    return Value.Parse(Rpc.wallet_getKeys.Response, result)
+  } catch (error) {
+    parseSchemaError(error)
+    throw error
+  }
+}
+
+export namespace getKeys {
+  export type Parameters = Omit<Rpc.wallet_getKeys.Parameters, 'chain_id'> & {
+    chain?: Chain | undefined
+  }
+
+  export type ReturnType = Rpc.wallet_getKeys.Response
 
   export type ErrorType = parseSchemaError.ErrorType | Errors.GlobalErrorType
 }
@@ -87,7 +177,7 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
   client: Client,
   parameters: prepareCalls.Parameters<calls>,
 ): Promise<prepareCalls.ReturnType> {
-  const { account, capabilities, chain = client.chain } = parameters
+  const { address, capabilities, chain = client.chain } = parameters
 
   const calls = parameters.calls.map((call: any) => {
     return {
@@ -112,7 +202,7 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
           calls,
           capabilities,
           chainId: chain?.id,
-          from: account,
+          from: address,
         }),
       ],
     })
@@ -128,7 +218,7 @@ export namespace prepareCalls {
   export type Parameters<
     calls extends readonly unknown[] = readonly unknown[],
   > = {
-    account: Address.Address
+    address: Address.Address
     calls: Calls<Narrow<calls>>
     capabilities: Rpc.wallet_prepareCalls.Capabilities
     chain?: Chain | undefined
@@ -140,6 +230,53 @@ export namespace prepareCalls {
     | parseSchemaError.ErrorType
     | parseExecutionError.ErrorType
     | Errors.GlobalErrorType
+}
+
+/**
+ * Prepares a new account creation.
+ *
+ * @example
+ * TODO
+ *
+ * @param client - The client to use.
+ * @param parameters - Parameters.
+ * @returns Result.
+ */
+export async function prepareCreateAccount(
+  client: Client,
+  parameters: prepareCreateAccount.Parameters,
+): Promise<prepareCreateAccount.ReturnType> {
+  const { capabilities, chain = client.chain } = parameters
+  try {
+    const method = 'wallet_prepareCreateAccount' as const
+    type Schema = Extract<RpcSchema.Viem[number], { Method: typeof method }>
+    const result = await client.request<Schema>({
+      method,
+      params: [
+        Value.Encode(Rpc.wallet_prepareCreateAccount.Parameters, {
+          capabilities,
+          chainId: chain?.id,
+        }),
+      ],
+    })
+    return Value.Parse(Rpc.wallet_prepareCreateAccount.Response, result)
+  } catch (error) {
+    parseSchemaError(error)
+    throw error
+  }
+}
+
+export namespace prepareCreateAccount {
+  export type Parameters = Omit<
+    Rpc.wallet_prepareCreateAccount.Parameters,
+    'chainId'
+  > & {
+    chain?: Chain | undefined
+  }
+
+  export type ReturnType = Rpc.wallet_prepareCreateAccount.Response
+
+  export type ErrorType = parseSchemaError.ErrorType | Errors.GlobalErrorType
 }
 
 /**
@@ -349,12 +486,16 @@ export function parseExecutionError<const calls extends readonly unknown[]>(
   if (!(e instanceof BaseError)) return
 
   const getAbiError = (error: BaseError) => {
-    const cause = error.walk((e) => 'data' in (e as BaseError))
+    const cause = error.walk(
+      (e) =>
+        'data' in (e as BaseError) ||
+        Boolean((e as BaseError).details?.match(/(0x[0-9a-f]{8})/)),
+    )
     if (!cause) return undefined
 
     let data: Hex.Hex | undefined
     if (cause instanceof BaseError) {
-      const [, match] = cause.details?.match(/"(0x[0-9a-f]{8})"/) || []
+      const [, match] = cause.details?.match(/(0x[0-9a-f]{8})/) || []
       if (match) data = match as Hex.Hex
     }
 
