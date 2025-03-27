@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cx } from 'cva'
 
 export function TruncatedAddress({
   address,
@@ -17,7 +17,7 @@ export function TruncatedAddress({
   if (!left || !right) return address
   return (
     <div
-      className={clsx(
+      className={cx(
         className,
         'flex flex-row items-center justify-center gap-x-0.5 font-medium font-mono text-sm tracking-[0.25px]',
       )}

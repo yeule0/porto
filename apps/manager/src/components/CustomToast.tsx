@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cx } from 'cva'
 import CircleAlertIcon from '~icons/lucide/circle-alert'
 import CheckCircleIcon from '~icons/lucide/circle-check'
 
@@ -15,7 +15,7 @@ export function CustomToast({
 }) {
   return (
     <div
-      className={clsx(
+      className={cx(
         className,
         'm-1 w-[250px] rounded-xl border bg-white px-4 py-3 shadow-sm dark:bg-gray1',
         kind === 'SUCCESS' && 'border-green8',

@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import clsx from 'clsx'
+import { cx } from 'cva'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
@@ -132,7 +132,7 @@ function RouteComponent() {
       </div>
 
       <div
-        className={clsx(
+        className={cx(
           'mx-auto flex h-full w-full flex-col items-center justify-center bg-transparent min-[550px]:max-w-[395px]',
         )}
       >

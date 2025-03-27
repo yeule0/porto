@@ -1,8 +1,8 @@
 import { Button, Spinner } from '@porto/apps/components'
 
 import * as Ariakit from '@ariakit/react'
-import clsx from 'clsx'
 import { Cuer } from 'cuer'
+import { cx } from 'cva'
 import { matchSorter } from 'match-sorter'
 import { Address, Hex, Value } from 'ox'
 import { Hooks } from 'porto/wagmi'
@@ -55,7 +55,7 @@ function ShowMore({
       render={<p />}
       store={checkbox}
       onChange={onChange}
-      className={clsx(className, '')}
+      className={cx(className, '')}
     >
       {label}
     </Ariakit.Checkbox>
@@ -103,7 +103,7 @@ function PaginatedTable<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={clsx(
+                className={cx(
                   col.width,
                   col.align === 'right' ? 'text-right' : 'text-left',
                 )}
@@ -438,7 +438,7 @@ export function Dashboard() {
                 <td className="w-min max-w-[25px] text-right">
                   <Ariakit.Button
                     disabled={time === 'expired'}
-                    className={clsx(
+                    className={cx(
                       'size-8 rounded-full p-1',
                       time === 'expired'
                         ? 'text-gray10'
@@ -451,7 +451,7 @@ export function Dashboard() {
                     {time === 'expired' ? (
                       <NullIcon className="m-auto size-5" />
                     ) : (
-                      <XIcon className={clsx('m-auto size-5')} />
+                      <XIcon className={cx('m-auto size-5')} />
                     )}
                   </Ariakit.Button>
                 </td>
@@ -508,7 +508,7 @@ export function Dashboard() {
                         console.info('')
                       }}
                     >
-                      <CopyIcon className={clsx('m-auto size-5 text-gray10')} />
+                      <CopyIcon className={cx('m-auto size-5 text-gray10')} />
                     </Ariakit.Button>
                     <Ariakit.Button
                       className="size-8 rounded-full p-1 hover:bg-red-100"
@@ -516,7 +516,7 @@ export function Dashboard() {
                         console.info('')
                       }}
                     >
-                      <XIcon className={clsx('m-auto size-5 text-red-500')} />
+                      <XIcon className={cx('m-auto size-5 text-red-500')} />
                     </Ariakit.Button>
                   </td>
                 </tr>
@@ -785,7 +785,7 @@ function AssetRow({
             store={swapForm}
             validateOnBlur={true}
             validateOnChange={true}
-            className={clsx(
+            className={cx(
               'flex gap-x-2',
               '*:h-[62px] *:w-1/2 *:rounded-xl *:border-1 *:border-gray6 *:bg-white *:dark:bg-gray1',
             )}
@@ -834,7 +834,7 @@ function AssetRow({
                     gutter={24}
                     sameWidth={true}
                     unmountOnHide={true}
-                    className={clsx(
+                    className={cx(
                       'rounded-xl border border-gray6 bg-white shadow-sm dark:border-gray4 dark:bg-gray1',
                       'scale-[0.95] opacity-0 data-[enter]:scale-[1] data-[enter]:opacity-100',
                     )}
@@ -863,7 +863,7 @@ function AssetRow({
                           className="focus:bg-sky-100 focus:outline-none data-[active-item]:bg-sky-100 dark:data-[active-item]:bg-gray3 dark:focus:bg-sky-900"
                           render={
                             <Ariakit.ComboboxItem
-                              className={clsx(
+                              className={cx(
                                 'flex flex-row items-center gap-x-2 px-3 py-3.5',
                                 index === matches.length - 1 ||
                                   matches.length === 0
@@ -893,7 +893,7 @@ function AssetRow({
               </Ariakit.ComboboxProvider>
             </div>
             <div
-              className={clsx(
+              className={cx(
                 'relative flex w-full flex-row items-center pr-3 pl-3.5 shadow-xs',
                 swapFormState.errors.swapAmount?.length
                   ? 'focus-within:rounded-lg focus-within:outline-1 focus-within:outline-red-500'
@@ -943,7 +943,7 @@ function AssetRow({
                 Max
               </Button>
               <Ariakit.FormSubmit
-                className={clsx(
+                className={cx(
                   'mx-1 my-auto rounded-full p-2',
                   {
                     'animate-pulse bg-accent text-white hover:bg-accentHover':
@@ -1014,7 +1014,7 @@ function AssetRow({
                               value,
                             )
                           }
-                          className={clsx(
+                          className={cx(
                             'peer',
                             'w-full font-mono text-sm placeholder:text-gray10 focus:outline-none dark:text-gray12',
                             valid &&
@@ -1024,7 +1024,7 @@ function AssetRow({
                         <TruncatedAddress
                           end={5}
                           start={5}
-                          className={clsx(
+                          className={cx(
                             '-top-0 absolute w-min cursor-pointer text-left peer-focus:hidden',
                             !valid && 'hidden',
                           )}
@@ -1068,7 +1068,7 @@ function AssetRow({
                   autoCapitalize="off"
                   name={sendForm.names.sendAmount}
                   data-field={`${address}-amount`}
-                  className={clsx(
+                  className={cx(
                     'w-min font-mono text-sm placeholder:text-gray10 focus:outline-none sm:text-md',
                   )}
                 />
@@ -1092,7 +1092,7 @@ function AssetRow({
               Max
             </Button>
             <Ariakit.FormSubmit
-              className={clsx(
+              className={cx(
                 'my-auto mr-0.5 ml-1 rounded-full p-2 sm:mr-1 sm:ml-2',
                 {
                   'animate-pulse bg-accent text-white hover:bg-accentHover':
