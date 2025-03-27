@@ -501,7 +501,8 @@ function SendCalls() {
         const result = await porto.provider.request({
           method: 'eth_accounts',
         })
-        const account = address || result[0]!
+        const account = result[0]!
+        const recipient = address || account
 
         const calls = (() => {
           if (action === 'mint')
@@ -510,7 +511,7 @@ function SendCalls() {
                 to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
-                  [account, Value.fromEther('100')],
+                  [recipient, Value.fromEther('100')],
                 ),
               },
             ]
@@ -521,7 +522,7 @@ function SendCalls() {
                 to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'approve'),
-                  [account, Value.fromEther('50')],
+                  [recipient, Value.fromEther('50')],
                 ),
               },
               {
@@ -529,7 +530,7 @@ function SendCalls() {
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
-                    account,
+                    recipient,
                     '0x0000000000000000000000000000000000000000',
                     Value.fromEther('50'),
                   ],
@@ -543,14 +544,14 @@ function SendCalls() {
                 to: exp2Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
-                  [account, Value.fromEther('100')],
+                  [recipient, Value.fromEther('100')],
                 ),
               },
               {
                 to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'approve'),
-                  [account, Value.fromEther('50')],
+                  [recipient, Value.fromEther('50')],
                 ),
               },
               {
@@ -558,7 +559,7 @@ function SendCalls() {
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
-                    account,
+                    recipient,
                     '0x0000000000000000000000000000000000000000',
                     Value.fromEther('50'),
                   ],
@@ -574,7 +575,7 @@ function SendCalls() {
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
                     '0x0000000000000000000000000000000000000000',
-                    account,
+                    recipient,
                     Value.fromEther('100'),
                   ],
                 ),
