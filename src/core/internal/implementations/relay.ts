@@ -251,11 +251,21 @@ export function relay(config: relay.Parameters = {}) {
         // We shouldn't be able to revoke the admin keys.
         if (key.role === 'admin') throw new Error('cannot revoke permissions.')
 
-        await Relay.sendCalls(client, {
-          account,
-          revokeKeys: [key],
-          feeToken,
-        })
+        try {
+          await Relay.sendCalls(client, {
+            account,
+            revokeKeys: [key],
+            feeToken,
+          })
+        } catch (e) {
+          const error = e as Relay.sendCalls.ErrorType
+          if (
+            error.name === 'Relay.ExecutionError' &&
+            error.abiError?.name === 'KeyDoesNotExist'
+          )
+            return
+          throw e
+        }
       },
 
       async sendCalls(parameters) {
@@ -302,14 +312,8 @@ export function relay(config: relay.Parameters = {}) {
       },
 
       async sendPreparedCalls(parameters) {
-        const { context, key, internal } = parameters
+        const { context, key, internal, signature } = parameters
         const { client } = internal
-
-        // TODO(relay): remove this once relay uses `innerSignature` as signature.
-        const signature = Key.wrapSignature(parameters.signature, {
-          keyType: key.type,
-          publicKey: key.publicKey,
-        })
 
         // Execute the calls (with the key if provided, otherwise it will
         // fall back to an admin key).
@@ -398,8 +402,8 @@ async function preauthKey(client: Client, parameters: preauthKey.Parameters) {
     account,
     authorizeKeys: [authorizeKey],
     key: adminKey,
-    pre: true,
     feeToken,
+    pre: true,
   })
   const signature = await Key.sign(adminKey, {
     payload: digest,

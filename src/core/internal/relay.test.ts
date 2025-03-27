@@ -1,5 +1,5 @@
-import { Hex, Value } from 'ox'
-import { readContract } from 'viem/actions'
+import { Hex, Json, Value } from 'ox'
+import { getTransactionReceipt, readContract } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
@@ -240,6 +240,7 @@ describe('sendCalls', () => {
 
     const signature = await Key.sign(key, {
       payload: request.digest,
+      wrap: false,
     })
 
     const { id } = await Relay.sendCalls(client, {
@@ -265,6 +266,49 @@ describe('sendCalls', () => {
     })
 
     const newKey = Key.createP256({ role: 'admin' })
+    const { id } = await Relay.sendCalls(client, {
+      account,
+      calls: [
+        {
+          to: exp2Address,
+          abi: exp2Abi,
+          functionName: 'mint',
+          args: [account.address, 100n],
+        },
+      ],
+      feeToken: exp1Address,
+      key: newKey,
+      pre: [
+        {
+          authorizeKeys: [newKey],
+          key,
+        },
+      ],
+    })
+
+    expect(id).toBeDefined()
+
+    expect(
+      await readContract(client, {
+        ...exp2Config,
+        functionName: 'balanceOf',
+        args: [account.address],
+      }),
+    ).toBe(100n)
+  })
+
+  test('behavior: pre bundles (session key)', async () => {
+    const key = Key.createP256({ role: 'admin' })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    const newKey = Key.createP256({
+      role: 'session',
+      permissions: {
+        calls: [{ to: exp2Address }],
+      },
+    })
     const { id } = await Relay.sendCalls(client, {
       account,
       calls: [
@@ -331,6 +375,68 @@ describe('sendCalls', () => {
 
     const signature_2 = await Key.sign(key, {
       payload: request_2.digest,
+      wrap: false,
+    })
+
+    const { id } = await Relay.sendCalls(client, {
+      ...request_2,
+      signature: signature_2,
+    })
+
+    expect(id).toBeDefined()
+
+    expect(
+      await readContract(client, {
+        ...exp2Config,
+        functionName: 'balanceOf',
+        args: [account.address],
+      }),
+    ).toBe(100n)
+  })
+
+  test('behavior: pre bundles (via prepareCalls)', async () => {
+    const key = Key.createP256({ role: 'admin' })
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    const alice = Hex.random(20)
+    const newKey = Key.createP256({
+      expiry: 9999999999,
+      role: 'session',
+      permissions: {
+        calls: [{ to: alice }],
+        spend: [{ limit: 69420n, period: 'day' }],
+      },
+    })
+    const request_1 = await Relay.prepareCalls(client, {
+      account,
+      authorizeKeys: [newKey],
+      key,
+      feeToken: exp1Address,
+      pre: true,
+    })
+    const signature_1 = await Key.sign(key, {
+      payload: request_1.digest,
+    })
+
+    const request_2 = await Relay.prepareCalls(client, {
+      account,
+      calls: [
+        {
+          to: exp2Address,
+          abi: exp2Abi,
+          functionName: 'mint',
+          args: [account.address, 100n],
+        },
+      ],
+      feeToken: exp1Address,
+      pre: [{ ...request_1, signature: signature_1 }],
+      key,
+    })
+    const signature_2 = await Key.sign(key, {
+      payload: request_2.digest,
+      wrap: false,
     })
 
     const { id } = await Relay.sendCalls(client, {

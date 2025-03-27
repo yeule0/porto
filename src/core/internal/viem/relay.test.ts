@@ -1,11 +1,4 @@
-import {
-  AbiFunction,
-  type Hex,
-  P256,
-  PublicKey,
-  Value,
-  WebCryptoP256,
-} from 'ox'
+import { AbiFunction, Hex, P256, PublicKey, Value, WebCryptoP256 } from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { describe, expect, test } from 'vitest'
 
@@ -112,16 +105,15 @@ describe('prepareCreateAccount + createAccount', () => {
       ]
     `)
 
-    const hash = Key.hash(key)
     const signature = await tmp.sign({ hash: request.digests[0]! })
 
     await createAccount(client, {
       ...request,
       signatures: [
         {
-          hash,
-          id: tmp.address,
-          signature,
+          publicKey: key.publicKey,
+          type: key.type,
+          value: signature,
         },
       ],
     })
@@ -162,12 +154,11 @@ describe('prepareCreateAccount + createAccount', () => {
 
     const signatures = await Promise.all(
       keys.map(async (key, index) => {
-        const hash = Key.hash(key)
         const signature = await key.tmp.sign({ hash: request.digests[index]! })
         return {
-          hash,
-          id: key.tmp.address,
-          signature,
+          publicKey: key.publicKey,
+          type: key.type,
+          value: signature,
         } as const
       }),
     )
@@ -414,6 +405,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
 
     const signature = await Key.sign(key, {
       payload: request.digest,
+      wrap: false,
     })
 
     await sendPreparedCalls(client, {
@@ -455,6 +447,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
 
     const signature = await Key.sign(key, {
       payload: request.digest,
+      wrap: false,
     })
 
     await sendPreparedCalls(client, {
@@ -525,6 +518,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
 
     const signature = await Key.sign(key, {
       payload: request.digest,
+      wrap: false,
     })
 
     await expect(() =>
@@ -568,6 +562,10 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
       value: Value.fromEther('10000'),
     })
 
+    const signature = await eoa.sign({
+      hash: Hex.random(32),
+    })
+
     const request = await prepareUpgradeAccount(client, {
       address: eoa.address,
       capabilities: {
@@ -577,6 +575,7 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
             permissions: [],
             publicKey: p256.publicKey,
             role: 'admin',
+            signature,
             type: 'p256',
           },
         ],

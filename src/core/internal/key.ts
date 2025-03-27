@@ -23,13 +23,19 @@ type PrivateKeyFn = () => Hex.Hex
 
 export type BaseKey<type extends string, properties = {}> = Compute<
   Key_typebox.Base & {
+    /** Permissions. */
     permissions?: Permissions | undefined
+    /** Whether the key will need its digest (SHA256) prehashed when signing. */
+    prehash?: boolean
+    /** Key type. */
     type: type
   } & OneOf<
       | ({
+          /** Whether the key can sign. */
           canSign: true
         } & properties)
       | ({
+          /** Whether the key can sign. */
           canSign: false
         } & Undefined<properties>)
     >
@@ -709,6 +715,7 @@ export function fromWebCryptoP256<const role extends Key['role']>(
     permissions: parameters.permissions,
     publicKey,
     role: parameters.role as Key['role'],
+    prehash: true,
     privateKey,
     type: 'p256',
   })
@@ -786,9 +793,10 @@ export async function sign(
   parameters: {
     payload: Hex.Hex
     storage?: Storage.Storage | undefined
+    wrap?: boolean | undefined
   },
 ) {
-  const { payload, storage } = parameters
+  const { payload, storage, wrap = true } = parameters
   const { canSign, publicKey, type: keyType } = key
 
   if (!canSign)
@@ -876,11 +884,13 @@ export async function sign(
     )
   })()
 
-  return wrapSignature(signature, {
-    keyType,
-    publicKey,
-    prehash,
-  })
+  if (wrap)
+    return wrapSignature(signature, {
+      keyType,
+      publicKey,
+      prehash,
+    })
+  return signature
 }
 
 /**
@@ -893,9 +903,12 @@ export async function sign(
  * @returns Relay key.
  */
 export function toRelay(
-  key: Pick<Key, 'expiry' | 'permissions' | 'publicKey' | 'role' | 'type'>,
+  key: Pick<
+    Key,
+    'expiry' | 'permissions' | 'publicKey' | 'role' | 'signature' | 'type'
+  >,
 ): Relay {
-  const { expiry, publicKey, role, type } = key
+  const { expiry, publicKey, role, signature, type } = key
 
   // biome-ignore lint/complexity/useFlatMap:
   const permissions = Object.entries(key.permissions ?? {})
@@ -945,6 +958,7 @@ export function toRelay(
     permissions: permissions ?? [],
     publicKey,
     role: toRelayKeyRole[role],
+    signature,
     type: toRelayKeyType[type],
   }
 }

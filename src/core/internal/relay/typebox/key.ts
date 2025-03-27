@@ -5,7 +5,7 @@
  */
 
 import * as Primitive from '../../typebox/primitive.js'
-import type * as Schema from '../../typebox/schema.js'
+import * as Schema from '../../typebox/schema.js'
 import { Type } from '../../typebox/schema.js'
 import * as Permission from './permission.js'
 
@@ -16,6 +16,8 @@ export const Key = Type.Object({
   publicKey: Primitive.Hex,
   /** Role. */
   role: Type.Union([Type.Literal('admin'), Type.Literal('normal')]),
+  /** Signature. */
+  signature: Schema.Optional(Primitive.Hex),
   /** Key type. */
   type: Type.Union([
     Type.Literal('p256'),

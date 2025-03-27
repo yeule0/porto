@@ -164,9 +164,14 @@ export namespace wallet_createAccount {
     /** Signatures. */
     signatures: Type.Array(
       Type.Object({
-        hash: Primitive.Hex,
-        id: Primitive.Address,
-        signature: Primitive.Hex,
+        /** Whether the digest was prehashed. */
+        prehash: Schema.Optional(Type.Boolean()),
+        /** The public key of the account. */
+        publicKey: Primitive.Hex,
+        /** The type of the account. */
+        type: Key.Key.properties.type,
+        /** The value of the account. */
+        value: Primitive.Hex,
       }),
     ),
   })
@@ -296,6 +301,8 @@ export namespace wallet_sendPreparedCalls {
     context: Quote.Signed,
     /** Signature properties. */
     signature: Type.Object({
+      /** Whether the digest was prehashed. */
+      prehash: Schema.Optional(Type.Boolean()),
       /** The public key of the account. */
       publicKey: Primitive.Hex,
       /** The type of the account. */

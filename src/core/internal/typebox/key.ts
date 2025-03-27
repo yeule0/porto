@@ -13,6 +13,8 @@ export const Base = Type.Object({
   publicKey: Primitive.Hex,
   /** Role. */
   role: Type.Union([Type.Literal('admin'), Type.Literal('session')]),
+  /** Signature. */
+  signature: Schema.Optional(Primitive.Hex),
   /** Key type. */
   type: Type.Union([
     Type.Literal('address'),

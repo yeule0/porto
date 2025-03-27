@@ -207,6 +207,7 @@ describe('createWebCryptoP256', () => {
         "canSign": true,
         "expiry": 0,
         "permissions": undefined,
+        "prehash": true,
         "privateKey": CryptoKey {},
         "role": "admin",
         "type": "p256",
@@ -607,6 +608,7 @@ describe('fromWebCryptoP256', () => {
         "expiry": 0,
         "hash": "0xa2085f4d3a69fcf0182dbe60a3b7da9b5fd8b2b54d7ea39d345ba82d6edc8fe1",
         "permissions": undefined,
+        "prehash": true,
         "privateKey": CryptoKey {},
         "publicKey": "0x410e2eb4820de45c0dd6730c300c3c66b8bc5885c963067fe0ff29c5e480329009d8fbd71e76257a2d5577e2211a62114eca15c9218d488209fa789a45497124",
         "role": "admin",
@@ -684,6 +686,7 @@ describe('toRelay', () => {
         ],
         "publicKey": "0xec0effa5f2f378cbf7fd2fa7ca1e8dc51cf777c129fa1c00a0e9a9205f2e511ff3f20b34a4e0b50587d055c0e0fad33d32cf1147d3bb2538fbab0d15d8e65008",
         "role": "admin",
+        "signature": undefined,
         "type": "p256",
       }
     `)

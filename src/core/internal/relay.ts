@@ -1,3 +1,4 @@
+import * as AbiParameters from 'ox/AbiParameters'
 import * as Address from 'ox/Address'
 import type * as Errors from 'ox/Errors'
 import type * as Hex from 'ox/Hex'
@@ -42,7 +43,7 @@ export async function createAccount(
     typeof parameters.keys === 'function'
       ? await parameters.keys({ ids: [idSigner_root.id] })
       : parameters.keys
-  const hashes = keys.map(Key.hash)
+  const keys_relay = keys.map(Key.toRelay)
   const signers = [idSigner_root, ...keys.slice(1).map(createIdSigner)]
 
   const request = await prepareCreateAccount(client, { ...parameters, keys })
@@ -54,9 +55,9 @@ export async function createAccount(
   await createAccount(client, {
     ...request,
     signatures: signatures.map((signature, index) => ({
-      hash: hashes[index]!,
-      id: signers[index]!.id,
-      signature,
+      publicKey: keys_relay[index]!.publicKey,
+      type: keys_relay[index]!.type,
+      value: signature,
     })),
   })
 
@@ -162,6 +163,27 @@ export namespace getAccounts {
 }
 
 /**
+ * Gets the digest to sign over a candidate key identifier.
+ *
+ * @param parameters - Parameters.
+ * @returns Digest.
+ */
+export function getIdDigest(parameters: getIdDigest.Parameters): Hex.Hex {
+  const { id, key } = parameters
+  return AbiParameters.encode(
+    [{ type: 'bytes' }, { type: 'address' }],
+    [Key.hash(key), id],
+  )
+}
+
+export namespace getIdDigest {
+  export type Parameters = {
+    id: Hex.Hex
+    key: Key.Key
+  }
+}
+
+/**
  * Gets the keys for an account.
  *
  * @example
@@ -204,11 +226,24 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
   client: Client,
   parameters: prepareCalls.Parameters<calls>,
 ) {
-  const { authorizeKeys, calls, key, feeToken, nonce, pre, revokeKeys } =
-    parameters
+  const { calls, key, feeToken, nonce, pre, revokeKeys } = parameters
 
   const account = Account.from(parameters.account)
+
+  const idSigner = createIdSigner()
+  const authorizeKeys = (parameters.authorizeKeys ?? []).map((key) => {
+    if (key.role === 'admin')
+      return Key.toRelay({
+        ...key,
+        signature: idSigner.sign({
+          digest: getIdDigest({ id: idSigner.id, key }),
+        }),
+      })
+    return Key.toRelay(key)
+  })
+
   const hash = Key.hash(key)
+
   const preOp = typeof pre === 'boolean' ? pre : false
   const preOps =
     typeof pre === 'object'
@@ -222,7 +257,7 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
     address: account.address,
     calls: (calls ?? []) as any,
     capabilities: {
-      authorizeKeys: authorizeKeys?.map(Key.toRelay),
+      authorizeKeys,
       meta: {
         feeToken,
         keyHash: hash,
@@ -253,7 +288,7 @@ export namespace prepareCalls {
     /** Calls to prepare. */
     calls?: Actions.prepareCalls.Parameters<calls>['calls'] | undefined
     /** Key that will be used to sign the calls. */
-    key: Pick<Key.Key, 'publicKey' | 'type'>
+    key: Pick<Key.Key, 'publicKey' | 'prehash' | 'type'>
     /**
      * Indicates if the bundle is a pre-bundle, and should be executed before
      * the main bundle.
@@ -373,7 +408,17 @@ export async function prepareUpgradeAccount(
     keys,
   } = parameters
 
-  const authorizeKeys = keys.map(Key.toRelay)
+  const idSigner = createIdSigner()
+  const authorizeKeys = keys.map((key) => {
+    if (key.role === 'admin')
+      return Key.toRelay({
+        ...key,
+        signature: idSigner.sign({
+          digest: getIdDigest({ id: idSigner.id, key }),
+        }),
+      })
+    return Key.toRelay(key)
+  })
 
   const { capabilities, context, digests } =
     await Actions.prepareUpgradeAccount(client, {
@@ -451,6 +496,7 @@ export async function sendCalls<const calls extends readonly unknown[]>(
     return await Actions.sendPreparedCalls(client, {
       context,
       signature: {
+        prehash: context.key.prehash,
         publicKey: key.publicKey,
         type: key.type,
         value: signature,
@@ -497,13 +543,14 @@ export async function sendCalls<const calls extends readonly unknown[]>(
   // Sign over the bundles.
   const signature = await Key.sign(key, {
     payload: digest,
+    wrap: false,
   })
 
   // Broadcast the bundle to the Relay.
   return await sendCalls(client, { context, signature })
 }
 
-export namespace sendCalls {
+export declare namespace sendCalls {
   export type Parameters<
     calls extends readonly unknown[] = readonly unknown[],
   > = OneOf<
