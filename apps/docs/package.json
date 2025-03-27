@@ -32,6 +32,7 @@
     "@types/react-dom": "catalog:",
     "typescript": "catalog:",
     "unplugin-icons": "catalog:",
+    "vite": "catalog:",
     "vite-plugin-mkcert": "catalog:"
   },
   "packageManager": "pnpm@10.5.2"
