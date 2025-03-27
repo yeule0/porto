@@ -173,7 +173,7 @@ function Events() {
 }
 
 function Connect() {
-  const [grantPermissions, setGrantPermissions] = React.useState<boolean>(true)
+  const [grantPermissions, setGrantPermissions] = React.useState<boolean>(false)
   const [result, setResult] = React.useState<unknown | null>(null)
   return (
     <div>
