@@ -95,9 +95,9 @@ export default defineConfig({
                 link: '/sdk/api/implementation/dialog',
               },
               {
-                text: '.local',
+                text: '.contract',
                 disabled: true,
-                link: '/sdk/api/implementation/local',
+                link: '/sdk/api/implementation/contract',
               },
             ],
           },

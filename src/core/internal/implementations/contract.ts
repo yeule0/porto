@@ -18,13 +18,13 @@ import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
 
 /**
- * Implementation for a WebAuthn-based local environment. Account management
- * and signing is handled locally.
+ * Implementation for a WebAuthn-based environment that interacts directly
+ * to the delegation contract. Account management and signing is handled locally.
  *
  * @param parameters - Parameters.
  * @returns Implementation.
  */
-export function local(parameters: local.Parameters = {}) {
+export function contract(parameters: contract.Parameters = {}) {
   const { mock } = parameters
 
   let address_internal: Address.Address | undefined
@@ -396,7 +396,7 @@ export function local(parameters: local.Parameters = {}) {
   })
 }
 
-export declare namespace local {
+export declare namespace contract {
   type Parameters = {
     /**
      * Mock implementation. Testing purposes only.

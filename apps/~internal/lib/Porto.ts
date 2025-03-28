@@ -32,7 +32,7 @@ export const config = {
   },
   prod: {
     chains: [Chains.odysseyTestnet],
-    implementation: Implementation.local(),
+    implementation: Implementation.contract(),
     transports: {
       [Chains.odysseyTestnet.id]: {
         default: http(),

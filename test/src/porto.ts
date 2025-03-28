@@ -32,7 +32,7 @@ export function getPorto(
 ) {
   const {
     chain = defaultChain,
-    implementation = Implementation.local,
+    implementation = Implementation.contract,
     transports = {},
   } = parameters
   const porto = Porto.create({

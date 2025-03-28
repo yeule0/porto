@@ -29,7 +29,7 @@ export const permissions = () =>
 
 const host = PortoConfig.dialogHosts[env]
 export const implementations = {
-  local: Implementation.local(),
+  local: Implementation.contract(),
   'iframe-dialog': Implementation.dialog({
     host,
   }),

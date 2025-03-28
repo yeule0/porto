@@ -47,7 +47,7 @@ export type RemoteState = {
 
 export const defaultConfig = {
   ...Porto_.defaultConfig,
-  implementation: Implementation.local(),
+  implementation: Implementation.contract(),
   messenger:
     typeof window !== 'undefined'
       ? Messenger.bridge({

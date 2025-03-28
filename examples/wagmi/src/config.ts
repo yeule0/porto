@@ -5,7 +5,7 @@ import { odysseyTestnet } from 'wagmi/chains'
 const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'
 
 const implementation = DISABLE_DIALOG
-  ? Implementation.local()
+  ? Implementation.contract()
   : Implementation.dialog({
       host: import.meta.env.VITE_DIALOG_HOST,
     })

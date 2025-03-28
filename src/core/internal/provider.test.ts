@@ -18,7 +18,7 @@ import { getPorto as getPorto_ } from '../../../test/src/porto.js'
 import * as Porto_internal from './porto.js'
 
 describe.each([
-  ['local', Implementation.local],
+  ['contract', Implementation.contract],
   ['relay', Implementation.relay],
 ] as const)('%s', (mode, implementation) => {
   const getPorto = () =>
