@@ -1,5 +1,5 @@
-import { Hex, Json, Value } from 'ox'
-import { getTransactionReceipt, readContract } from 'viem/actions'
+import { Hex, Value } from 'ox'
+import { readContract } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'

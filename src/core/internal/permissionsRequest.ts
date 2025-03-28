@@ -1,4 +1,4 @@
-import * as Address from 'ox/Address'
+import type * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
 
 import * as Key from './key.js'
@@ -36,15 +36,7 @@ export async function toKey(
   const expiry = request.expiry ?? 0
   const type = request.key?.type ?? 'secp256k1'
   const permissions = request.permissions ?? {}
-
-  let publicKey = request?.key?.publicKey ?? '0x'
-  // If the public key is not an address for secp256k1, convert it to an address.
-  if (
-    type === 'secp256k1' &&
-    publicKey !== '0x' &&
-    !Address.validate(publicKey)
-  )
-    publicKey = Address.fromPublicKey(publicKey)
+  const publicKey = request?.key?.publicKey ?? '0x'
 
   const key = Key.from({
     canSign: false,

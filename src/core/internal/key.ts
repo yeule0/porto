@@ -17,7 +17,15 @@ import * as Call from './call.js'
 import type * as RelayKey_typebox from './relay/typebox/key.js'
 import type * as RelayPermission_typebox from './relay/typebox/permission.js'
 import type * as Key_typebox from './typebox/key.js'
-import type { Compute, Mutable, OneOf, Undefined, UnionOmit } from './types.js'
+import type {
+  Compute,
+  ExactPartial,
+  Mutable,
+  OneOf,
+  Undefined,
+  UnionOmit,
+  UnionRequiredBy,
+} from './types.js'
 
 type PrivateKeyFn = () => Hex.Hex
 
@@ -26,7 +34,7 @@ export type BaseKey<type extends string, properties = {}> = Compute<
     /** Permissions. */
     permissions?: Permissions | undefined
     /** Whether the key will need its digest (SHA256) prehashed when signing. */
-    prehash?: boolean
+    prehash?: boolean | undefined
     /** Key type. */
     type: type
   } & OneOf<
@@ -417,23 +425,43 @@ export function from<const key extends from.Value>(
   key: from.Parameters<key>,
 ): from.ReturnType<key> {
   if ('isSuperAdmin' in key) return deserialize(key) as never
+  const { canSign = false, expiry = 0, role = 'session', type } = key
+
+  const publicKey = (() => {
+    const publicKey = key.publicKey
+    if (publicKey === '0x') return publicKey
+    if (type === 'secp256k1' || type === 'address') {
+      const address = Hex.slice(publicKey, -20)
+      if (Address.validate(address)) return Hex.padLeft(address, 32)
+      return Address.fromPublicKey(PublicKey.fromHex(publicKey))
+    }
+    return publicKey
+  })()
+
   return {
     ...key,
+    canSign,
+    expiry,
     hash: hash({
-      publicKey: key.publicKey,
-      type: key.type,
+      publicKey,
+      type,
     }),
-    expiry: key.expiry ?? 0,
-  } as never
+    publicKey,
+    role,
+    type,
+  } satisfies BaseKey<string> as never
 }
 
 export declare namespace from {
-  type Value = UnionOmit<Key, 'hash'>
+  type Value = UnionRequiredBy<
+    ExactPartial<UnionOmit<Key, 'hash'>>,
+    'publicKey' | 'type'
+  >
 
   type Parameters<key extends from.Value> = key | Key | Serialized
 
   type ReturnType<key extends from.Value> = key extends from.Value
-    ? key & Pick<Key, 'hash'>
+    ? key & Pick<Key, 'canSign' | 'expiry' | 'hash' | 'role'>
     : Key
 }
 
@@ -569,16 +597,14 @@ export function fromSecp256k1<const role extends Key['role']>(
   const { privateKey, role } = parameters
   const address = (() => {
     if (parameters.address) return parameters.address.toLowerCase() as Hex.Hex
-    const publicKey =
-      parameters.publicKey ??
-      Secp256k1.getPublicKey({ privateKey: privateKey! })
-    return Address.fromPublicKey(publicKey)
+    if (privateKey)
+      return Address.fromPublicKey(Secp256k1.getPublicKey({ privateKey }))
+    return Address.fromPublicKey(parameters.publicKey)
   })()
-  const publicKey = AbiParameters.encode([{ type: 'address' }], [address])
   return from({
     canSign: Boolean(privateKey),
     expiry: parameters.expiry ?? 0,
-    publicKey,
+    publicKey: address,
     role,
     permissions: parameters.permissions,
     privateKey: privateKey ? () => privateKey : undefined,

@@ -67,7 +67,7 @@ export type Implementation = {
       /** Calls to execute. */
       calls: readonly Call.Call[]
       /** Key that will be used to sign over the digest. */
-      key: Pick<Key.Key, 'publicKey' | 'type'>
+      key: Pick<Key.Key, 'prehash' | 'publicKey' | 'type'>
       /** Fee token to use for execution. If not provided, the native token (e.g. ETH) will be used. */
       feeToken?: Address.Address | undefined
       /** Internal properties. */
@@ -78,7 +78,7 @@ export type Implementation = {
       /** Context for `sendPreparedCalls` */
       context: PrepareCallsContext
       /** Key that will sign over the digest. */
-      key: Pick<Key.Key, 'publicKey' | 'type'>
+      key: Pick<Key.Key, 'prehash' | 'publicKey' | 'type'>
       /** Payloads to sign. */
       signPayloads: readonly Hex.Hex[]
     }>
@@ -129,7 +129,7 @@ export type Implementation = {
       /** Context. */
       context: PrepareCallsContext
       /** Key. */
-      key: Pick<Key.Key, 'publicKey' | 'type'>
+      key: Pick<Key.Key, 'prehash' | 'publicKey' | 'type'>
       /** Signature for execution. */
       signature: Hex.Hex
       /** Internal properties. */

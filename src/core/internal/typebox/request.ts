@@ -333,6 +333,7 @@ export namespace wallet_prepareCalls {
       }),
     ),
     key: Type.Object({
+      prehash: Schema.Optional(Type.Boolean()),
       publicKey: Primitive.Hex,
       type: Type.Union([
         Type.Literal('p256'),

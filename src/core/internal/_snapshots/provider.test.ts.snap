@@ -34,9 +34,9 @@ exports[`local > experimental_grantPermissions > behavior: provided key 2`] = `
   "address": null,
   "chainId": undefined,
   "expiry": 9999999999,
-  "id": "0x0000000000000000000000000000000000000000",
+  "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "key": {
-    "publicKey": "0x0000000000000000000000000000000000000000",
+    "publicKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "type": "address",
   },
   "permissions": {
@@ -373,9 +373,9 @@ exports[`relay > experimental_grantPermissions > behavior: provided key 2`] = `
   "address": null,
   "chainId": undefined,
   "expiry": 9999999999,
-  "id": "0x0000000000000000000000000000000000000000",
+  "id": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "key": {
-    "publicKey": "0x0000000000000000000000000000000000000000",
+    "publicKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "type": "address",
   },
   "permissions": {

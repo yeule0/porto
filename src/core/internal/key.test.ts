@@ -306,7 +306,59 @@ describe('from', () => {
     `)
   })
 
-  test('serialized', () => {
+  test('behavior: secp256k1', () => {
+    expect(
+      Key.from({
+        publicKey: '0xe57cbdd55ccfbc5f30d9ccf59ffd080967229fe9',
+        type: 'secp256k1',
+      }),
+    ).toMatchInlineSnapshot(`
+      {
+        "canSign": false,
+        "expiry": 0,
+        "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
+        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "role": "session",
+        "type": "secp256k1",
+      }
+    `)
+
+    expect(
+      Key.from({
+        publicKey:
+          '0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9',
+        type: 'secp256k1',
+      }),
+    ).toMatchInlineSnapshot(`
+      {
+        "canSign": false,
+        "expiry": 0,
+        "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
+        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "role": "session",
+        "type": "secp256k1",
+      }
+    `)
+
+    expect(
+      Key.from({
+        publicKey:
+          '0x144f4bf8bda60e5bf0e9f11a509e55a14987a6c5a63aed81bcb6939f9f5abc7c3598cce19015350ce8d30f11e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9',
+        type: 'secp256k1',
+      }),
+    ).toMatchInlineSnapshot(`
+      {
+        "canSign": false,
+        "expiry": 0,
+        "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
+        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "role": "session",
+        "type": "secp256k1",
+      }
+    `)
+  })
+
+  test('behavior: serialized', () => {
     const publicKey = PublicKey.toHex(
       Secp256k1.getPublicKey({
         privateKey: Secp256k1.randomPrivateKey(),

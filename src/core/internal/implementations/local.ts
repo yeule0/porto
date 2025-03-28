@@ -309,14 +309,16 @@ export function local(parameters: local.Parameters = {}) {
       },
 
       async sendPreparedCalls(parameters) {
-        const { account, context, key, internal } = parameters
+        const { account, context, internal } = parameters
         const { client } = internal
 
         if (!context.calls) throw new Error('calls is required.')
         if (!context.nonce) throw new Error('nonce is required.')
 
+        const key = Key.from(parameters.key)
         const signature = Key.wrapSignature(parameters.signature, {
           keyType: key.type,
+          prehash: key.prehash,
           publicKey: key.publicKey,
         })
 

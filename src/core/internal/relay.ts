@@ -488,11 +488,7 @@ export async function sendCalls<const calls extends readonly unknown[]>(
   // If a signature is provided, broadcast the calls to the Relay.
   if (parameters.signature) {
     const { context, signature } = parameters
-    const key = Key.toRelay({
-      ...context.key,
-      expiry: 0,
-      role: 'session',
-    })
+    const key = Key.toRelay(Key.from(context.key))
     return await Actions.sendPreparedCalls(client, {
       context,
       signature: {
