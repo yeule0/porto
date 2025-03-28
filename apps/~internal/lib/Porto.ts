@@ -54,6 +54,12 @@ export const dialogHosts = {
     : 'https://localhost:5174/dialog/',
 } as const satisfies Record<Env.Env, string | undefined>
 
+export const dialogModes = {
+  local: Mode.relay(),
+  stg: Mode.relay(),
+  prod: Mode.contract(),
+} as const satisfies Record<Env.Env, Mode.Mode>
+
 export const porto = Porto.create({
   ...config[Env.get()],
   storage: Storage.combine(Storage.cookie(), Storage.localStorage()),

@@ -41,6 +41,8 @@ export function from<
     return Porto_internal.getClient({ _internal: parameters }, { chainId })
   }
 
+  const preparedAccounts_internal: Account.Account[] = []
+
   const emitter = ox_Provider.createEmitter()
   const provider = ox_Provider.from({
     ...emitter,
@@ -285,6 +287,8 @@ export function from<
               },
             })
 
+          preparedAccounts_internal.push((context as any).account)
+
           return {
             context,
             signPayloads: signPayloads.map((x) => x as never),
@@ -365,7 +369,13 @@ export function from<
 
           const client = getClient()
 
+          const account_ = preparedAccounts_internal.find(
+            (account) => account.address === (context as any).account.address,
+          )
+          if (!account_) throw new ox_Provider.UnauthorizedError()
+
           const { account } = await getMode().actions.upgradeAccount({
+            account: account_,
             context,
             signatures,
             internal: {

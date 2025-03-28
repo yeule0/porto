@@ -28,7 +28,6 @@ export function contract(parameters: contract.Parameters = {}) {
   const { mock } = parameters
 
   let address_internal: Address.Address | undefined
-  const preparedAccounts_internal: Account.Account[] = []
 
   const keystoreHost = (() => {
     if (parameters.keystoreHost === 'self') return undefined
@@ -72,7 +71,6 @@ export function contract(parameters: contract.Parameters = {}) {
       address,
       keys,
     })
-    preparedAccounts_internal.push(account)
 
     const delegation = client.chain.contracts.delegation.address
 
@@ -370,10 +368,8 @@ export function contract(parameters: contract.Parameters = {}) {
       },
 
       async upgradeAccount(parameters) {
-        const { context, internal, signatures } = parameters
+        const { account, context, internal, signatures } = parameters
         const { client } = internal
-
-        const address = (context as any).account.address
 
         // Execute the account creation.
         // TODO: wait for tx to be included?
@@ -383,12 +379,7 @@ export function contract(parameters: contract.Parameters = {}) {
           storage: internal.config.storage,
         })
 
-        const account = preparedAccounts_internal.find(
-          (account) => account.address === address,
-        )
-        if (!account) throw new Error('prepared account not found')
-
-        address_internal = address
+        address_internal = account.address
 
         return { account }
       },

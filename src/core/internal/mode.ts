@@ -155,6 +155,8 @@ export type Mode = {
     }) => Promise<Hex.Hex>
 
     upgradeAccount: (parameters: {
+      /** Account to upgrade. */
+      account: Account.Account
       /** Preparation context (from `prepareUpgradeAccount`). */
       context: unknown
       /** Internal properties. */

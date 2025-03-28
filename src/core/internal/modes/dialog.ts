@@ -6,17 +6,20 @@ import * as Dialog from '../../Dialog.js'
 import type { QueuedRequest } from '../../Porto.js'
 import type * as RpcSchema_porto from '../../RpcSchema.js'
 import * as Account from '../account.js'
-import * as Delegation from '../delegation.js'
-import * as Key from '../key.js'
+import type * as Key from '../key.js'
 import * as Mode from '../mode.js'
 import * as Permissions from '../permissions.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
 import * as Schema from '../typebox/schema.js'
+import { contract } from './contract.js'
 
 export function dialog(parameters: dialog.Parameters = {}) {
-  const { host = 'https://id.porto.sh/dialog', renderer = Dialog.iframe() } =
-    parameters
+  const {
+    host = 'https://id.porto.sh/dialog',
+    mode: localMode = contract(),
+    renderer = Dialog.iframe(),
+  } = parameters
 
   const requestStore = RpcRequest.createStore()
 
@@ -266,22 +269,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         }
       },
 
-      async prepareCalls(parameters) {
-        const { internal, key } = parameters
-        const { client } = internal
-
-        const { request, signPayloads } = await Delegation.prepareExecute(
-          client,
-          parameters,
-        )
-
-        return {
-          account: request.account,
-          context: { calls: request.calls, nonce: request.nonce },
-          key,
-          signPayloads,
-        }
-      },
+      prepareCalls: localMode.actions.prepareCalls,
 
       async prepareUpgradeAccount(parameters) {
         const { internal } = parameters
@@ -317,7 +305,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
       async sendCalls(parameters) {
         const { account, calls, internal } = parameters
-        const { client, config, store, request } = internal
+        const { store, request } = internal
 
         // Try and extract an authorized key to sign the calls with.
         const key = await Mode.getAuthorizedExecuteKey({
@@ -328,13 +316,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // If a key is found, execute the calls with it.
         // No need to send a request to the dialog.
-        if (key)
-          return await Delegation.execute(client, {
-            account,
-            calls,
-            key,
-            storage: config.storage,
-          })
+        if (key) return localMode.actions.sendCalls(parameters)
 
         const provider = getProvider(store)
 
@@ -349,28 +331,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         throw new Error('Cannot execute for method: ' + request.method)
       },
 
-      async sendPreparedCalls(parameters) {
-        const { account, context, key, internal } = parameters
-        const { client, config } = internal
-
-        if (!context.calls) throw new Error('calls is required')
-        if (!context.nonce) throw new Error('nonce is required')
-
-        const signature = Key.wrapSignature(parameters.signature, {
-          keyType: key.type,
-          publicKey: key.publicKey,
-        })
-
-        const hash = await Delegation.execute(client, {
-          account,
-          calls: context.calls,
-          nonce: context.nonce,
-          signatures: [signature],
-          storage: config.storage,
-        })
-
-        return hash
-      },
+      sendPreparedCalls: localMode.actions.sendPreparedCalls,
 
       async signPersonalMessage(parameters) {
         const { internal } = parameters
@@ -398,23 +359,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         return await provider.request(request)
       },
 
-      async upgradeAccount(parameters) {
-        const { context, internal, signatures } = parameters
-        const { client } = internal
-
-        const request = context as Delegation.execute.Parameters & {
-          nonce: bigint
-        }
-
-        await Delegation.execute(client, {
-          ...request,
-          signatures,
-        })
-
-        const account = Account.from(request.account)
-
-        return { account }
-      },
+      upgradeAccount: localMode.actions.upgradeAccount,
     },
     setup(parameters) {
       const { internal } = parameters
@@ -451,6 +396,13 @@ export declare namespace dialog {
      * @default 'http://id.porto.sh/dialog'
      */
     host?: string | undefined
+    /**
+     * Mode to use for actions that do not require
+     * approval from the dialog.
+     *
+     * @default Mode.contract()
+     */
+    mode?: Mode.Mode | undefined
     /**
      * Dialog renderer.
      * @default Dialog.iframe()

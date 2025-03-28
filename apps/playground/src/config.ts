@@ -28,17 +28,21 @@ export const permissions = () =>
   }) as const
 
 const host = PortoConfig.dialogHosts[env]
+const mode = PortoConfig.dialogModes[env]
 export const modes = {
-  local: Mode.contract(),
+  contract: Mode.contract(),
   'iframe-dialog': Mode.dialog({
     host,
+    mode,
   }),
   'popup-dialog': Mode.dialog({
     host,
+    mode,
     renderer: Dialog.popup(),
   }),
   'inline-dialog': Mode.dialog({
     host,
+    mode,
     renderer: Dialog.experimental_inline({
       element: () => document.getElementById('porto')!,
     }),
