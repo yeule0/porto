@@ -350,8 +350,8 @@ describe('from', () => {
       {
         "canSign": false,
         "expiry": 0,
-        "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
-        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "hash": "0xc17311fbf840057e649cef2df2acac84d1fc35a37d754f5f1aa5c00f0d887b21",
+        "publicKey": "0x00000000000000000000000003febc0a78f3e15613be7be0bd84abcd1652d3f0",
         "role": "session",
         "type": "secp256k1",
       }
@@ -542,9 +542,8 @@ describe('fromSecp256k1', () => {
 
   test('args: publicKey', () => {
     const key = Key.fromSecp256k1({
-      publicKey: PublicKey.fromHex(
+      publicKey:
         '0x626c7f1042b6d3971be0e4c054165e36a6d6a5ace6af1773654d3360fccf0b25b0c998938d9b73e749023eb1c77f5930b5a87660deec42261a9a22fac9a56536',
-      ),
       role: 'admin',
     })
 

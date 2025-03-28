@@ -431,9 +431,13 @@ export function from<const key extends from.Value>(
     const publicKey = key.publicKey
     if (publicKey === '0x') return publicKey
     if (type === 'secp256k1' || type === 'address') {
-      const address = Hex.slice(publicKey, -20)
-      if (Address.validate(address)) return Hex.padLeft(address, 32)
-      return Address.fromPublicKey(PublicKey.fromHex(publicKey))
+      const isAddress =
+        Hex.size(publicKey) === 20 ||
+        Hex.toBigInt(Hex.slice(publicKey, 0, 12)) === 0n
+      const address = isAddress
+        ? Hex.slice(publicKey, -20)
+        : Address.fromPublicKey(PublicKey.fromHex(publicKey))
+      return Hex.padLeft(address, 32)
     }
     return publicKey
   })()
@@ -595,16 +599,16 @@ export function fromSecp256k1<const role extends Key['role']>(
   parameters: fromSecp256k1.Parameters<role>,
 ) {
   const { privateKey, role } = parameters
-  const address = (() => {
-    if (parameters.address) return parameters.address.toLowerCase() as Hex.Hex
+  const publicKey = (() => {
+    if (parameters.publicKey) return parameters.publicKey
     if (privateKey)
       return Address.fromPublicKey(Secp256k1.getPublicKey({ privateKey }))
-    return Address.fromPublicKey(parameters.publicKey)
+    return parameters.address.toLowerCase() as Hex.Hex
   })()
   return from({
     canSign: Boolean(privateKey),
     expiry: parameters.expiry ?? 0,
-    publicKey: address,
+    publicKey,
     role,
     permissions: parameters.permissions,
     privateKey: privateKey ? () => privateKey : undefined,
@@ -627,7 +631,7 @@ export declare namespace fromSecp256k1 {
       }
     | {
         /** Secp256k1 public key. */
-        publicKey: PublicKey.PublicKey
+        publicKey: Hex.Hex
       }
     | {
         /** Secp256k1 private key. */
