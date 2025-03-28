@@ -99,6 +99,11 @@ export default defineConfig({
                 disabled: true,
                 link: '/sdk/api/mode/contract',
               },
+              {
+                text: '.relay',
+                disabled: true,
+                link: '/sdk/api/mode/relay',
+              },
             ],
           },
           {
