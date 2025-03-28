@@ -1,31 +1,41 @@
 import { useQueries } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
 import { Address } from 'ox'
+import * as React from 'react'
 import { useMemo } from 'react'
-import { useAccount, useBalance } from 'wagmi'
-import { baseSepolia, odysseyTestnet, optimismSepolia } from 'wagmi/chains'
+import { useAccount, useBalance, useBlockNumber } from 'wagmi'
+import {
+  base,
+  baseSepolia,
+  odysseyTestnet,
+  optimismSepolia,
+} from 'wagmi/chains'
 
+import { Query } from '@porto/apps'
 import { urlWithCorsBypass } from '~/lib/Constants'
-import { config } from '~/lib/Wagmi'
+import { type ChainId, config } from '~/lib/Wagmi'
+import { useReadBalances } from './useReadBalances'
 
-export function addressApiEndpoint(chainId: number) {
-  if (chainId === baseSepolia.id) {
-    return 'https://base.blockscout.com/api/v2'
-  }
-  if (chainId === odysseyTestnet.id) {
-    return 'https://explorer.ithaca.xyz/api/v2'
-  }
-  if (chainId === optimismSepolia.id) {
+export function addressApiEndpoint(chainId: ChainId) {
+  if (chainId === base.id) return 'https://base.blockscout.com/api/v2'
+
+  if (chainId === baseSepolia.id)
+    return 'https://base-sepolia.blockscout.com/api/v2'
+
+  if (chainId === odysseyTestnet.id) return 'https://explorer.ithaca.xyz/api/v2'
+
+  if (chainId === optimismSepolia.id)
     return 'https://optimism-sepolia.blockscout.com/api/v2'
-  }
 
   throw new Error(`Unsupported chainId: ${chainId}`)
 }
 
 export function useTokenBalances({
   address,
+  chainId,
 }: {
-  address?: Address.Address
+  address?: Address.Address | undefined
+  chainId?: ChainId | undefined
 } = {}) {
   const account = useAccount()
   const userAddress = address ?? account.address
@@ -39,14 +49,14 @@ export function useTokenBalances({
     isSuccess,
     isPending,
   } = useQuery({
-    queryKey: ['token-balances', userAddress],
     refetchInterval: 2_500,
+    queryKey: ['token-balances', userAddress, chainId],
     enabled: userAddress && Address.validate(userAddress),
     queryFn: async () => {
+      const chains = config.chains.filter((c) => c.id === chainId)
       try {
-        // return data
         const responses = await Promise.all(
-          config.chains.map(async (chain) => {
+          chains.map(async (chain) => {
             const apiEndpoint = addressApiEndpoint(chain.id)
             const url = `${apiEndpoint}/addresses/${userAddress}/token-balances`
             const response = await fetch(urlWithCorsBypass(url))
@@ -95,16 +105,16 @@ export function useTokenBalances({
 
   return {
     data: balances,
-    status,
     error,
-    refetch,
     isError,
-    isSuccess,
     isPending,
+    isSuccess,
+    refetch,
+    status,
   }
 }
 
-export interface TokenBalance {
+export type TokenBalance = {
   value: string
   token_id: string
   token: {
@@ -124,14 +134,22 @@ export interface TokenBalance {
 
 export function useAddressTransfers({
   address,
+  chainIds,
 }: {
-  address?: Address.Address
+  address?: Address.Address | undefined
+  chainIds?: Array<ChainId> | undefined
 } = {}) {
   const account = useAccount()
 
   const userAddress = address ?? account.address
+  const userChainIds = (chainIds ?? [account.chainId]) as Array<ChainId>
 
-  const { data, error, isError, isPending, isSuccess } = useQueries({
+  const { refetch: refetchBalances } = useReadBalances({
+    address: userAddress,
+    chainId: userChainIds[0] as ChainId,
+  })
+
+  const results = useQueries({
     combine: (result) => ({
       error: result.map((query) => query.error),
       data: result.flatMap((query) => query.data),
@@ -139,11 +157,12 @@ export function useAddressTransfers({
       isPending: result.some((query) => query.isPending),
       isSuccess: result.every((query) => query.isSuccess),
     }),
-    queries: config.chains.map((chain) => ({
-      enabled: !!userAddress && Address.validate(userAddress),
-      queryKey: ['address-transfers', userAddress, chain.id],
+    queries: userChainIds.map((chainId) => ({
+      refetchInterval: 2_500,
+      enabled: account.status === 'connected',
+      queryKey: ['address-transfers', userAddress, chainId],
       queryFn: async () => {
-        const apiEndpoint = addressApiEndpoint(chain.id)
+        const apiEndpoint = addressApiEndpoint(chainId)
         const url = `${apiEndpoint}/addresses/${userAddress}/token-transfers`
         const response = await fetch(urlWithCorsBypass(url))
         if (!response.ok) {
@@ -153,7 +172,7 @@ export function useAddressTransfers({
         }
         const data = await response.json()
         return {
-          chainId: chain.id,
+          chainId,
           items: data.items,
           next_page_params: data.next_page_params,
         } as {
@@ -165,16 +184,48 @@ export function useAddressTransfers({
     })),
   })
 
+  const refetch = React.useCallback(
+    () =>
+      Query.client
+        .invalidateQueries({
+          queryKey: ['address-transfers', userAddress],
+        })
+        .then(() =>
+          Query.client
+            .refetchQueries({
+              queryKey: ['address-transfers', userAddress],
+            })
+            .then(() => refetchBalances()),
+        ),
+    [userAddress, refetchBalances],
+  )
+
+  const { data: blockNumber } = useBlockNumber({
+    chainId: chainIds?.length === 1 ? chainIds[0] : undefined,
+    watch: {
+      enabled: account.status === 'connected',
+      pollingInterval: 800,
+    },
+  })
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch every block
+  React.useEffect(() => {
+    refetch()
+  }, [blockNumber])
+
+  const { data, error, isError, isSuccess, isPending } = results
+
   return {
     data,
     error,
     isError,
-    isSuccess,
     isPending,
+    isSuccess,
+    refetch,
   }
 }
 
-export interface TokenTransfer {
+export type TokenTransfer = {
   block_hash: string
   block_number: number
   from: {
@@ -279,7 +330,7 @@ export function useTransactionsHistory({
     data,
     error,
     isError,
-    isSuccess,
     isPending,
+    isSuccess,
   }
 }

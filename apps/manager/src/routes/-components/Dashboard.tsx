@@ -1,6 +1,7 @@
 import { Button, Spinner } from '@porto/apps/components'
 
 import * as Ariakit from '@ariakit/react'
+import { Link } from '@tanstack/react-router'
 import { Cuer } from 'cuer'
 import { cx } from 'cva'
 import { matchSorter } from 'match-sorter'
@@ -9,7 +10,7 @@ import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { encodeFunctionData, erc20Abi, formatEther } from 'viem'
-import { useAccount } from 'wagmi'
+import { useAccount, useBlockNumber } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
 import ArrowLeftRightIcon from '~icons/lucide/arrow-left-right'
 import ArrowRightIcon from '~icons/lucide/arrow-right'
@@ -23,44 +24,15 @@ import AccountIcon from '~icons/material-symbols/account-circle-full'
 import NullIcon from '~icons/material-symbols/do-not-disturb-on-outline'
 import WorldIcon from '~icons/tabler/world'
 
-import { Link } from '@tanstack/react-router'
 import { CustomToast } from '~/components/CustomToast'
 import { DevOnly } from '~/components/DevOnly'
+import { ShowMore } from '~/components/ShowMore'
 import { TruncatedAddress } from '~/components/TruncatedAddress'
-import {
-  useAddressTransfers,
-  useTokenBalances,
-} from '~/hooks/use-blockscout-api'
-import { swapAssets } from '~/lib/Constants'
+import { useAddressTransfers } from '~/hooks/useBlockscoutApi'
+import { useSwapAssets } from '~/hooks/useSwapAssets'
 import { config } from '~/lib/Wagmi'
 import { DateFormatter, StringFormatter, ValueFormatter, sum } from '~/utils'
 import { Layout } from './Layout'
-
-function ShowMore({
-  text,
-  className,
-  onChange,
-}: {
-  text: string
-  className?: string
-  onChange: React.ChangeEventHandler<HTMLInputElement>
-}) {
-  const checkbox = Ariakit.useCheckboxStore()
-  const label = Ariakit.useStoreState(checkbox, (state) =>
-    state.value ? 'Show less' : text,
-  )
-
-  return (
-    <Ariakit.Checkbox
-      render={<p />}
-      store={checkbox}
-      onChange={onChange}
-      className={cx(className, '')}
-    >
-      {label}
-    </Ariakit.Checkbox>
-  )
-}
 
 type TableProps<T> = {
   data: ReadonlyArray<T> | undefined
@@ -115,20 +87,14 @@ function PaginatedTable<T>({
         </thead>
         <tbody className="border-transparent border-t-10">
           {itemsToShow && itemsToShow?.length > 0 ? (
-            itemsToShow?.map((row, index) => (
-              <React.Fragment
-                key={
-                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                  `${index}`
-                }
-              >
-                {renderRow(row)}
-              </React.Fragment>
+            itemsToShow?.map((item, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              <React.Fragment key={index}>{renderRow(item)}</React.Fragment>
             ))
           ) : (
             <tr>
               <td colSpan={columns.length} className="text-center text-gray12">
-                <p className="mt-2 text-sm">No {emptyMessage}</p>
+                <p className="mt-2 text-sm">{emptyMessage}</p>
               </td>
             </tr>
           )}
@@ -152,14 +118,26 @@ const recoveryMethods: Array<{ address: string; name: string }> = []
 export function Dashboard() {
   const account = useAccount()
   const disconnect = Hooks.useDisconnect()
-
   const permissions = Hooks.usePermissions()
+
+  const { data: transfers } = useAddressTransfers({
+    chainIds: [911_867],
+  })
+  const { data: assets, refetch: refetchSwapAssets } = useSwapAssets({
+    chainId: 911_867,
+  })
+
+  const { data: blockNumber } = useBlockNumber({
+    watch: { enabled: account.status === 'connected', pollingInterval: 800 },
+  })
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch balance every block
+  React.useEffect(() => {
+    refetchSwapAssets()
+  }, [blockNumber])
 
   const revokePermissions = Hooks.useRevokePermissions()
 
-  const { data: assets } = useTokenBalances()
-
-  const { data: transfers } = useAddressTransfers()
   const [selectedChains, _setSelectedChains] = React.useState(
     config.chains.map((c) => c.id.toString()),
   )
@@ -179,10 +157,12 @@ export function Dashboard() {
 
   const totalBalance = React.useMemo(() => {
     if (!assets) return 0n
-    const summed = sum(assets?.map((asset) => Number(asset?.value ?? 0)))
-
-    const total = BigInt(summed) ?? 0n
-    return ValueFormatter.format(total, 18)
+    return sum(
+      assets.map(
+        (asset) =>
+          Number(Value.format(asset.balance, asset.decimals)) * asset.price,
+      ),
+    )
   }, [assets])
 
   return (
@@ -190,6 +170,7 @@ export function Dashboard() {
       <DevOnly />
       <div className="h-3" />
       <Layout.Header
+        left={undefined}
         right={
           <div className="flex gap-2">
             <Button size="small" className="">
@@ -213,7 +194,7 @@ export function Dashboard() {
           <div className="font-[500] text-[13px] text-gray10">Your account</div>
           <div>
             <div className="font-[500] text-[24px] tracking-[-2.8%]">
-              ${totalBalance}
+              ${ValueFormatter.formatToPrice(totalBalance)}
             </div>
             <div className="flex items-center gap-1">
               <div className="font-[500] text-[13px] text-gray10 tracking-[-0.25px]">
@@ -251,7 +232,7 @@ export function Dashboard() {
       <hr className="border-gray5" />
       <div className="h-4" />
 
-      <details className="group" open={assets?.length > 0}>
+      <details className="group" open={assets && assets?.length > 0}>
         <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
           Assets
         </summary>
@@ -261,18 +242,19 @@ export function Dashboard() {
           data={assets}
           columns={[
             { header: 'Name', key: 'name', width: 'w-[40%]' },
-            { header: '', key: 'balance', width: 'w-[20%]', align: 'right' },
-            { header: '', key: 'symbol', width: 'w-[20%]', align: 'right' },
-            { header: '', key: 'action', width: 'w-[20%]', align: 'right' },
+            { align: 'right', header: '', key: 'balance', width: 'w-[20%]' },
+            { align: 'right', header: '', key: 'symbol', width: 'w-[20%]' },
+            { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
           ]}
           renderRow={(asset) => (
             <AssetRow
-              key={asset.token.address}
-              address={asset.token.address}
-              logo={`/icons/${asset.token.name.toLowerCase()}.svg`}
-              symbol={asset.token.symbol}
-              name={asset.token.name}
-              value={asset.value}
+              address={asset.address}
+              decimals={asset.decimals}
+              key={asset.address}
+              logo={asset.logo}
+              name={asset.name}
+              symbol={asset.symbol}
+              value={asset.balance}
             />
           )}
           showMoreText="more assets"
@@ -297,7 +279,7 @@ export function Dashboard() {
           columns={[
             { header: 'Time', key: 'time' },
             { header: 'Account', key: 'recipient' },
-            { header: 'Amount', key: 'amount', align: 'right' },
+            { align: 'right', header: 'Amount', key: 'amount' },
           ]}
           renderRow={(transfer) => (
             <tr
@@ -365,15 +347,15 @@ export function Dashboard() {
           columns={[
             { header: 'Time', key: 'time' },
             { header: 'Name', key: 'name', width: '' },
-            { header: 'Scope', key: 'scope', align: 'left' },
+            { align: 'left', header: 'Scope', key: 'scope' },
             {
+              align: 'left',
               header: 'Amount',
               key: 'amount',
-              align: 'left',
               width: 'w-[120px]',
             },
-            { header: '', key: 'period', align: 'left', width: 'w-[60px]' },
-            { header: '', key: 'action', align: 'right' },
+            { align: 'left', header: '', key: 'period', width: 'w-[60px]' },
+            { align: 'right', header: '', key: 'action' },
           ]}
           renderRow={(permission) => {
             const [spend] = permission?.permissions?.spend ?? []
@@ -532,26 +514,37 @@ export function Dashboard() {
 }
 
 function AssetRow({
-  logo,
-  symbol,
-  name,
-  value,
   address,
+  decimals,
+  logo,
+  name,
+  symbol,
+  value,
 }: {
+  address: Address.Address
+  decimals: number
   logo: string
-  symbol: string
   name: string
-  value: string
-  address: string
+  symbol: string
+  value: bigint
 }) {
   const [viewState, setViewState] = React.useState<'send' | 'swap' | 'default'>(
     'default',
   )
 
+  const { data: swapAssets, refetch: refetchSwapAssets } = useSwapAssets({
+    chainId: 911_867,
+  })
+
+  const formattedBalance = React.useMemo(
+    () => ValueFormatter.format(value, decimals),
+    [value, decimals],
+  )
+
   const sendCalls = useSendCalls({
     mutation: {
       onSuccess: (data) => {
-        console.info(sendFormState.values.sendAmount)
+        refetchSwapAssets()
         toast.custom(
           (t) => (
             <CustomToast
@@ -616,7 +609,14 @@ function AssetRow({
   })
   const sendFormState = Ariakit.useStoreState(sendForm)
 
-  sendForm.useSubmit((state) => {
+  sendForm.useValidate(async (state) => {
+    if (Number(state.values.sendAmount) > Number(formattedBalance)) {
+      sendForm.setError('sendAmount', 'Amount is too high')
+    }
+  })
+
+  sendForm.useSubmit(async (state) => {
+    console.info(state)
     if (
       !Address.validate(state.values.sendRecipient) ||
       !state.values.sendAmount
@@ -631,7 +631,7 @@ function AssetRow({
             functionName: 'transfer',
             args: [
               state.values.sendRecipient,
-              Value.fromEther(state.values.sendAmount),
+              Value.from(state.values.sendAmount, decimals),
             ],
           }),
         },
@@ -642,6 +642,7 @@ function AssetRow({
   const swapCalls = useSendCalls({
     mutation: {
       onSuccess: (data) => {
+        refetchSwapAssets()
         toast.custom(
           (t) => (
             <CustomToast
@@ -717,16 +718,17 @@ function AssetRow({
 
   const [swapSearchValue, setSwapSearchValue] = React.useState('')
 
-  const swapAssetsExcludingCurrent = swapAssets.filter(
-    (asset) => asset.symbol.toLowerCase() !== symbol.toLowerCase(),
-  )
+  const swapAssetsExcludingCurrent =
+    swapAssets?.filter(
+      (asset) => asset.symbol.toLowerCase() !== symbol.toLowerCase(),
+    ) ?? []
 
   const [selectedAsset, setSelectedAsset] = React.useState(
-    swapAssetsExcludingCurrent[0],
+    swapAssetsExcludingCurrent?.[0],
   )
 
   swapForm.useValidate(async (state) => {
-    if (Number(value) <= Number(state.values.swapAmount)) {
+    if (Number(state.values.swapAmount) > Number(formattedBalance)) {
       swapForm.setError('swapAmount', 'Amount is too high')
     }
   })
@@ -750,9 +752,7 @@ function AssetRow({
               <span className="font-medium text-md">{name}</span>
             </div>
           </td>
-          <td className="w-[20%] text-right text-md">
-            {Number(value) < 1 ? 1 : formatEther(BigInt(value))}
-          </td>
+          <td className="w-[20%] text-right text-md">{formattedBalance}</td>
           <td className="w-[20%] pr-1.5 pl-3 text-left text-sm">
             <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
               {symbol}
@@ -880,7 +880,9 @@ function AssetRow({
                           <span className="rounded-2xl bg-gray2 px-2 py-1 font-[600] text-gray10 text-xs">
                             {value.symbol}
                           </span>
-                          <span className="ml-auto text-gray10">100</span>
+                          <span className="ml-auto text-gray10">
+                            {formattedBalance}
+                          </span>
                         </Ariakit.SelectItem>
                       ))}
                     </Ariakit.ComboboxList>
@@ -913,9 +915,9 @@ function AssetRow({
                   placeholder="0.00"
                   inputMode="decimal"
                   autoCapitalize="off"
+                  max={formattedBalance}
                   name={swapForm.names.swapAmount}
                   data-field={`${address}-amount`}
-                  max={formatEther(BigInt(value))}
                   className="w-full font-mono text-md placeholder:text-gray10 focus:outline-none"
                 />
               </div>
@@ -925,16 +927,12 @@ function AssetRow({
                 type="button"
                 variant="default"
                 className="mx-1 my-auto font-[600]! text-gray11! text-xs!"
-                onClick={() => {
-                  console.info(value)
-                  const amountField = document.querySelector(
-                    `input[data-field="${address}-amount"]`,
+                onClick={() =>
+                  swapForm.setValue(
+                    swapForm.names.swapAmount,
+                    Number(formattedBalance),
                   )
-                  if (amountField) {
-                    amountField.value =
-                      Number(value) < 1 ? '1' : formatEther(BigInt(value))
-                  }
-                }}
+                }
               >
                 Max
               </Button>
@@ -987,7 +985,6 @@ function AssetRow({
                     const valid = Address.validate(
                       sendFormState.values.sendRecipient,
                     )
-
                     return (
                       <div className="relative">
                         <Ariakit.FormInput
@@ -1059,9 +1056,9 @@ function AssetRow({
                   placeholder="0.00"
                   inputMode="decimal"
                   spellCheck={false}
-                  max={formatEther(BigInt(value))}
                   autoComplete="off"
                   autoCapitalize="off"
+                  max={formattedBalance}
                   name={sendForm.names.sendAmount}
                   data-field={`${address}-amount`}
                   className={cx(
@@ -1074,15 +1071,12 @@ function AssetRow({
               size="small"
               variant="default"
               className="mx-0.5 my-auto text-gray11! text-xs! sm:mx-1"
-              onClick={() => {
-                console.info(value)
-                const amountField = document.querySelector(
-                  `input[data-field="${address}-amount"]`,
+              onClick={(event) => {
+                event.preventDefault()
+                sendForm.setValue(
+                  sendForm.names.sendAmount,
+                  Number(formattedBalance),
                 )
-                if (amountField) {
-                  amountField.value =
-                    Number(value) < 1 ? '1' : formatEther(BigInt(value))
-                }
               }}
             >
               Max
