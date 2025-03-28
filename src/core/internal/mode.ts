@@ -48,10 +48,10 @@ export type Mode = {
     }) => Promise<{ key: Key.Key }>
 
     loadAccounts: (parameters: {
-      /** Address of the account to load. */
-      address?: Address.Address | undefined
       /** Credential ID to use to load an existing account. */
       credentialId?: string | undefined
+      /** Key ID of the account to load. */
+      keyId?: Hex.Hex | undefined
       /** Internal properties. */
       internal: ActionsInternal
       /** Permissions to grant. */

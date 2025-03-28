@@ -123,9 +123,9 @@ export function relay(config: relay.Parameters = {}) {
 
           // If the address and credentialId are provided, we can skip the
           // WebAuthn discovery step.
-          if (parameters.address && parameters.credentialId)
+          if (parameters.keyId && parameters.credentialId)
             return {
-              keyId: parameters.address,
+              keyId: parameters.keyId,
               credentialId: parameters.credentialId,
             }
 

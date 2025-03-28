@@ -468,8 +468,7 @@ export function from<
               return { accounts: [account] }
             }
             const account = state.accounts[0]
-            const address = !selectAccount ? account?.address : undefined
-            const credentialId = (() => {
+            const key = (() => {
               if (selectAccount) return undefined
               for (const key of account?.keys ?? []) {
                 if (
@@ -478,27 +477,29 @@ export function from<
                 )
                   continue
                 if (!key.credential) continue
-                return key.credential.id
+                return key
               }
               return undefined
             })()
+            const credentialId = key?.credential?.id
+            const keyId = key?.id
             const loadAccountsParams = {
               permissions,
               internal,
             }
             try {
-              // try to restore from stored account (`address`/`credentialId`) to avoid multiple prompts
+              // try to restore from stored account (`keyId`/`credentialId`) to avoid multiple prompts
               return await getMode().actions.loadAccounts({
-                address,
                 credentialId,
+                keyId,
                 ...loadAccountsParams,
               })
             } catch (error) {
               if (error instanceof ox_Provider.UserRejectedRequestError)
                 throw error
 
-              // error with `address`/`credentialId` likely means one or both are stale, retry
-              if (address && credentialId)
+              // error with `keyId`/`credentialId` likely means one or both are stale, retry
+              if (keyId && credentialId)
                 return await getMode().actions.loadAccounts(loadAccountsParams)
               throw error
             }

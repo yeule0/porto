@@ -162,9 +162,9 @@ export function contract(parameters: contract.Parameters = {}) {
 
           // If the address and credentialId are provided, we can skip the
           // WebAuthn discovery step.
-          if (parameters.address && parameters.credentialId)
+          if (parameters.keyId && parameters.credentialId)
             return {
-              address: parameters.address,
+              address: parameters.keyId,
               credentialId: parameters.credentialId,
             }
 
