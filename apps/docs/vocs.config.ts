@@ -84,20 +84,20 @@ export default defineConfig({
             ],
           },
           {
-            text: 'Implementation 🚧',
+            text: 'Mode 🚧',
             collapsed: true,
             disabled: true,
-            link: '/sdk/api/implementation',
+            link: '/sdk/api/mode',
             items: [
               {
                 text: '.dialog',
                 disabled: true,
-                link: '/sdk/api/implementation/dialog',
+                link: '/sdk/api/mode/dialog',
               },
               {
                 text: '.contract',
                 disabled: true,
-                link: '/sdk/api/implementation/contract',
+                link: '/sdk/api/mode/contract',
               },
             ],
           },

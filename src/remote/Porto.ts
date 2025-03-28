@@ -2,8 +2,8 @@ import type * as RpcRequest from 'ox/RpcRequest'
 import { type StoreApi, createStore } from 'zustand/vanilla'
 
 import type * as Chains from '../core/Chains.js'
-import * as Implementation from '../core/Implementation.js'
 import * as Messenger from '../core/Messenger.js'
+import * as Mode from '../core/Mode.js'
 import * as Porto_ from '../core/Porto.js'
 import type * as RpcSchema from '../core/RpcSchema.js'
 import * as Storage from '../core/Storage.js'
@@ -15,7 +15,7 @@ export type Porto<
     ...Chains.Chain[],
   ],
 > = Porto_.Porto<chains> & {
-  implementation: Implementation.Implementation
+  mode: Mode.Mode
   messenger: Messenger.Bridge
   ready: () => void
   _internal: Porto_.Porto<chains>['_internal'] & {
@@ -47,7 +47,7 @@ export type RemoteState = {
 
 export const defaultConfig = {
   ...Porto_.defaultConfig,
-  implementation: Implementation.contract(),
+  mode: Mode.contract(),
   messenger:
     typeof window !== 'undefined'
       ? Messenger.bridge({
@@ -78,7 +78,7 @@ export function create(
 ): Porto {
   const {
     chains = defaultConfig.chains,
-    implementation = defaultConfig.implementation,
+    mode = defaultConfig.mode,
     messenger = defaultConfig.messenger,
     storage = defaultConfig.storage,
     transports = defaultConfig.transports,
@@ -87,7 +87,7 @@ export function create(
   const porto = Porto_.create({
     announceProvider: false,
     chains,
-    implementation,
+    mode,
     storage,
     transports,
   })
@@ -98,7 +98,7 @@ export function create(
 
   return {
     ...porto,
-    implementation,
+    mode,
     messenger,
     ready: messenger.ready,
     _internal: {

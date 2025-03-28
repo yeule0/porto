@@ -1,5 +1,5 @@
 import type { Address } from 'ox'
-import { Chains, Implementation, Porto, Storage } from 'porto'
+import { Chains, Mode, Porto, Storage } from 'porto'
 import { http, type Transport, custom, defineChain } from 'viem'
 
 import { type Chain, odysseyTestnet } from '../../src/core/Chains.js'
@@ -18,10 +18,10 @@ export const defaultChain = defineChain({
 export function getPorto(
   parameters: {
     chain?: Chain | undefined
-    implementation?: (parameters: {
+    mode?: (parameters: {
       feeToken?: Address.Address | undefined
       mock: boolean
-    }) => Implementation.Implementation | undefined
+    }) => Mode.Mode | undefined
     transports?:
       | {
           default?: Transport | undefined
@@ -32,12 +32,12 @@ export function getPorto(
 ) {
   const {
     chain = defaultChain,
-    implementation = Implementation.contract,
+    mode = Mode.contract,
     transports = {},
   } = parameters
   const porto = Porto.create({
     chains: [chain],
-    implementation: implementation({
+    mode: mode({
       feeToken: exp1Address,
       mock: true,
     }),

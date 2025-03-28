@@ -9,7 +9,7 @@ import {
   Value,
   WebCryptoP256,
 } from 'ox'
-import { Implementation } from 'porto'
+import { Mode } from 'porto'
 import { getBalance, verifyMessage, verifyTypedData } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
@@ -18,14 +18,14 @@ import { getPorto as getPorto_ } from '../../../test/src/porto.js'
 import * as Porto_internal from './porto.js'
 
 describe.each([
-  ['contract', Implementation.contract],
-  ['relay', Implementation.relay],
-] as const)('%s', (mode, implementation) => {
+  ['contract', Mode.contract],
+  ['relay', Mode.relay],
+] as const)('%s', (type, mode) => {
   const getPorto = () =>
     getPorto_({
-      implementation,
+      mode,
       transports: {
-        relay: mode === 'relay',
+        relay: type === 'relay',
       },
     })
 
@@ -110,7 +110,7 @@ describe.each([
 
   describe('eth_signTypedData_v4', () => {
     // TODO(relay): counterfactual signature verification
-    test.skipIf(mode === 'relay')('default', async () => {
+    test.skipIf(type === 'relay')('default', async () => {
       const { porto } = getPorto()
       const client = Porto_internal.getClient(porto)
       const { address } = await porto.provider.request({
@@ -437,7 +437,7 @@ describe.each([
 
   describe('personal_sign', () => {
     // TODO(relay): counterfactual signature verification
-    test.skipIf(mode === 'relay')('default', async () => {
+    test.skipIf(type === 'relay')('default', async () => {
       const { porto } = getPorto()
       const client = Porto_internal.getClient(porto)
       const { address } = await porto.provider.request({

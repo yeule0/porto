@@ -1,7 +1,7 @@
 import { Env, Porto as PortoConfig } from '@porto/apps'
 import { exp1Address, exp2Address } from '@porto/apps/contracts'
 import { Hex, Value } from 'ox'
-import { Dialog, Implementation, Porto } from 'porto'
+import { Dialog, Mode, Porto } from 'porto'
 
 export const env = Env.get()
 
@@ -28,26 +28,26 @@ export const permissions = () =>
   }) as const
 
 const host = PortoConfig.dialogHosts[env]
-export const implementations = {
-  local: Implementation.contract(),
-  'iframe-dialog': Implementation.dialog({
+export const modes = {
+  local: Mode.contract(),
+  'iframe-dialog': Mode.dialog({
     host,
   }),
-  'popup-dialog': Implementation.dialog({
+  'popup-dialog': Mode.dialog({
     host,
     renderer: Dialog.popup(),
   }),
-  'inline-dialog': Implementation.dialog({
+  'inline-dialog': Mode.dialog({
     host,
     renderer: Dialog.experimental_inline({
       element: () => document.getElementById('porto')!,
     }),
   }),
 }
-export type ImplementationType = keyof typeof implementations
+export type ModeType = keyof typeof modes
 
 export const porto = Porto.create({
   ...PortoConfig.config[env],
-  // We will be deferring implementation setup until after hydration.
-  implementation: null,
+  // We will be deferring mode setup until after hydration.
+  mode: null,
 })

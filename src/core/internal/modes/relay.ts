@@ -10,18 +10,19 @@ import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import type * as Storage from '../../Storage.js'
 import * as Account from '../account.js'
 import * as HumanId from '../humanId.js'
-import * as Implementation from '../implementation.js'
 import * as Key from '../key.js'
+import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type { Client } from '../porto.js'
 import * as Relay from '../relay.js'
 
 /**
- * Implementation for a WebAuthn-based Relay environment. Account management,
- * signing, and execution is coordinated between the library and the Relay.
+ * Mode for a WebAuthn-based environment that interacts with the Porto
+ * Relay. Account management, signing, and execution is coordinated
+ * between the library and the Relay.
  *
  * @param parameters - Parameters.
- * @returns Implementation.
+ * @returns Mode.
  */
 export function relay(config: relay.Parameters = {}) {
   const { mock } = config
@@ -40,7 +41,7 @@ export function relay(config: relay.Parameters = {}) {
     return config.keystoreHost
   })()
 
-  return Implementation.from({
+  return Mode.from({
     actions: {
       async createAccount(parameters) {
         const { permissions } = parameters
@@ -281,7 +282,7 @@ export function relay(config: relay.Parameters = {}) {
         } = internal
 
         // Try and extract an authorized key to sign the calls with.
-        const key = await Implementation.getAuthorizedExecuteKey({
+        const key = await Mode.getAuthorizedExecuteKey({
           account,
           calls,
           permissionsId: parameters.permissionsId,
@@ -377,7 +378,7 @@ export declare namespace relay {
      */
     feeToken?: Address.Address | undefined
     /**
-     * Mock implementation. Testing purposes only.
+     * Mock mode. Testing purposes only.
      * @default false
      * @deprecated
      */

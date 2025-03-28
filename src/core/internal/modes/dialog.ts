@@ -7,8 +7,8 @@ import type { QueuedRequest } from '../../Porto.js'
 import type * as RpcSchema_porto from '../../RpcSchema.js'
 import * as Account from '../account.js'
 import * as Delegation from '../delegation.js'
-import * as Implementation from '../implementation.js'
 import * as Key from '../key.js'
+import * as Mode from '../mode.js'
 import * as Permissions from '../permissions.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
@@ -85,7 +85,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
     )
   }
 
-  return Implementation.from({
+  return Mode.from({
     actions: {
       async createAccount(parameters) {
         const { internal } = parameters
@@ -320,7 +320,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const { client, config, store, request } = internal
 
         // Try and extract an authorized key to sign the calls with.
-        const key = await Implementation.getAuthorizedExecuteKey({
+        const key = await Mode.getAuthorizedExecuteKey({
           account,
           calls,
           permissionsId: parameters.permissionsId,

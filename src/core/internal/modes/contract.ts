@@ -12,17 +12,17 @@ import * as DelegationContract from '../_generated/contracts/Delegation.js'
 import * as Account from '../account.js'
 import * as Call from '../call.js'
 import * as Delegation from '../delegation.js'
-import * as Implementation from '../implementation.js'
 import * as Key from '../key.js'
+import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
 
 /**
- * Implementation for a WebAuthn-based environment that interacts directly
+ * Mode for a WebAuthn-based environment that interacts directly
  * to the delegation contract. Account management and signing is handled locally.
  *
  * @param parameters - Parameters.
- * @returns Implementation.
+ * @returns Mode.
  */
 export function contract(parameters: contract.Parameters = {}) {
   const { mock } = parameters
@@ -78,14 +78,14 @@ export function contract(parameters: contract.Parameters = {}) {
 
     const { request, signPayloads } = await Delegation.prepareExecute(client, {
       account,
-      calls: Implementation.getAuthorizeCalls(account.keys),
+      calls: Mode.getAuthorizeCalls(account.keys),
       delegation,
     })
 
     return { context: request, signPayloads }
   }
 
-  return Implementation.from({
+  return Mode.from({
     actions: {
       async createAccount(parameters) {
         const { label, internal, permissions } = parameters
@@ -144,7 +144,7 @@ export function contract(parameters: contract.Parameters = {}) {
         await Delegation.execute(client, {
           account,
           // Extract calls to authorize the key.
-          calls: Implementation.getAuthorizeCalls([key]),
+          calls: Mode.getAuthorizeCalls([key]),
           storage: internal.config.storage,
         })
 
@@ -229,7 +229,7 @@ export function contract(parameters: contract.Parameters = {}) {
           // TODO: wait for tx to be included?
           await Delegation.execute(client, {
             account,
-            calls: Implementation.getAuthorizeCalls([extraKey]),
+            calls: Mode.getAuthorizeCalls([extraKey]),
             storage: internal.config.storage,
           })
 
@@ -290,7 +290,7 @@ export function contract(parameters: contract.Parameters = {}) {
         const { client } = internal
 
         // Try and extract an authorized key to sign the calls with.
-        const key = await Implementation.getAuthorizedExecuteKey({
+        const key = await Mode.getAuthorizedExecuteKey({
           account,
           calls,
           permissionsId: parameters.permissionsId,
@@ -399,7 +399,7 @@ export function contract(parameters: contract.Parameters = {}) {
 export declare namespace contract {
   type Parameters = {
     /**
-     * Mock implementation. Testing purposes only.
+     * Mock mode. Testing purposes only.
      * @default false
      * @deprecated
      */

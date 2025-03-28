@@ -1,4 +1,4 @@
-import { Chains, Implementation, Storage } from 'porto'
+import { Chains, Mode, Storage } from 'porto'
 import { Porto } from 'porto/remote'
 import { http } from 'viem'
 
@@ -8,7 +8,7 @@ import * as Env from './Env'
 export const config = {
   local: {
     chains: [Chains.odysseyTestnet],
-    implementation: Implementation.relay({
+    mode: Mode.relay({
       feeToken: exp1Address,
     }),
     transports: {
@@ -20,7 +20,7 @@ export const config = {
   },
   stg: {
     chains: [Chains.odysseyTestnet],
-    implementation: Implementation.relay({
+    mode: Mode.relay({
       feeToken: exp1Address,
     }),
     transports: {
@@ -32,7 +32,7 @@ export const config = {
   },
   prod: {
     chains: [Chains.odysseyTestnet],
-    implementation: Implementation.contract(),
+    mode: Mode.contract(),
     transports: {
       [Chains.odysseyTestnet.id]: {
         default: http(),

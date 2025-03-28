@@ -32,7 +32,7 @@ export function from<
     ...Chains.Chain[],
   ],
 >(parameters: from.Parameters<chains>): Provider {
-  const { config, getImplementation, store } = parameters
+  const { config, getMode, store } = parameters
   const { announceProvider } = config
 
   function getClient(chainId_?: Hex.Hex | number | undefined) {
@@ -83,7 +83,7 @@ export function from<
 
           const client = getClient()
 
-          const { accounts } = await getImplementation().actions.loadAccounts({
+          const { accounts } = await getMode().actions.loadAccounts({
             internal: {
               client,
               config,
@@ -120,7 +120,7 @@ export function from<
           )
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await getImplementation().actions.sendCalls({
+          const hash = await getMode().actions.sendCalls({
             account,
             calls: [
               {
@@ -155,7 +155,7 @@ export function from<
 
           const client = getClient()
 
-          const signature = await getImplementation().actions.signTypedData({
+          const signature = await getMode().actions.signTypedData({
             account,
             data,
             internal: {
@@ -187,7 +187,7 @@ export function from<
 
           const client = getClient(chainId)
 
-          const { key } = await getImplementation().actions.grantPermissions({
+          const { key } = await getMode().actions.grantPermissions({
             account,
             permissions,
             internal: {
@@ -235,7 +235,7 @@ export function from<
 
           const client = getClient(chainId)
 
-          const { account } = await getImplementation().actions.createAccount({
+          const { account } = await getMode().actions.createAccount({
             label,
             internal: {
               client,
@@ -273,7 +273,7 @@ export function from<
           const client = getClient(chainId)
 
           const { context, signPayloads } =
-            await getImplementation().actions.prepareUpgradeAccount({
+            await getMode().actions.prepareUpgradeAccount({
               address,
               permissions,
               label,
@@ -325,7 +325,7 @@ export function from<
 
           const client = getClient()
 
-          await getImplementation().actions.revokePermissions({
+          await getMode().actions.revokePermissions({
             account,
             id,
             internal: {
@@ -365,7 +365,7 @@ export function from<
 
           const client = getClient()
 
-          const { account } = await getImplementation().actions.upgradeAccount({
+          const { account } = await getMode().actions.upgradeAccount({
             context,
             signatures,
             internal: {
@@ -412,17 +412,16 @@ export function from<
 
           const client = getClient()
 
-          const signature =
-            await getImplementation().actions.signPersonalMessage({
-              account,
-              data,
-              internal: {
-                client,
-                config,
-                request,
-                store,
-              },
-            })
+          const signature = await getMode().actions.signPersonalMessage({
+            account,
+            data,
+            internal: {
+              client,
+              config,
+              request,
+              store,
+            },
+          })
 
           return signature satisfies Schema.Static<
             typeof Rpc.personal_sign.Response
@@ -451,12 +450,11 @@ export function from<
             if (createAccount) {
               const { label = undefined } =
                 typeof createAccount === 'object' ? createAccount : {}
-              const { account } =
-                await getImplementation().actions.createAccount({
-                  permissions,
-                  label,
-                  internal,
-                })
+              const { account } = await getMode().actions.createAccount({
+                permissions,
+                label,
+                internal,
+              })
               return { accounts: [account] }
             }
             const account = state.accounts[0]
@@ -480,7 +478,7 @@ export function from<
             }
             try {
               // try to restore from stored account (`address`/`credentialId`) to avoid multiple prompts
-              return await getImplementation().actions.loadAccounts({
+              return await getMode().actions.loadAccounts({
                 address,
                 credentialId,
                 ...loadAccountsParams,
@@ -491,9 +489,7 @@ export function from<
 
               // error with `address`/`credentialId` likely means one or both are stale, retry
               if (address && credentialId)
-                return await getImplementation().actions.loadAccounts(
-                  loadAccountsParams,
-                )
+                return await getMode().actions.loadAccounts(loadAccountsParams)
               throw error
             }
           })()
@@ -576,7 +572,7 @@ export function from<
             throw new ox_Provider.ChainDisconnectedError()
 
           const { signPayloads, ...rest } =
-            await getImplementation().actions.prepareCalls({
+            await getMode().actions.prepareCalls({
               calls,
               key,
               internal: {
@@ -614,7 +610,7 @@ export function from<
           if (chainId && Hex.toNumber(chainId) !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
-          const hash = await getImplementation().actions.sendPreparedCalls({
+          const hash = await getMode().actions.sendPreparedCalls({
             account,
             context,
             key,
@@ -651,7 +647,7 @@ export function from<
             : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
-          const hash = await getImplementation().actions.sendCalls({
+          const hash = await getMode().actions.sendCalls({
             account,
             calls,
             permissionsId: capabilities?.permissions?.id,

@@ -24,7 +24,7 @@ type PrepareCallsContext = {
   [key: string]: unknown
 }
 
-export type Implementation = {
+export type Mode = {
   actions: {
     createAccount: (parameters: {
       /** Internal properties. */
@@ -173,22 +173,22 @@ export type Implementation = {
 }
 
 /**
- * Instantiates an implementation.
+ * Instantiates a mode.
  *
- * @param implementation - Implementation.
- * @returns Implementation.
+ * @param mode - Mode.
+ * @returns Mode.
  */
-export function from<const implementation extends from.Parameters>(
-  implementation: implementation | from.Parameters,
-): Compute<implementation & Pick<Implementation, 'setup'>> {
+export function from<const mode extends from.Parameters>(
+  mode: mode | from.Parameters,
+): Compute<mode & Pick<Mode, 'setup'>> {
   return {
-    ...implementation,
-    setup: implementation.setup ?? (() => {}),
-  } as implementation & Pick<Implementation, 'setup'>
+    ...mode,
+    setup: mode.setup ?? (() => {}),
+  } as mode & Pick<Mode, 'setup'>
 }
 
 export declare namespace from {
-  type Parameters = PartialBy<Implementation, 'setup'>
+  type Parameters = PartialBy<Mode, 'setup'>
 }
 
 /**

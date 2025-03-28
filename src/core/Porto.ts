@@ -5,7 +5,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
 
 import * as Chains from './Chains.js'
-import * as Implementation from './Implementation.js'
+import * as Mode from './Mode.js'
 import * as Storage from './Storage.js'
 import type * as Account from './internal/account.js'
 import type * as internal from './internal/porto.js'
@@ -15,7 +15,7 @@ import type { ExactPartial, OneOf } from './internal/types.js'
 export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.odysseyTestnet],
-  implementation: Implementation.dialog(),
+  mode: Mode.dialog(),
   storage: Storage.idb(),
   transports: {
     [Chains.odysseyTestnet.id]: {
@@ -50,7 +50,7 @@ export function create(
     announceProvider:
       parameters.announceProvider ?? defaultConfig.announceProvider,
     chains: parameters.chains ?? defaultConfig.chains,
-    implementation: parameters.implementation ?? defaultConfig.implementation,
+    mode: parameters.mode ?? defaultConfig.mode,
     storage: parameters.storage ?? defaultConfig.storage,
     transports: parameters.transports ?? defaultConfig.transports,
   } satisfies Config
@@ -88,17 +88,17 @@ export function create(
   )
   store.persist.rehydrate()
 
-  let implementation = config.implementation
+  let mode = config.mode
 
   const internal = {
     config,
     id: crypto.randomUUID(),
-    getImplementation() {
-      return implementation
+    getMode() {
+      return mode
     },
-    setImplementation(i) {
+    setMode(i) {
       destroy?.()
-      implementation = i
+      mode = i
       destroy = i.setup({
         internal,
       })
@@ -110,8 +110,8 @@ export function create(
   const provider = Provider.from(internal)
 
   let destroy =
-    implementation !== null
-      ? implementation.setup({
+    mode !== null
+      ? mode.setup({
           internal,
         })
       : () => {}
@@ -142,10 +142,10 @@ export type Config<
    */
   chains: chains | readonly [Chains.Chain, ...Chains.Chain[]]
   /**
-   * Implementation to use.
-   * @default Implementation.dialog()
+   * Mode to use.
+   * @default Mode.dialog()
    */
-  implementation: Implementation.Implementation | null
+  mode: Mode.Mode | null
   /**
    * Storage to use.
    * @default Storage.idb()

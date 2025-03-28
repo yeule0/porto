@@ -20,32 +20,21 @@ import {
 } from 'viem/accounts'
 import { verifyMessage, verifyTypedData } from 'viem/actions'
 
-import {
-  type ImplementationType,
-  implementations,
-  permissions,
-  porto,
-} from './config'
+import { type ModeType, modes, permissions, porto } from './config'
 
 export function App() {
-  const [implementation, setImplementation] =
-    React.useState<ImplementationType>('iframe-dialog')
-  React.useEffect(
-    () => porto._internal.setImplementation(implementations[implementation]),
-    [implementation],
-  )
+  const [mode, setMode] = React.useState<ModeType>('iframe-dialog')
+  React.useEffect(() => porto._internal.setMode(modes[mode]), [mode])
 
   return (
     <>
       <div className="max-w-[768px] p-2">
         <h1>Playground</h1>
         <div className="flex gap-2">
-          Implementation:
+          Mode:
           <select
-            onChange={(e) =>
-              setImplementation(e.target.value as ImplementationType)
-            }
-            value={implementation}
+            onChange={(e) => setMode(e.target.value as ModeType)}
+            value={mode}
           >
             <option value="iframe-dialog">Dialog (iframe)</option>
             <option value="popup-dialog">Dialog (popup)</option>

@@ -1,12 +1,12 @@
 import { Porto as SharedPorto } from '@porto/apps'
-import { Implementation, Porto } from 'porto'
+import { Mode, Porto } from 'porto'
 import { http, createConfig, createStorage } from 'wagmi'
 import { baseSepolia, odysseyTestnet, optimismSepolia } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
 export const porto = import.meta.env.DEV
   ? Porto.create({
-      implementation: Implementation.dialog({
+      mode: Mode.dialog({
         host: 'https://id.porto.sh/dialog',
       }),
     })
