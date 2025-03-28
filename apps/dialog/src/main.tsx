@@ -1,5 +1,5 @@
 import { Porto } from '@porto/apps'
-import { Events } from 'porto/remote'
+import { Actions, Events } from 'porto/remote'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -23,6 +23,10 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
 
 const offRequests = Events.onRequests(porto, (requests) => {
   const request = requests[0]?.request
+  if (request?.method === 'experimental_upgradeAccount') {
+    Actions.respond(porto, requests[0]!)
+    return
+  }
   Router.router.navigate({
     to: '/dialog/' + (request?.method ?? ''),
     search: request?.params as never,

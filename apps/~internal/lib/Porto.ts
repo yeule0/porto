@@ -55,8 +55,12 @@ export const dialogHosts = {
 } as const satisfies Record<Env.Env, string | undefined>
 
 export const dialogModes = {
-  local: Mode.relay(),
-  stg: Mode.relay(),
+  local: Mode.relay({
+    feeToken: exp1Address,
+  }),
+  stg: Mode.relay({
+    feeToken: exp1Address,
+  }),
   prod: Mode.contract(),
 } as const satisfies Record<Env.Env, Mode.Mode>
 

@@ -405,20 +405,24 @@ export async function prepareUpgradeAccount(
     address,
     delegation = client.chain.contracts.delegation.address,
     feeToken,
-    keys,
   } = parameters
 
-  const idSigner = createIdSigner()
-  const authorizeKeys = keys.map((key) => {
-    if (key.role === 'admin')
-      return Key.toRelay({
-        ...key,
-        signature: idSigner.sign({
-          digest: getIdDigest({ id: idSigner.id, key }),
-        }),
-      })
-    return Key.toRelay(key)
-  })
+  // Create root id signer
+  const idSigner_root = createIdSigner()
+
+  const keys =
+    typeof parameters.keys === 'function'
+      ? await parameters.keys({ ids: [idSigner_root.id] })
+      : parameters.keys
+  const keys_relay = keys.map(Key.toRelay)
+  const signers = [idSigner_root, ...keys.slice(1).map(createIdSigner)]
+
+  const authorizeKeys = signers.map((signer, index) => ({
+    ...keys_relay[index]!,
+    signature: signer.sign({
+      digest: getIdDigest({ id: signer.id, key: keys[index]! }),
+    }),
+  }))
 
   const { capabilities, context, digests } =
     await Actions.prepareUpgradeAccount(client, {
@@ -453,8 +457,17 @@ export declare namespace prepareUpgradeAccount {
     delegation?: Address.Address | undefined
     /** Fee token. */
     feeToken?: Address.Address | undefined
-    /** Keys to authorize. */
-    keys: readonly Key.Key[]
+    /**
+     * Keys to authorize.
+     *
+     * Accepts:
+     * - An array of keys.
+     * - A function that returns an array of keys. The function will be called
+     *   with the key's unique `id` as a parameter.
+     */
+    keys:
+      | readonly Key.Key[]
+      | ((p: { ids: readonly Hex.Hex[] }) => MaybePromise<readonly Key.Key[]>)
   }
 
   export type ReturnType = Omit<

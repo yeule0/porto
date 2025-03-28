@@ -28,8 +28,6 @@ export function relay(config: relay.Parameters = {}) {
   const { mock } = config
 
   let id_internal: Hex.Hex | undefined
-  // TODO(relay)
-  // const preparedAccounts_internal: Account.Account[] = []
 
   const keystoreHost = (() => {
     if (config.keystoreHost === 'self') return undefined
@@ -237,9 +235,43 @@ export function relay(config: relay.Parameters = {}) {
         }
       },
 
-      async prepareUpgradeAccount(_parameters) {
-        // TODO(relay): implement
-        return null as any
+      async prepareUpgradeAccount(parameters) {
+        const { address, permissions } = parameters
+        const { client } = parameters.internal
+
+        const authorizeKey = await PermissionsRequest.toKey(permissions)
+
+        const { context, digests } = await Relay.prepareUpgradeAccount(client, {
+          address,
+          async keys({ ids }) {
+            const id = ids[0]!
+            const label =
+              parameters.label ??
+              HumanId.create({
+                capitalize: true,
+                separator: ' ',
+              })
+
+            const key = !mock
+              ? await Key.createWebAuthnP256({
+                  label,
+                  role: 'admin',
+                  rpId: keystoreHost,
+                  userId: Bytes.from(id),
+                })
+              : Key.createP256({
+                  role: 'admin',
+                })
+
+            return [key, ...(authorizeKey ? [authorizeKey] : [])]
+          },
+          feeToken: config.feeToken,
+        })
+
+        return {
+          context,
+          signPayloads: digests,
+        }
       },
 
       async revokePermissions(parameters) {
@@ -363,9 +395,16 @@ export function relay(config: relay.Parameters = {}) {
         return signature
       },
 
-      async upgradeAccount(_parameters) {
-        // TODO(relay): implement
-        return null as any
+      async upgradeAccount(parameters) {
+        const { account, context, internal, signatures } = parameters
+        const { client } = internal
+
+        await Relay.upgradeAccount(client, {
+          context: context as any,
+          signatures,
+        })
+
+        return { account }
       },
     },
   })

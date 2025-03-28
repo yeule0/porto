@@ -316,7 +316,8 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // If a key is found, execute the calls with it.
         // No need to send a request to the dialog.
-        if (key) return localMode.actions.sendCalls(parameters)
+        if (key && key.role === 'session')
+          return localMode.actions.sendCalls(parameters)
 
         const provider = getProvider(store)
 
@@ -359,7 +360,20 @@ export function dialog(parameters: dialog.Parameters = {}) {
         return await provider.request(request)
       },
 
-      upgradeAccount: localMode.actions.upgradeAccount,
+      async upgradeAccount(parameters) {
+        const { account, internal } = parameters
+        const { store, request } = internal
+
+        if (request.method !== 'experimental_upgradeAccount')
+          throw new Error(
+            'Cannot upgrade account for method: ' + request.method,
+          )
+
+        const provider = getProvider(store)
+        await provider.request(request)
+
+        return { account }
+      },
     },
     setup(parameters) {
       const { internal } = parameters
