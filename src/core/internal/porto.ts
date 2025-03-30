@@ -88,6 +88,7 @@ export function getClient<
     'relay_sendAction',
     'wallet_createAccount',
     'wallet_getAccounts',
+    'wallet_getCallsStatus',
     'wallet_getKeys',
     'wallet_prepareCalls',
     'wallet_prepareCreateAccount',

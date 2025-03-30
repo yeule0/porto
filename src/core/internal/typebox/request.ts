@@ -401,7 +401,7 @@ export namespace wallet_sendPreparedCalls {
 
   export const Response = Type.Array(
     Type.Object({
-      id: Type.String(),
+      id: Primitive.Hex,
       capabilities: Schema.Optional(Type.Record(Type.String(), Type.Any())),
     }),
   )

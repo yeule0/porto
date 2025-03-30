@@ -323,7 +323,7 @@ export namespace wallet_sendPreparedCalls {
   /** Response for `wallet_sendPreparedCalls`. */
   export const Response = Type.Object({
     /** The ID of the call bundle. */
-    id: Type.String(),
+    id: Primitive.Hex,
   })
   export type Response = Schema.StaticDecode<typeof Response>
 }

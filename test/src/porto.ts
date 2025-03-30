@@ -10,9 +10,11 @@ import * as Relay from './relay.js'
 
 export const defaultChain = defineChain({
   ...odysseyTestnet,
-  rpcUrls: {
-    default: { http: [Anvil.instances.odyssey.rpcUrl] },
-  },
+  ...(process.env.VITE_ANVIL !== 'false' && {
+    rpcUrls: {
+      default: { http: [Anvil.instances.odyssey.rpcUrl] },
+    },
+  }),
 })
 
 export function getPorto(
@@ -44,21 +46,30 @@ export function getPorto(
     storage: Storage.memory(),
     transports: {
       [Chains.odysseyTestnet.id]: {
-        default: transports.default ?? custom(Anvil.instances.odyssey),
+        default:
+          transports.default ??
+          (process.env.VITE_ANVIL !== 'false'
+            ? custom(Anvil.instances.odyssey)
+            : http()),
         relay: transports.relay
           ? transports.relay === true
-            ? http(Relay.instances.odyssey.rpcUrl, {
-                // async onFetchRequest(request, init) {
-                //   console.log(
-                //     JSON.stringify(JSON.parse(await init.body), null, 2),
-                //   )
-                // },
-                // async onFetchResponse(response, init) {
-                //   console.log(
-                //     JSON.stringify(await response.clone().json(), null, 2),
-                //   )
-                // },
-              })
+            ? http(
+                process.env.VITE_ANVIL !== 'false'
+                  ? Relay.instances.odyssey.rpcUrl
+                  : 'https://relay-staging.ithaca.xyz',
+                {
+                  // async onFetchRequest(request, init) {
+                  //   console.log(
+                  //     JSON.stringify(JSON.parse(await init.body), null, 2),
+                  //   )
+                  // },
+                  // async onFetchResponse(response, init) {
+                  //   console.log(
+                  //     JSON.stringify(await response.clone().json(), null, 2),
+                  //   )
+                  // },
+                },
+              )
             : transports.relay
           : undefined,
       },

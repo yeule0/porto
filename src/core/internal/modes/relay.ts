@@ -75,6 +75,7 @@ export function relay(config: relay.Parameters = {}) {
 
         const authorizeKey = await PermissionsRequest.toKey(permissions)
         if (authorizeKey)
+          // TODO(relay): remove double webauthn sign.
           await preauthKey(client, {
             account,
             authorizeKey,
@@ -341,15 +342,13 @@ export function relay(config: relay.Parameters = {}) {
           storage,
         })
 
-        return id as Hex.Hex
+        return id
       },
 
       async sendPreparedCalls(parameters) {
         const { context, key, internal, signature } = parameters
         const { client } = internal
 
-        // Execute the calls (with the key if provided, otherwise it will
-        // fall back to an admin key).
         const { id } = await Relay.sendCalls(client, {
           context: {
             ...context,
@@ -358,7 +357,7 @@ export function relay(config: relay.Parameters = {}) {
           signature,
         })
 
-        return id as Hex.Hex
+        return id
       },
 
       async signPersonalMessage(parameters) {
@@ -477,7 +476,7 @@ export namespace PreBundles {
 
     const storage = (() => {
       const storages = parameters.storage.storages ?? [parameters.storage]
-      return storages.find((x) => x.sizeLimit > 1024 * 1024 * 5)
+      return storages.find((x) => x.sizeLimit > 1024 * 1024 * 4)
     })()
 
     const value = await storage?.getItem<PreBundles>(storageKey(address))

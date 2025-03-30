@@ -13,7 +13,7 @@ export default defineConfig({
       hosts: [
         'localhost',
         'stg.localhost',
-        process.env.ANVIL ? 'anvil.localhost' : '',
+        process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
       ],
     }),
     react(),

@@ -1,4 +1,5 @@
 import { Porto } from '@porto/apps'
+import { Dialog as Dialog_porto } from 'porto'
 import { Actions, Events } from 'porto/remote'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -23,7 +24,7 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
 
 const offRequests = Events.onRequests(porto, (requests) => {
   const request = requests[0]?.request
-  if (request?.method === 'experimental_upgradeAccount') {
+  if (!Dialog_porto.requiresConfirmation(request as never)) {
     Actions.respond(porto, requests[0]!)
     return
   }

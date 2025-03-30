@@ -1,10 +1,14 @@
 import { type Address, Secp256k1 } from 'ox'
 import { parseEther } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { setBalance as setBalance_viem, writeContract } from 'viem/actions'
+import {
+  setBalance as setBalance_viem,
+  waitForTransactionReceipt,
+  writeContract,
+} from 'viem/actions'
 
 import * as Account from '../../src/core/internal/account.js'
-import type * as Key from '../../src/core/internal/key.js'
+import * as Key from '../../src/core/internal/key.js'
 import type { Client } from '../../src/core/internal/porto.js'
 import * as Relay from '../../src/core/internal/relay.js'
 import { exp1Abi, exp1Address } from './_generated/contracts.js'
@@ -92,16 +96,40 @@ export async function setBalance(
 ) {
   const { address, value = parseEther('10000') } = parameters
 
-  await setBalance_viem(client as any, {
-    address,
-    value,
-  })
-  await writeContract(client, {
-    account: privateKeyToAccount(Anvil.accounts[0]!.privateKey),
-    chain: null,
-    address: exp1Address,
-    abi: exp1Abi,
-    functionName: 'mint',
-    args: [address, value],
-  })
+  if (process.env.VITE_ANVIL !== 'false') {
+    await setBalance_viem(client as any, {
+      address,
+      value,
+    })
+    await writeContract(client, {
+      account: privateKeyToAccount(Anvil.accounts[0]!.privateKey),
+      chain: null,
+      address: exp1Address,
+      abi: exp1Abi,
+      functionName: 'mint',
+      args: [address, value],
+    })
+  } else {
+    const key = Key.fromP256({
+      privateKey: process.env.VITE_ADMIN_PRIVATE_KEY! as `0x${string}`,
+      role: 'admin',
+    })
+    const account = Account.from({
+      address: process.env.VITE_ADMIN_ADDRESS! as `0x${string}`,
+      keys: [key],
+    })
+    const { id } = await Relay.sendCalls(client, {
+      account: account,
+      calls: [
+        {
+          abi: exp1Abi,
+          to: exp1Address,
+          functionName: 'mint',
+          args: [address, value],
+        },
+      ],
+      feeToken: exp1Address,
+    })
+    await waitForTransactionReceipt(client, { hash: id as `0x${string}` })
+  }
 }

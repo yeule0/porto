@@ -1,4 +1,4 @@
-import type { RpcResponse } from 'ox'
+import type { RpcRequest, RpcResponse } from 'ox'
 import * as Provider from 'ox/Provider'
 
 import * as Messenger from './Messenger.js'
@@ -207,7 +207,10 @@ export function iframe() {
         async syncRequests(requests) {
           if (includesUnsupported(requests)) fallback.syncRequests(requests)
           else {
-            if (!open) this.open()
+            const requiresConfirm = requests.some((x) =>
+              requiresConfirmation(x.request),
+            )
+            if (!open && requiresConfirm) this.open()
             messenger.send('rpc-requests', requests)
           }
         },
@@ -409,6 +412,15 @@ export const styles = {
     border: 'none',
   },
 } as const satisfies Record<string, Partial<CSSStyleDeclaration>>
+
+export function requiresConfirmation(request: RpcRequest.RpcRequest) {
+  const bypassMethods = [
+    'experimental_upgradeAccount',
+    'wallet_prepareCalls',
+    'wallet_sendPreparedCalls',
+  ]
+  return !bypassMethods.includes(request.method)
+}
 
 export function getReferrer() {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches

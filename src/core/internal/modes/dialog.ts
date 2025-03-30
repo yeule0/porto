@@ -6,20 +6,17 @@ import * as Dialog from '../../Dialog.js'
 import type { QueuedRequest } from '../../Porto.js'
 import type * as RpcSchema_porto from '../../RpcSchema.js'
 import * as Account from '../account.js'
-import type * as Key from '../key.js'
+import * as Key from '../key.js'
 import * as Mode from '../mode.js'
 import * as Permissions from '../permissions.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
+import * as Rpc from '../typebox/request.js'
 import * as Schema from '../typebox/schema.js'
-import { contract } from './contract.js'
 
 export function dialog(parameters: dialog.Parameters = {}) {
-  const {
-    host = 'https://id.porto.sh/dialog',
-    mode: localMode = contract(),
-    renderer = Dialog.iframe(),
-  } = parameters
+  const { host = 'https://id.porto.sh/dialog', renderer = Dialog.iframe() } =
+    parameters
 
   const requestStore = RpcRequest.createStore()
 
@@ -269,7 +266,22 @@ export function dialog(parameters: dialog.Parameters = {}) {
         }
       },
 
-      prepareCalls: localMode.actions.prepareCalls,
+      async prepareCalls(parameters) {
+        const { account, internal } = parameters
+        const { store, request } = internal
+
+        if (request.method !== 'wallet_prepareCalls')
+          throw new Error('Cannot prepare calls for method: ' + request.method)
+
+        const provider = getProvider(store)
+        const result = await provider.request(request)
+        return {
+          account,
+          context: result.context as any,
+          key: result.key,
+          signPayloads: [result.digest],
+        }
+      },
 
       async prepareUpgradeAccount(parameters) {
         const { internal } = parameters
@@ -305,7 +317,9 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
       async sendCalls(parameters) {
         const { account, calls, internal } = parameters
-        const { store, request } = internal
+        const { client, store, request } = internal
+
+        const provider = getProvider(store)
 
         // Try and extract an authorized key to sign the calls with.
         const key = await Mode.getAuthorizedExecuteKey({
@@ -316,10 +330,49 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // If a key is found, execute the calls with it.
         // No need to send a request to the dialog.
-        if (key && key.role === 'session')
-          return localMode.actions.sendCalls(parameters)
+        if (key && key.role === 'session') {
+          const req = await provider
+            .request(
+              Schema.Encode(Rpc.wallet_prepareCalls.Request, {
+                method: 'wallet_prepareCalls',
+                params: [
+                  {
+                    capabilities:
+                      request._decoded.method === 'wallet_sendCalls'
+                        ? request._decoded.params?.[0]?.capabilities
+                        : undefined,
+                    calls,
+                    chainId: client.chain.id,
+                    from: account.address,
+                    key,
+                  },
+                ],
+              } satisfies Rpc.wallet_prepareCalls.Request),
+            )
+            .then((x) => Schema.Decode(Rpc.wallet_prepareCalls.Response, x))
 
-        const provider = getProvider(store)
+          const signature = await Key.sign(key, {
+            payload: req.digest,
+            wrap: false,
+          })
+
+          const result = await provider.request(
+            Schema.Encode(Rpc.wallet_sendPreparedCalls.Request, {
+              method: 'wallet_sendPreparedCalls',
+              params: [
+                {
+                  ...req,
+                  signature,
+                },
+              ],
+            } satisfies Rpc.wallet_sendPreparedCalls.Request),
+          )
+
+          const id = result[0]?.id
+          if (!id) throw new Error('id not found')
+
+          return id
+        }
 
         if (request.method === 'eth_sendTransaction')
           // Send a transaction request to the dialog.
@@ -332,7 +385,23 @@ export function dialog(parameters: dialog.Parameters = {}) {
         throw new Error('Cannot execute for method: ' + request.method)
       },
 
-      sendPreparedCalls: localMode.actions.sendPreparedCalls,
+      async sendPreparedCalls(parameters) {
+        const { internal } = parameters
+        const { store, request } = internal
+
+        if (request.method !== 'wallet_sendPreparedCalls')
+          throw new Error(
+            'Cannot send prepared calls for method: ' + request.method,
+          )
+
+        const provider = getProvider(store)
+        const result = await provider.request(request)
+
+        const id = result[0]?.id
+        if (!id) throw new Error('id not found')
+
+        return id
+      },
 
       async signPersonalMessage(parameters) {
         const { internal } = parameters
@@ -410,13 +479,6 @@ export declare namespace dialog {
      * @default 'http://id.porto.sh/dialog'
      */
     host?: string | undefined
-    /**
-     * Mode to use for actions that do not require
-     * approval from the dialog.
-     *
-     * @default Mode.contract()
-     */
-    mode?: Mode.Mode | undefined
     /**
      * Dialog renderer.
      * @default Dialog.iframe()
