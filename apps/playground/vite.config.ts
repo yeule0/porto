@@ -1,10 +1,13 @@
-import { exp1Address } from '@porto/apps/contracts'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { createServer } from 'prool'
 import { anvil } from 'prool/instances'
 import { defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
+
+import * as Chains from '../../src/core/Chains.js'
+import * as Anvil from '../../test/src/anvil.js'
+import { relay } from '../../test/src/prool.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -23,11 +26,7 @@ export default defineConfig({
       async configureServer() {
         if (process.env.ANVIL !== 'true') return
 
-        const [Chains, Anvil, { relay }] = await Promise.all([
-          import('../../src/core/Chains.js'),
-          import('../../test/src/anvil.js'),
-          import('../../test/src/prool.js'),
-        ])
+        const { exp1Address } = await import('@porto/apps/contracts')
 
         const anvilConfig = {
           port: 8545,
