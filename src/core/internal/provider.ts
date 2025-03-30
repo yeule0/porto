@@ -556,6 +556,9 @@ export function from<
             createAccount: {
               supported: true,
             },
+            feeToken: {
+              supported: true,
+            },
             permissions: {
               supported: true,
             },

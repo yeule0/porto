@@ -237,7 +237,7 @@ export function relay(config: relay.Parameters = {}) {
       },
 
       async prepareUpgradeAccount(parameters) {
-        const { address, permissions } = parameters
+        const { address, feeToken = config.feeToken, permissions } = parameters
         const { client } = parameters.internal
 
         const authorizeKey = await PermissionsRequest.toKey(permissions)
@@ -266,7 +266,7 @@ export function relay(config: relay.Parameters = {}) {
 
             return [key, ...(authorizeKey ? [authorizeKey] : [])]
           },
-          feeToken: config.feeToken,
+          feeToken,
         })
 
         return {

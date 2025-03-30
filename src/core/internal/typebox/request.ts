@@ -127,6 +127,7 @@ export namespace experimental_permissions {
 
 export namespace experimental_prepareUpgradeAccount {
   export const Capabilities = Type.Object({
+    feeToken: Schema.Optional(Primitive.Address),
     grantPermissions: Schema.Optional(C.grantPermissions.Request),
   })
   export type Capabilities = Schema.StaticDecode<typeof Capabilities>
@@ -153,8 +154,14 @@ export namespace experimental_prepareUpgradeAccount {
 }
 
 export namespace experimental_revokePermissions {
+  export const Capabilities = Type.Object({
+    feeToken: Schema.Optional(Primitive.Address),
+  })
+  export type Capabilities = Schema.StaticDecode<typeof Capabilities>
+
   export const Parameters = Type.Object({
     address: Schema.Optional(Primitive.Address),
+    capabilities: Schema.Optional(Capabilities),
     id: Primitive.Hex,
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
@@ -320,6 +327,7 @@ export namespace wallet_getCapabilities {
 
 export namespace wallet_prepareCalls {
   export const Capabilities = Type.Object({
+    feeToken: Schema.Optional(Primitive.Address),
     permissions: Schema.Optional(C.permissions.Request),
   })
   export type Capabilities = Schema.StaticDecode<typeof Capabilities>

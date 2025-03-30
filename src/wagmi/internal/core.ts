@@ -285,7 +285,7 @@ export async function grantPermissions<config extends Config>(
       Schema.Encode(Rpc.experimental_grantPermissions.Parameters, {
         address,
         ...key,
-      }),
+      } satisfies Rpc.experimental_grantPermissions.Parameters),
     ],
   })
 
@@ -351,7 +351,7 @@ export async function revokePermissions<config extends Config>(
   config: config,
   parameters: revokePermissions.Parameters<config>,
 ) {
-  const { address, chainId, connector, id } = parameters
+  const { address, chainId, connector, feeToken, id } = parameters
 
   const client = await getConnectorClient(config, {
     account: address,
@@ -367,13 +367,16 @@ export async function revokePermissions<config extends Config>(
     ReturnType: RpcSchema_ox.ExtractReturnType<RpcSchema.Schema, method>
   }>({
     method,
-    params: [{ address, id }],
+    params: [{ address, capabilities: { feeToken }, id }],
   })
 }
 
 export declare namespace revokePermissions {
   type Parameters<config extends Config = Config> = ChainIdParameter<config> &
-    ConnectorParameter & {
+    ConnectorParameter &
+    Schema.StaticDecode<
+      typeof Request.experimental_revokePermissions.Capabilities
+    > & {
       address?: Address | undefined
       id: Schema.StaticDecode<
         typeof Rpc.experimental_revokePermissions.Parameters
@@ -418,7 +421,7 @@ export async function upgradeAccount<config extends Config>(
       | undefined
     if (!provider) throw new ProviderNotFoundError()
 
-    const { account, grantPermissions, label } = parameters
+    const { account, feeToken, grantPermissions, label } = parameters
 
     const method = 'experimental_prepareUpgradeAccount'
     type method = typeof method
@@ -431,12 +434,13 @@ export async function upgradeAccount<config extends Config>(
       params: [
         {
           address: account.address,
-          capabilities: {
-            grantPermissions: Schema.Encode(
-              Request.wallet_connect.Capabilities.properties.grantPermissions,
+          capabilities: Schema.Encode(
+            Request.experimental_prepareUpgradeAccount.Capabilities,
+            {
+              feeToken,
               grantPermissions,
-            ),
-          },
+            } satisfies Request.experimental_prepareUpgradeAccount.Capabilities,
+          ),
           label,
         },
       ],
@@ -494,16 +498,14 @@ export async function upgradeAccount<config extends Config>(
 }
 
 export declare namespace upgradeAccount {
-  type Parameters<config extends Config = Config> = ChainIdParameter<config> & {
-    grantPermissions?:
-      | Schema.StaticDecode<
-          typeof Request.wallet_connect.Capabilities.properties.grantPermissions
-        >
-      | undefined
-    account: PrivateKeyAccount
-    connector: Connector | CreateConnectorFn
-    label?: string | undefined
-  }
+  type Parameters<config extends Config = Config> = ChainIdParameter<config> &
+    Schema.StaticDecode<
+      typeof Request.experimental_prepareUpgradeAccount.Capabilities
+    > & {
+      account: PrivateKeyAccount
+      connector: Connector | CreateConnectorFn
+      label?: string | undefined
+    }
 
   type ReturnType<config extends Config = Config> = ConnectReturnType<config>
 
