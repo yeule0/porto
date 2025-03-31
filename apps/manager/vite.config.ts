@@ -12,7 +12,13 @@ export default defineConfig({
     'process.env': {},
   },
   plugins: [
-    Mkcert({ hosts: ['localhost', 'stg.localhost'] }),
+    Mkcert({
+      hosts: [
+        'localhost',
+        'stg.localhost',
+        process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
+      ],
+    }),
     Tailwindcss(),
     React(),
     Icons({ compiler: 'jsx', jsx: 'react' }),

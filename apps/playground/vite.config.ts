@@ -2,12 +2,16 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { createServer } from 'prool'
 import { anvil } from 'prool/instances'
-import { defineConfig } from 'vite'
+import { createLogger, defineConfig } from 'vite'
 import mkcert from 'vite-plugin-mkcert'
 
 import * as Chains from '../../src/core/Chains.js'
 import * as Anvil from '../../test/src/anvil.js'
 import { relay } from '../../test/src/prool.js'
+
+const logger = createLogger('info', {
+  prefix: 'playground',
+})
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -18,6 +22,7 @@ export default defineConfig({
         'stg.localhost',
         process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
       ],
+      force: true,
     }),
     react(),
     tailwindcss(),
@@ -38,6 +43,8 @@ export default defineConfig({
         }
         const chain = Chains.odysseyTestnet
 
+        logger.info('Starting Anvil...')
+
         await createServer({
           instance: anvil({
             chainId: chain.id,
@@ -53,6 +60,9 @@ export default defineConfig({
           delegationAddress: chain.contracts.delegation.address,
           rpcUrl: anvilConfig.rpcUrl,
         })
+
+        logger.info('Anvil started on' + anvilConfig.rpcUrl)
+        logger.info('Starting Relay...')
 
         await createServer({
           instance: relay({
@@ -70,6 +80,8 @@ export default defineConfig({
           port: relayConfig.port,
         }).start()
         await fetch(relayConfig.rpcUrl + '/start')
+
+        logger.info('Relay started on ' + relayConfig.rpcUrl)
       },
     },
   ],

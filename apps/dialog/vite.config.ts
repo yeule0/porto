@@ -19,6 +19,7 @@ export default defineConfig({
         'stg.localhost',
         process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
       ],
+      force: true,
     }),
     Tailwindcss(),
     React(),
