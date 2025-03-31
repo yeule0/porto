@@ -1,5 +1,5 @@
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryClient } from '@tanstack/react-query'
 
 export const client: QueryClient = new QueryClient({
   defaultOptions: {
@@ -16,12 +16,6 @@ export const client: QueryClient = new QueryClient({
     onSettled: () => {
       if (client.isMutating() === 1) {
         return client.invalidateQueries()
-      }
-    },
-  }),
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      if (query.state.data !== undefined) {
       }
     },
   }),
