@@ -11,7 +11,6 @@ export function useSwapAssets({ chainId }: { chainId: ChainId }) {
   const { data: balances } = useReadBalances({ chainId })
 
   const { data, isLoading, isPending, refetch } = useQuery({
-    queryKey: ['swap-assets', chainId] as const,
     queryFn: async ({ queryKey: [, chainId] }) => {
       const defaultAssets_ = defaultAssets[chainId]?.filter(
         (asset) =>
@@ -21,10 +20,10 @@ export function useSwapAssets({ chainId }: { chainId: ChainId }) {
 
       const balancesAssets = balances.map((balance) => ({
         address: balance.address,
-        symbol: balance.symbol,
-        name: balance.name,
-        logo: balance.logo,
         balance: balance.balance,
+        logo: balance.logo,
+        name: balance.name,
+        symbol: balance.symbol,
       }))
 
       try {
@@ -53,16 +52,16 @@ export function useSwapAssets({ chainId }: { chainId: ChainId }) {
           ...balancesMap.get(asset.address),
         })) as ReadonlyArray<Prettify<AssetWithPrice>>
       } catch (error) {
-        console.error(error instanceof Error ? error.message : 'Unknown error')
         return [ethAsset, ...defaultAssets_].map((asset) => ({
           ...asset,
           balance: 0n,
+          confidence: 0,
           price: 0,
           timestamp: 0,
-          confidence: 0,
         }))
       }
     },
+    queryKey: ['swap-assets', chainId] as const,
   })
 
   return { data, isLoading, isPending, refetch }
@@ -79,7 +78,10 @@ export type AssetWithPrice = LlamaFiPrice & {
 async function getAssetsPrices({
   chainId,
   ids,
-}: { chainId: ChainId; ids: Array<{ address: string }> }) {
+}: {
+  chainId: ChainId
+  ids: Array<{ address: string }>
+}) {
   const chain = getChainConfig(chainId)
   if (!chain) throw new Error(`Unsupported chainId: ${chainId}`)
   const searchParams = ids

@@ -75,8 +75,8 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
           ),
           entrypoint,
           http: {
-            port,
             metricsPort: port + 1,
+            port,
           },
           quoteSecretKey,
           quoteTtl: 30,

@@ -1,5 +1,5 @@
 import { Button } from '@porto/apps/components'
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import LucideX from '~icons/lucide/x'
 
 import { Layout } from './-components/Layout'
@@ -15,7 +15,7 @@ function RouteComponent() {
         left="About Porto"
         leftClassName="min-[460px]:hidden ml-4"
         right={
-          <Button render={<Link to=".." />} variant="outline" size="square">
+          <Button render={<Link to=".." />} size="square" variant="outline">
             <LucideX className="size-5 text-gray10" />
           </Button>
         }
@@ -37,8 +37,8 @@ function RouteComponent() {
           <a
             className="text-accent"
             href="https://github.com/ithacaxyz"
-            target="_blank"
             rel="noreferrer"
+            target="_blank"
           >
             open source infrastructure
           </a>
@@ -52,8 +52,8 @@ function RouteComponent() {
           <a
             className="text-accent"
             href="https://github.com/ithacaxyz"
-            target="_blank"
             rel="noreferrer"
+            target="_blank"
           >
             GitHub.
           </a>
@@ -67,7 +67,7 @@ function RouteComponent() {
             rel="noreferrer"
             target="_blank"
           >
-            <img src="/ithaca.svg" alt="Ithaca" className="h-3.5" />
+            <img alt="Ithaca" className="h-3.5" src="/ithaca.svg" />
           </a>
         </p>
 
@@ -85,7 +85,7 @@ function RouteComponent() {
             className="flex-grow"
             render={
               // biome-ignore lint/a11y/useAnchorContent: <explanation>
-              <a href="https://porto.sh" target="_blank" rel="noreferrer" />
+              <a href="https://porto.sh" rel="noreferrer" target="_blank" />
             }
             variant="invert"
           >

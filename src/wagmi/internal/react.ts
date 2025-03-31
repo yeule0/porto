@@ -1,8 +1,8 @@
 'use client'
 
 import {
-  type UseMutationResult,
   skipToken,
+  type UseMutationResult,
   useMutation,
   useQuery,
   useQueryClient,
@@ -87,7 +87,6 @@ export function useAdmins<
     ...(query as any),
     enabled,
     gcTime: 0,
-    queryKey,
     queryFn: activeConnector
       ? async (context) => {
           const { connectorUid: _, ...options } = (
@@ -101,6 +100,7 @@ export function useAdmins<
           })
         }
       : skipToken,
+    queryKey,
     staleTime: Number.POSITIVE_INFINITY,
   }) as never
 }
@@ -386,7 +386,6 @@ export function usePermissions<
     ...(query as any),
     enabled,
     gcTime: 0,
-    queryKey,
     queryFn: activeConnector
       ? async (context) => {
           const { connectorUid: _, ...options } = (
@@ -400,6 +399,7 @@ export function usePermissions<
           })
         }
       : skipToken,
+    queryKey,
     staleTime: Number.POSITIVE_INFINITY,
   }) as never
 }

@@ -40,8 +40,8 @@ function RouteComponent() {
     )
   return (
     <SignMessage
-      message={message}
       loading={respond.isPending}
+      message={message}
       onApprove={() => respond.mutate()}
       onReject={() => Actions.reject(porto, request)}
     />

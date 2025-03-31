@@ -71,8 +71,8 @@ export function fromPrivateKey<
     async sign({ payload }) {
       return Signature.toHex(
         Secp256k1.sign({
-          privateKey,
           payload,
+          privateKey,
         }),
       )
     },

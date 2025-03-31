@@ -1,5 +1,5 @@
 import { Mode, Porto } from 'porto'
-import { http, createConfig, createStorage } from 'wagmi'
+import { createConfig, createStorage, http } from 'wagmi'
 import { odysseyTestnet } from 'wagmi/chains'
 
 const DISABLE_DIALOG = import.meta.env.VITE_DISABLE_DIALOG === 'true'

@@ -128,11 +128,11 @@ describe('createSecp256k1', () => {
 describe('createWebAuthnP256', () => {
   beforeAll(() => {
     vi.stubGlobal('window', {
-      location: {
-        hostname: 'https://example.com',
-      },
       document: {
         title: 'My Website',
+      },
+      location: {
+        hostname: 'https://example.com',
       },
     })
   })
@@ -324,13 +324,13 @@ describe('from', () => {
     )
 
     const key = Key.from({
-      expiry: 69420,
-      publicKey,
-      role: 'admin',
       canSign: true,
+      expiry: 69420,
       privateKey() {
         return '0x'
       },
+      publicKey,
+      role: 'admin',
       type: 'p256',
     })
 
@@ -410,13 +410,13 @@ describe('from', () => {
     )
 
     const key = Key.from({
-      expiry: 69420,
-      publicKey,
-      role: 'admin',
       canSign: true,
+      expiry: 69420,
       privateKey() {
         return '0x'
       },
+      publicKey,
+      role: 'admin',
       type: 'p256',
     })
     const serialized = Key.serialize(key)
@@ -425,9 +425,9 @@ describe('from', () => {
       ...Key.from(serialized),
       hash: undefined,
     }).toEqual({
+      canSign: false,
       expiry: 69420,
       publicKey,
-      canSign: false,
       role: 'admin',
       type: 'p256',
     })
@@ -606,11 +606,11 @@ describe('fromSecp256k1', () => {
 describe('fromWebAuthnP256', () => {
   beforeAll(() => {
     vi.stubGlobal('window', {
-      location: {
-        hostname: 'https://example.com',
-      },
       document: {
         title: 'My Website',
+      },
+      location: {
+        hostname: 'https://example.com',
       },
     })
   })

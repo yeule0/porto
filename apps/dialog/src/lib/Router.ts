@@ -9,11 +9,11 @@ export type RpcRequestToSearch<
 > = RpcRequest.RpcRequest<RpcSchema.ExtractItem<porto_RpcSchema.Schema, method>>
 
 export const router = createRouter({
-  defaultPreload: 'intent',
   context: {
     appState: undefined as never,
     portoState: undefined as never,
   },
+  defaultPreload: 'intent',
   routeTree,
 })
 

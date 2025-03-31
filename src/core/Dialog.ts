@@ -1,9 +1,8 @@
 import type { RpcRequest, RpcResponse } from 'ox'
 import * as Provider from 'ox/Provider'
-
+import type { Internal } from './internal/porto.js'
 import * as Messenger from './Messenger.js'
 import type { QueuedRequest, Store } from './Porto.js'
-import type { Internal } from './internal/porto.js'
 
 /** Dialog interface. */
 export type Dialog = {
@@ -141,9 +140,9 @@ export function iframe() {
 
       messenger.on('ready', () => {
         messenger.send('__internal', {
-          type: 'init',
           mode: 'iframe',
           referrer: getReferrer(),
+          type: 'init',
         })
       })
       messenger.on('rpc-response', (response) => {
@@ -169,23 +168,6 @@ export function iframe() {
       const bodyStyle = Object.assign({}, document.body.style)
 
       return {
-        open() {
-          if (open) return
-          open = true
-
-          messenger.send('__internal', {
-            type: 'init',
-            mode: 'iframe',
-            referrer: getReferrer(),
-          })
-
-          root.showModal()
-          document.addEventListener('keydown', onEscape)
-          document.body.style.overflow = 'hidden'
-          iframe.removeAttribute('hidden')
-          iframe.removeAttribute('aria-closed')
-          iframe.style.display = 'block'
-        },
         close() {
           fallback?.close()
           open = false
@@ -203,6 +185,23 @@ export function iframe() {
           document.removeEventListener('keydown', onEscape)
           messenger.destroy()
           root.remove()
+        },
+        open() {
+          if (open) return
+          open = true
+
+          messenger.send('__internal', {
+            mode: 'iframe',
+            referrer: getReferrer(),
+            type: 'init',
+          })
+
+          root.showModal()
+          document.addEventListener('keydown', onEscape)
+          document.body.style.overflow = 'hidden'
+          iframe.removeAttribute('hidden')
+          iframe.removeAttribute('aria-closed')
+          iframe.style.display = 'block'
         },
         async syncRequests(requests) {
           if (includesUnsupported(requests.map((x) => x.request)))
@@ -249,6 +248,18 @@ export function popup() {
       let messenger: Messenger.Messenger | undefined
 
       return {
+        close() {
+          if (!popup) return
+          popup.close()
+          popup = null
+          backdrop.style.display = 'none'
+        },
+        destroy() {
+          this.close()
+          window.removeEventListener('focus', onBlur)
+          messenger?.destroy()
+          root.remove()
+        },
         open() {
           const left = (window.innerWidth - width) / 2 + window.screenX
           const top = window.screenY + 100
@@ -271,9 +282,9 @@ export function popup() {
           })
 
           messenger.send('__internal', {
-            type: 'init',
             mode: isMobile() ? 'popup-standalone' : 'popup',
             referrer: getReferrer(),
+            type: 'init',
           })
 
           messenger.on('rpc-response', (response) =>
@@ -285,18 +296,6 @@ export function popup() {
           window.addEventListener('focus', onBlur)
 
           backdrop.style.display = 'block'
-        },
-        close() {
-          if (!popup) return
-          popup.close()
-          popup = null
-          backdrop.style.display = 'none'
-        },
-        destroy() {
-          this.close()
-          window.removeEventListener('focus', onBlur)
-          messenger?.destroy()
-          root.remove()
         },
         async syncRequests(requests) {
           if (!popup || popup.closed) this.open()
@@ -353,9 +352,9 @@ export function experimental_inline(options: inline.Options) {
 
       messenger.on('ready', () => {
         messenger.send('__internal', {
-          type: 'init',
           mode: 'inline-iframe',
           referrer: getReferrer(),
+          type: 'init',
         })
       })
       messenger.on('rpc-response', (response) =>
@@ -368,20 +367,20 @@ export function experimental_inline(options: inline.Options) {
       })
 
       return {
+        close() {},
+        destroy() {
+          messenger.destroy()
+          root.remove()
+        },
         open() {
           if (open) return
           open = true
 
           messenger.send('__internal', {
-            type: 'init',
             mode: 'iframe',
             referrer: getReferrer(),
+            type: 'init',
           })
-        },
-        close() {},
-        destroy() {
-          messenger.destroy()
-          root.remove()
         },
         async syncRequests(requests) {
           messenger.send('rpc-requests', requests)
@@ -402,11 +401,11 @@ export const height = 282
 
 export const styles = {
   backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: 'none',
+    height: '100%',
     position: 'fixed',
     width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: '2147483647',
   },
   iframe: {
@@ -458,14 +457,14 @@ export function handleResponse(
       if (queued.request.id !== response.id) return queued
       if (response.error)
         return {
+          error: response.error,
           request: queued.request,
           status: 'error',
-          error: response.error,
         } satisfies QueuedRequest
       return {
         request: queued.request,
-        status: 'success',
         result: response.result,
+        status: 'success',
       } satisfies QueuedRequest
     }),
   }))

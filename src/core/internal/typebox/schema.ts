@@ -1,8 +1,8 @@
 import {
   Kind,
+  type Static as Static_typebox,
   type StaticDecode as StaticDecode_typebox,
   type StaticEncode as StaticEncode_typebox,
-  type Static as Static_typebox,
   type TNever,
   type TOptional,
   type TSchema,
@@ -10,8 +10,9 @@ import {
   type TUnion,
   Type,
 } from '@sinclair/typebox/type'
+
 export { Type } from '@sinclair/typebox/type'
-export { Value, Encode, Decode } from '@sinclair/typebox/value'
+export { Decode, Encode, Value } from '@sinclair/typebox/value'
 
 import type { DeepReadonly, OneOf as OneOfType } from '../types.js'
 

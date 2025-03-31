@@ -1,8 +1,7 @@
 import { Hex, Value } from 'ox'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { readContract } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
-
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import {
   exp1Address,
   exp2Abi,
@@ -70,7 +69,6 @@ describe('createAccount', () => {
 
   test('behavior: permissions', async () => {
     const key = Key.createP256({
-      role: 'admin',
       permissions: {
         calls: [
           {
@@ -84,6 +82,7 @@ describe('createAccount', () => {
           },
         ],
       },
+      role: 'admin',
     })
 
     const account = await Relay.createAccount(client, {
@@ -170,8 +169,8 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
 
     const request = await Relay.prepareUpgradeAccount(client, {
       address: eoa.address,
-      keys: [key],
       feeToken: exp1Address,
+      keys: [key],
     })
 
     const signatures = await Promise.all(
@@ -198,10 +197,10 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
@@ -212,8 +211,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -228,10 +227,10 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
@@ -253,8 +252,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -270,10 +269,10 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
@@ -291,8 +290,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -304,19 +303,19 @@ describe('sendCalls', () => {
     })
 
     const newKey = Key.createP256({
-      role: 'session',
       permissions: {
         calls: [{ to: exp2Address }],
       },
+      role: 'session',
     })
     const { id } = await Relay.sendCalls(client, {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
@@ -334,8 +333,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -350,8 +349,8 @@ describe('sendCalls', () => {
     const request_1 = await Relay.prepareCalls(client, {
       account,
       authorizeKeys: [newKey],
-      key,
       feeToken: exp1Address,
+      key,
       pre: true,
     })
     const signature_1 = await Key.sign(key, {
@@ -362,15 +361,15 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
-      pre: [{ ...request_1, signature: signature_1 }],
       key,
+      pre: [{ ...request_1, signature: signature_1 }],
     })
 
     const signature_2 = await Key.sign(key, {
@@ -388,8 +387,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -403,17 +402,17 @@ describe('sendCalls', () => {
     const alice = Hex.random(20)
     const newKey = Key.createP256({
       expiry: 9999999999,
-      role: 'session',
       permissions: {
         calls: [{ to: alice }],
         spend: [{ limit: 69420n, period: 'day' }],
       },
+      role: 'session',
     })
     const request_1 = await Relay.prepareCalls(client, {
       account,
       authorizeKeys: [newKey],
-      key,
       feeToken: exp1Address,
+      key,
       pre: true,
     })
     const signature_1 = await Key.sign(key, {
@@ -424,15 +423,15 @@ describe('sendCalls', () => {
       account,
       calls: [
         {
-          to: exp2Address,
           abi: exp2Abi,
-          functionName: 'mint',
           args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
         },
       ],
       feeToken: exp1Address,
-      pre: [{ ...request_1, signature: signature_1 }],
       key,
+      pre: [{ ...request_1, signature: signature_1 }],
     })
     const signature_2 = await Key.sign(key, {
       payload: request_2.digest,
@@ -449,8 +448,8 @@ describe('sendCalls', () => {
     expect(
       await readContract(client, {
         ...exp2Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       }),
     ).toBe(100n)
   })
@@ -476,10 +475,10 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'mint',
             args: [account.address, 100n],
+            functionName: 'mint',
+            to: exp2Address,
           },
         ],
         feeToken: exp1Address,
@@ -489,10 +488,10 @@ describe.each([
       // 3. Verify that Account has 100 ERC20 tokens.
       expect(
         await readContract(client, {
-          address: exp2Address,
           abi: exp2Abi,
-          functionName: 'balanceOf',
+          address: exp2Address,
           args: [account.address],
+          functionName: 'balanceOf',
         }),
       ).toBe(100n)
     })
@@ -510,10 +509,10 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'mint',
             args: [account.address, 100n],
+            functionName: 'mint',
+            to: exp2Address,
           },
         ],
       })
@@ -522,10 +521,10 @@ describe.each([
       // 3. Verify that Account has 100 ERC20 tokens.
       expect(
         await readContract(client, {
-          address: exp2Address,
           abi: exp2Abi,
-          functionName: 'balanceOf',
+          address: exp2Address,
           args: [account.address],
+          functionName: 'balanceOf',
         }),
       ).toBe(100n)
     })
@@ -564,10 +563,10 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
+              functionName: 'transfer',
+              to: exp2Address,
             },
           ],
           feeToken: exp1Address,
@@ -666,24 +665,24 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: newKey,
           feeToken: exp1Address,
+          key: newKey,
         })
         expect(id).toBeDefined()
 
         // 4. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -698,10 +697,10 @@ describe.each([
 
       // 2. Authorize a new Session Key.
       const newKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [{ to: exp2Address }],
         },
+        role: 'session',
       })
 
       // 3. Mint 100 ERC20 tokens to Account with new Session Key.
@@ -709,14 +708,14 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'mint',
             args: [account.address, 100n],
+            functionName: 'mint',
+            to: exp2Address,
           },
         ],
-        key: newKey,
         feeToken: exp1Address,
+        key: newKey,
         pre: [
           {
             authorizeKeys: [newKey],
@@ -729,10 +728,10 @@ describe.each([
       // 4. Verify that Account has 100 ERC20 tokens.
       expect(
         await readContract(client, {
-          address: exp2Address,
           abi: exp2Abi,
-          functionName: 'balanceOf',
+          address: exp2Address,
           args: [account.address],
+          functionName: 'balanceOf',
         }),
       ).toBe(100n)
     })
@@ -747,7 +746,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -755,6 +753,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Mint 100 ERC20 tokens to Account (and initialize scoped Session Key).
@@ -763,14 +762,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -783,10 +782,10 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -800,7 +799,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -808,6 +806,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Mint 100 ERC20 tokens to Account (and initialize scoped Session Key).
@@ -816,14 +815,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -836,10 +835,10 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -850,24 +849,24 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
         })
         expect(id).toBeDefined()
 
         // 5. Verify that Account now has 200 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(200n)
       }
@@ -881,7 +880,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -889,6 +887,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Mint 100 ERC20 tokens to Account with Admin Key (and initialize scoped Session Key).
@@ -897,14 +896,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: adminKey,
           feeToken: exp1Address,
+          key: adminKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -917,10 +916,10 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -931,24 +930,24 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
         })
         expect(id).toBeDefined()
 
         // 5. Verify that Account now has 200 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(200n)
       }
@@ -964,7 +963,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -975,6 +973,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Mint 100 ERC20 tokens to Account (and initialize scoped Session Key).
@@ -983,18 +982,18 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
             {
               to: alice,
               value: 100n,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -1007,10 +1006,10 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -1024,7 +1023,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -1032,6 +1030,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Try to mint ERC20 tokens to Account with Session Key (and initialize scoped Session Key).
@@ -1040,14 +1039,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -1066,7 +1065,6 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
@@ -1074,6 +1072,7 @@ describe.each([
             },
           ],
         },
+        role: 'session',
       })
 
       // 2. Try to mint ERC20 tokens to Account with Session Key (and initialize scoped Session Key).
@@ -1082,14 +1081,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -1106,7 +1105,7 @@ describe.each([
       // 1. Initialize Account with Admin Key (with spend permission).
       const adminKey = Key.createP256({
         permissions: {
-          spend: [{ limit: 100n, token: exp2Address, period: 'day' }],
+          spend: [{ limit: 100n, period: 'day', token: exp2Address }],
         },
         role: 'admin',
       })
@@ -1119,10 +1118,10 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'mint',
             args: [account.address, 100n],
+            functionName: 'mint',
+            to: exp2Address,
           },
         ],
         feeToken: exp1Address,
@@ -1133,10 +1132,10 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'transfer',
             args: ['0x0000000000000000000000000000000000000000', 50n],
+            functionName: 'transfer',
+            to: exp2Address,
           },
         ],
         feeToken: exp1Address,
@@ -1148,10 +1147,10 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
+              functionName: 'transfer',
+              to: exp2Address,
             },
           ],
           feeToken: exp1Address,
@@ -1167,15 +1166,15 @@ describe.each([
       })
 
       const sessionKey = Key.createP256({
-        role: 'session',
         permissions: {
           calls: [
             {
               to: exp2Address,
             },
           ],
-          spend: [{ limit: 100n, token: exp2Address, period: 'day' }],
+          spend: [{ limit: 100n, period: 'day', token: exp2Address }],
         },
+        role: 'session',
       })
 
       // 2. Mint 100 ERC20 tokens to Account with Session Key.
@@ -1184,14 +1183,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'mint',
               args: [account.address, 100n],
+              functionName: 'mint',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
           pre: [
             {
               authorizeKeys: [sessionKey],
@@ -1204,10 +1203,10 @@ describe.each([
         // 3. Verify that Account has 100 ERC20 tokens.
         expect(
           await readContract(client, {
-            address: exp2Address,
             abi: exp2Abi,
-            functionName: 'balanceOf',
+            address: exp2Address,
             args: [account.address],
+            functionName: 'balanceOf',
           }),
         ).toBe(100n)
       }
@@ -1217,14 +1216,14 @@ describe.each([
         account,
         calls: [
           {
-            to: exp2Address,
             abi: exp2Abi,
-            functionName: 'transfer',
             args: ['0x0000000000000000000000000000000000000000', 50n],
+            functionName: 'transfer',
+            to: exp2Address,
           },
         ],
-        key: sessionKey,
         feeToken: exp1Address,
+        key: sessionKey,
       })
 
       // 5. Try to transfer another 50 ERC20 tokens from Account.
@@ -1233,14 +1232,14 @@ describe.each([
           account,
           calls: [
             {
-              to: exp2Address,
               abi: exp2Abi,
-              functionName: 'transfer',
               args: ['0x0000000000000000000000000000000000000000', 100n],
+              functionName: 'transfer',
+              to: exp2Address,
             },
           ],
-          key: sessionKey,
           feeToken: exp1Address,
+          key: sessionKey,
         }),
       ).rejects.toThrowError('Error: InsufficientBalance()')
     })

@@ -1,3 +1,4 @@
+import { Query } from '@porto/apps'
 import { useQueries } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
 import { Address } from 'ox'
@@ -10,8 +11,6 @@ import {
   odysseyTestnet,
   optimismSepolia,
 } from 'wagmi/chains'
-
-import { Query } from '@porto/apps'
 import { urlWithCorsBypass } from '~/lib/Constants'
 import { type ChainId, config } from '~/lib/Wagmi'
 import { useReadBalances } from './useReadBalances'
@@ -49,36 +48,31 @@ export function useTokenBalances({
     isSuccess,
     isPending,
   } = useQuery({
-    refetchInterval: 2_500,
-    queryKey: ['token-balances', userAddress, chainId],
     enabled: userAddress && Address.validate(userAddress),
     queryFn: async () => {
       const chains = config.chains.filter((c) => c.id === chainId)
-      try {
-        const responses = await Promise.all(
-          chains.map(async (chain) => {
-            const apiEndpoint = addressApiEndpoint(chain.id)
-            const url = `${apiEndpoint}/addresses/${userAddress}/token-balances`
-            const response = await fetch(urlWithCorsBypass(url))
-            if (response.status === 404) {
-              return { id: chain.id, data: [] }
-            }
-            if (!response.ok) {
-              throw new Error(
-                `Failed to fetch token balances: ${response.statusText}`,
-              )
-            }
-            return { id: chain.id, data: await response.json() }
-          }),
-        )
-        const data = responses.map((response) => response.data)
+      const responses = await Promise.all(
+        chains.map(async (chain) => {
+          const apiEndpoint = addressApiEndpoint(chain.id)
+          const url = `${apiEndpoint}/addresses/${userAddress}/token-balances`
+          const response = await fetch(urlWithCorsBypass(url))
+          if (response.status === 404) {
+            return { data: [], id: chain.id }
+          }
+          if (!response.ok) {
+            throw new Error(
+              `Failed to fetch token balances: ${response.statusText}`,
+            )
+          }
+          return { data: await response.json(), id: chain.id }
+        }),
+      )
+      const data = responses.map((response) => response.data)
 
-        return data as Array<Array<TokenBalance>>
-      } catch (error) {
-        console.error('Error fetching token balances:', error)
-        throw error
-      }
+      return data as Array<Array<TokenBalance>>
     },
+    queryKey: ['token-balances', userAddress, chainId],
+    refetchInterval: 2_500,
     select: (data) => data.flat(),
   })
 
@@ -89,14 +83,14 @@ export function useTokenBalances({
   const balances = useMemo(() => {
     if (gasStatus !== 'success') return []
     const gas = {
-      value: gasBalance?.value ?? 0n,
       token: {
-        token_id: 'eth',
         decimals: gasBalance?.decimals,
+        icon_url: '/icons/eth.svg',
         name: gasBalance?.symbol,
         symbol: gasBalance?.symbol,
-        icon_url: '/icons/eth.svg',
+        token_id: 'eth',
       },
+      value: gasBalance?.value ?? 0n,
     } as unknown as TokenBalance
     if (!tokenBalances) return [gas]
 
@@ -151,16 +145,14 @@ export function useAddressTransfers({
 
   const results = useQueries({
     combine: (result) => ({
-      error: result.map((query) => query.error),
       data: result.flatMap((query) => query.data),
+      error: result.map((query) => query.error),
       isError: result.some((query) => query.isError),
       isPending: result.some((query) => query.isPending),
       isSuccess: result.every((query) => query.isSuccess),
     }),
     queries: userChainIds.map((chainId) => ({
-      refetchInterval: 2_500,
       enabled: account.status === 'connected',
-      queryKey: ['address-transfers', userAddress, chainId],
       queryFn: async () => {
         const apiEndpoint = addressApiEndpoint(chainId)
         const url = `${apiEndpoint}/addresses/${userAddress}/token-transfers`
@@ -181,6 +173,8 @@ export function useAddressTransfers({
           next_page_params: null
         }
       },
+      queryKey: ['address-transfers', userAddress, chainId],
+      refetchInterval: 2_500,
     })),
   })
 
@@ -294,15 +288,14 @@ export function useTransactionsHistory({
 
   const { data, error, isError, isPending, isSuccess } = useQueries({
     combine: (result) => ({
-      error: result.map((query) => query.error),
       data: result.flatMap((query) => query.data),
+      error: result.map((query) => query.error),
       isError: result.some((query) => query.isError),
       isPending: result.some((query) => query.isPending),
       isSuccess: result.every((query) => query.isSuccess),
     }),
     queries: config.chains.map((chain) => ({
       enabled: !!userAddress && Address.validate(userAddress),
-      queryKey: ['transactions-history', userAddress, chain.id],
       queryFn: async () => {
         const apiEndpoint = addressApiEndpoint(chain.id)
         const url = `${apiEndpoint}/addresses/${userAddress}/transactions`
@@ -323,6 +316,7 @@ export function useTransactionsHistory({
           next_page_params: null
         }
       },
+      queryKey: ['transactions-history', userAddress, chain.id],
     })),
   })
 

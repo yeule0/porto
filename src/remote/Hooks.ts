@@ -2,8 +2,8 @@ import { useStore } from 'zustand'
 import { useShallow } from 'zustand/shallow'
 
 import type * as Chains from '../core/Chains.js'
-import type * as Porto from '../core/Porto.js'
 import * as Porto_internal from '../core/internal/porto.js'
+import type * as Porto from '../core/Porto.js'
 import type * as Remote from './Porto.js'
 
 /**

@@ -11,9 +11,9 @@ export function SignMessage(props: SignMessage.Props) {
     <Layout loading={loading} loadingTitle="Signing...">
       <Layout.Header>
         <Layout.Header.Default
-          title="Sign Message"
-          icon={LucideLogIn}
           content={<>Review the message to sign below.</>}
+          icon={LucideLogIn}
+          title="Sign Message"
           variant="default"
         />
       </Layout.Header>
@@ -35,17 +35,17 @@ export function SignMessage(props: SignMessage.Props) {
         <Layout.Footer.Actions>
           <Button
             className="flex-grow"
-            type="button"
             onClick={() => onReject()}
+            type="button"
           >
             No thanks
           </Button>
 
           <Button
             className="flex-grow"
+            onClick={() => onApprove()}
             type="button"
             variant="accent"
-            onClick={() => onApprove()}
           >
             Sign message
           </Button>
@@ -74,28 +74,28 @@ export namespace SignMessage {
       <Layout loading={loading} loadingTitle="Authenticating...">
         <Layout.Header className="flex-grow">
           <Layout.Header.Default
-            title="Authenticate"
-            icon={LucideLogIn}
             content={
               <>
                 Authenticate <span className="font-medium">{hostname}</span>{' '}
                 with your passkey to continue.
               </>
             }
+            icon={LucideLogIn}
+            title="Authenticate"
           />
         </Layout.Header>
 
         <Layout.Footer>
           <Layout.Footer.Actions>
-            <Button type="button" onClick={() => onReject()}>
+            <Button onClick={() => onReject()} type="button">
               No thanks
             </Button>
 
             <Button
               className="flex-grow"
+              onClick={() => onApprove()}
               type="button"
               variant="accent"
-              onClick={() => onApprove()}
             >
               Approve
             </Button>

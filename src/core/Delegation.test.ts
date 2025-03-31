@@ -1,5 +1,5 @@
 import { AbiFunction, Value } from 'ox'
-import { http, createClient } from 'viem'
+import { createClient, http } from 'viem'
 import { odysseyTestnet } from 'viem/chains'
 import { describe, expect, test } from 'vitest'
 
@@ -40,18 +40,18 @@ describe('simulate', () => {
         // Out: 2 EXP (-2 EXP)
         {
           abi: [AbiFunction.from('function transfer(address, uint256)')],
-          functionName: 'transfer',
           args: [
             '0x0000000000000000000000000000000000000003',
             Value.fromEther('2'),
           ],
+          functionName: 'transfer',
           to: experimentalErc20,
         },
         // In: 1 EXP (-1 EXP)
         {
           abi: [AbiFunction.from('function mint(address, uint256)')],
-          functionName: 'mint',
           args: [account.address, Value.fromEther('1')],
+          functionName: 'mint',
           to: experimentalErc20,
         },
       ],

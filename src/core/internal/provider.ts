@@ -192,13 +192,13 @@ export function from<
           const { key } = await getMode().actions.grantAdmin({
             account,
             feeToken: capabilities?.feeToken,
-            key: keyToAuthorize,
             internal: {
               client,
               config,
               request,
               store,
             },
+            key: keyToAuthorize,
           })
 
           store.setState((x) => {
@@ -250,13 +250,13 @@ export function from<
 
           const { key } = await getMode().actions.grantPermissions({
             account,
-            permissions,
             internal: {
               client,
               config,
               request,
               store,
             },
+            permissions,
           })
 
           store.setState((x) => {
@@ -297,13 +297,13 @@ export function from<
           const client = getClient(chainId)
 
           const { account } = await getMode().actions.createAccount({
-            label,
             internal: {
               client,
               config,
               request,
               store,
             },
+            label,
           })
 
           const permissions = getActivePermissions(account.keys ?? [], {
@@ -360,14 +360,14 @@ export function from<
             await getMode().actions.prepareUpgradeAccount({
               address,
               feeToken: capabilities?.feeToken,
-              permissions,
-              label,
               internal: {
                 client,
                 config,
                 request,
                 store,
               },
+              label,
+              permissions,
             })
 
           preparedAccounts_internal.push((context as any).account)
@@ -514,13 +514,13 @@ export function from<
           const { account } = await getMode().actions.upgradeAccount({
             account: account_,
             context,
-            signatures,
             internal: {
               client,
               config,
               request,
               store,
             },
+            signatures,
           })
 
           const permissions = getActivePermissions(account.keys ?? [], {
@@ -598,9 +598,9 @@ export function from<
               const { label = undefined } =
                 typeof createAccount === 'object' ? createAccount : {}
               const { account } = await getMode().actions.createAccount({
-                permissions,
-                label,
                 internal,
+                label,
+                permissions,
               })
               return { accounts: [account] }
             }
@@ -621,8 +621,8 @@ export function from<
             const credentialId = key?.credential?.id
             const keyId = key?.id
             const loadAccountsParams = {
-              permissions,
               internal,
+              permissions,
             }
             try {
               // try to restore from stored account (`keyId`/`credentialId`) to avoid multiple prompts
@@ -725,16 +725,16 @@ export function from<
 
           const { signPayloads, ...rest } =
             await getMode().actions.prepareCalls({
+              account: Account.from(account),
               calls,
               feeToken: capabilities?.feeToken,
-              key,
               internal: {
                 client,
                 config,
                 request,
                 store,
               },
-              account: Account.from(account),
+              key,
             })
 
           return Schema.Encode(Rpc.wallet_prepareCalls.Response, {
@@ -766,14 +766,14 @@ export function from<
           const hash = await getMode().actions.sendPreparedCalls({
             account,
             context,
-            key,
-            signature,
             internal: {
               client,
               config,
               request,
               store,
             },
+            key,
+            signature,
           })
 
           return [{ id: hash }] satisfies Schema.Static<
@@ -804,13 +804,13 @@ export function from<
             account,
             calls,
             feeToken: capabilities?.feeToken,
-            permissionsId: capabilities?.permissions?.id,
             internal: {
               client,
               config,
               request,
               store,
             },
+            permissionsId: capabilities?.permissions?.id,
           })
 
           return hash satisfies Schema.Static<

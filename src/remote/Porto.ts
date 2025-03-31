@@ -1,13 +1,13 @@
 import type * as RpcRequest from 'ox/RpcRequest'
-import { type StoreApi, createStore } from 'zustand/vanilla'
+import { createStore, type StoreApi } from 'zustand/vanilla'
 
 import type * as Chains from '../core/Chains.js'
+import type { ExactPartial } from '../core/internal/types.js'
 import * as Messenger from '../core/Messenger.js'
 import * as Mode from '../core/Mode.js'
 import * as Porto_ from '../core/Porto.js'
 import type * as RpcSchema from '../core/RpcSchema.js'
 import * as Storage from '../core/Storage.js'
-import type { ExactPartial } from '../core/internal/types.js'
 
 export type Porto<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]] = readonly [
@@ -47,7 +47,6 @@ export type RemoteState = {
 
 export const defaultConfig = {
   ...Porto_.defaultConfig,
-  mode: Mode.contract(),
   messenger:
     typeof window !== 'undefined'
       ? Messenger.bridge({
@@ -55,6 +54,7 @@ export const defaultConfig = {
           to: Messenger.fromWindow(window.opener ?? window.parent),
         })
       : Messenger.noop(),
+  mode: Mode.contract(),
   storage: Storage.localStorage(),
 } as const satisfies Config
 
@@ -98,12 +98,12 @@ export function create(
 
   return {
     ...porto,
-    mode,
-    messenger,
-    ready: messenger.ready,
     _internal: {
       ...porto._internal,
       remoteStore,
     },
+    messenger,
+    mode,
+    ready: messenger.ready,
   } as unknown as Porto
 }

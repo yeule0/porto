@@ -49,9 +49,9 @@ export namespace ValueFormatter {
 
 export namespace PercentFormatter {
   const numberIntl = new Intl.NumberFormat('en-US', {
-    style: 'percent',
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
+    style: 'percent',
   })
 
   export function format(num: number | undefined) {
@@ -62,13 +62,13 @@ export namespace PercentFormatter {
 
 export namespace DateFormatter {
   const dateIntl = new Intl.DateTimeFormat('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
     hour12: false,
+    minute: '2-digit',
+    month: '2-digit',
+    second: '2-digit',
+    year: 'numeric',
   })
 
   export function format(date: string) {

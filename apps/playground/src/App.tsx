@@ -180,9 +180,9 @@ function Connect() {
       <h3>wallet_connect</h3>
       <label>
         <input
-          type="checkbox"
           checked={grantPermissions}
           onChange={() => setGrantPermissions((x) => !x)}
+          type="checkbox"
         />
         Grant Permissions
       </label>
@@ -216,10 +216,10 @@ function Connect() {
                 params: [
                   {
                     capabilities: {
+                      createAccount: true,
                       grantPermissions: grantPermissions
                         ? permissions()
                         : undefined,
-                      createAccount: true,
                     },
                   },
                 ],
@@ -505,8 +505,8 @@ function UpgradeAccount() {
             const privateKey = generatePrivateKey()
             setPrivateKey(privateKey)
             setAccountData({
-              privateKey,
               address: privateKeyToAddress(privateKey),
+              privateKey,
             })
           }}
           type="button"
@@ -517,18 +517,18 @@ function UpgradeAccount() {
       </p>
       <div>
         <input
-          type="text"
-          value={privateKey}
           onChange={(e) => setPrivateKey(e.target.value)}
           placeholder="Private Key"
           style={{ width: '300px' }}
+          type="text"
+          value={privateKey}
         />
       </div>
       <label>
         <input
-          type="checkbox"
           checked={grantPermissions}
           onChange={() => setGrantPermissions((x) => !x)}
+          type="checkbox"
         />
         Grant Permissions
       </label>
@@ -595,25 +595,24 @@ function SendCalls() {
           if (action === 'mint')
             return [
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [recipient, Value.fromEther('100')],
                 ),
+                to: exp1Address,
               },
             ]
 
           if (action === 'transfer')
             return [
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [recipient, Value.fromEther('50')],
                 ),
+                to: exp1Address,
               },
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
@@ -622,27 +621,27 @@ function SendCalls() {
                     Value.fromEther('50'),
                   ],
                 ),
+                to: exp1Address,
               },
             ] as const
 
           if (action === 'mint-transfer')
             return [
               {
-                to: exp2Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [recipient, Value.fromEther('100')],
                 ),
+                to: exp2Address,
               },
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [recipient, Value.fromEther('50')],
                 ),
+                to: exp1Address,
               },
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
@@ -651,13 +650,13 @@ function SendCalls() {
                     Value.fromEther('50'),
                   ],
                 ),
+                to: exp1Address,
               },
             ] as const
 
           if (action === 'revert')
             return [
               {
-                to: exp2Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
@@ -666,6 +665,7 @@ function SendCalls() {
                     Value.fromEther('100'),
                   ],
                 ),
+                to: exp2Address,
               },
             ] as const
 
@@ -707,8 +707,8 @@ function SendCalls() {
           <pre>{hash}</pre>
           <a
             href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
-            target="_blank"
             rel="noreferrer"
+            target="_blank"
           >
             Explorer
           </a>
@@ -736,12 +736,12 @@ function SendTransaction() {
           if (action === 'mint')
             return [
               {
-                from: account,
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
+                from: account,
+                to: exp1Address,
               },
             ] as const
 
@@ -772,8 +772,8 @@ function SendTransaction() {
           <pre>{hash}</pre>
           <a
             href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
-            target="_blank"
             rel="noreferrer"
+            target="_blank"
           >
             Explorer
           </a>
@@ -963,13 +963,13 @@ function GrantKeyPermissions() {
             includePrefix: false,
           })
 
-          keyPair = { publicKey, privateKey }
+          keyPair = { privateKey, publicKey }
 
           const result = await porto.provider.request({
             method: 'experimental_grantPermissions',
             params: [
               {
-                key: { type: 'p256', publicKey },
+                key: { publicKey, type: 'p256' },
                 ...permissions(),
               },
             ],
@@ -1002,25 +1002,24 @@ function PrepareCalls() {
           if (action === 'mint')
             return [
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'mint'),
                   [account, Value.fromEther('100')],
                 ),
+                to: exp1Address,
               },
             ]
 
           if (action === 'transfer')
             return [
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'approve'),
                   [account, Value.fromEther('50')],
                 ),
+                to: exp1Address,
               },
               {
-                to: exp1Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
@@ -1029,13 +1028,13 @@ function PrepareCalls() {
                     Value.fromEther('50'),
                   ],
                 ),
+                to: exp1Address,
               },
             ] as const
 
           if (action === 'revert')
             return [
               {
-                to: exp2Address,
                 data: AbiFunction.encodeData(
                   AbiFunction.fromAbi(exp1Abi, 'transferFrom'),
                   [
@@ -1044,6 +1043,7 @@ function PrepareCalls() {
                     Value.fromEther('100'),
                   ],
                 ),
+                to: exp2Address,
               },
             ] as const
 
@@ -1068,8 +1068,8 @@ function PrepareCalls() {
               calls,
               chainId: Hex.fromNumber(Chains.odysseyTestnet.id),
               key: {
-                type: 'p256',
                 publicKey: keyPair.publicKey,
+                type: 'p256',
               },
             },
           ],
@@ -1107,8 +1107,8 @@ function PrepareCalls() {
           <pre>{hash}</pre>
           <a
             href={`https://odyssey-explorer.ithaca.xyz/tx/${hash}`}
-            target="_blank"
             rel="noreferrer"
+            target="_blank"
           >
             Explorer
           </a>
@@ -1120,12 +1120,44 @@ function PrepareCalls() {
 
 const typedData = {
   domain: {
-    name: 'Ether Mail 🥵',
-    version: '1.1.1',
     chainId: 1,
+    name: 'Ether Mail 🥵',
     verifyingContract: '0x0000000000000000000000000000000000000000',
+    version: '1.1.1',
   },
+  message: {
+    contents: 'Hello, Bob! 🖤',
+    from: {
+      age: 69,
+      favoriteColors: ['red', 'green', 'blue'],
+      foo: 123123123123123123n,
+      isCool: false,
+      name: {
+        first: 'Cow',
+        last: 'Burns',
+      },
+      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+    },
+    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    timestamp: 1234567890n,
+    to: {
+      age: 70,
+      favoriteColors: ['orange', 'yellow', 'green'],
+      foo: 123123123123123123n,
+      isCool: true,
+      name: { first: 'Bob', last: 'Builder' },
+      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+    },
+  },
+  primaryType: 'Mail',
   types: {
+    Mail: [
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'from', type: 'Person' },
+      { name: 'to', type: 'Person' },
+      { name: 'contents', type: 'string' },
+      { name: 'hash', type: 'bytes' },
+    ],
     Name: [
       { name: 'first', type: 'string' },
       { name: 'last', type: 'string' },
@@ -1138,37 +1170,5 @@ const typedData = {
       { name: 'age', type: 'uint8' },
       { name: 'isCool', type: 'bool' },
     ],
-    Mail: [
-      { name: 'timestamp', type: 'uint256' },
-      { name: 'from', type: 'Person' },
-      { name: 'to', type: 'Person' },
-      { name: 'contents', type: 'string' },
-      { name: 'hash', type: 'bytes' },
-    ],
-  },
-  primaryType: 'Mail',
-  message: {
-    timestamp: 1234567890n,
-    contents: 'Hello, Bob! 🖤',
-    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-    from: {
-      name: {
-        first: 'Cow',
-        last: 'Burns',
-      },
-      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-      age: 69,
-      foo: 123123123123123123n,
-      favoriteColors: ['red', 'green', 'blue'],
-      isCool: false,
-    },
-    to: {
-      name: { first: 'Bob', last: 'Builder' },
-      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-      age: 70,
-      foo: 123123123123123123n,
-      favoriteColors: ['orange', 'yellow', 'green'],
-      isCool: true,
-    },
   },
 } as const

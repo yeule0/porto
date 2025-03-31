@@ -1,29 +1,24 @@
 import * as Ariakit from '@ariakit/react'
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { Button, Spinner } from '@porto/apps/components'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { cx } from 'cva'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { useConnect, useConnectors, useDisconnect, useSignMessage } from 'wagmi'
+import { CustomToast } from '~/components/CustomToast'
+import { mipdConfig as config } from '~/lib/MipdWagmi'
 import SecurityIcon from '~icons/ic/outline-security'
 import CheckMarkIcon from '~icons/lucide/check'
 import ChevronRightIcon from '~icons/lucide/chevron-right'
 import XIcon from '~icons/lucide/x'
-
-import { Button, Spinner } from '@porto/apps/components'
-import { CustomToast } from '~/components/CustomToast'
-import { mipdConfig as config } from '~/lib/MipdWagmi'
 import { Layout } from './-components/Layout'
 
 export const Route = createFileRoute('/_layout/recovery')({
   component: RouteComponent,
 })
 
-function ActionableFeedback({
-  feedback,
-}: {
-  feedback: 'SUCCESS' | 'PENDING'
-}) {
+function ActionableFeedback({ feedback }: { feedback: 'SUCCESS' | 'PENDING' }) {
   return (
     <div className="w-[350px]">
       {feedback === 'PENDING' ? (
@@ -60,9 +55,9 @@ function ActionableFeedback({
                 lose access.
               </p>
               <Button
-                variant="accent"
-                render={<Link to="..">Done</Link>}
                 className="mt-2 h-11! w-full text-lg!"
+                render={<Link to="..">Done</Link>}
+                variant="accent"
               />
             </React.Fragment>
           )}
@@ -75,9 +70,9 @@ function ActionableFeedback({
 function RouteComponent() {
   React.useEffect(() => {
     toast.warning('Not implemented', {
-      position: 'top-right',
-      duration: Number.POSITIVE_INFINITY,
       description: 'Will be implemented soon after relay is ready',
+      duration: Number.POSITIVE_INFINITY,
+      position: 'top-right',
     })
   })
 
@@ -105,18 +100,18 @@ function RouteComponent() {
 
   const { signMessageAsync, status: _signMessageStatus } = useSignMessage({
     mutation: {
+      onError: (error, _, __) => console.info(error),
       onMutate: (_) => setView('LOADING'),
       onSuccess: (_, __, ___) => setView('SUCCESS'),
-      onError: (error, _, __) => console.info(error),
     },
   })
 
   // @ts-expect-error
   const createAccount = Hooks.useCreateAccount({
     mutation: {
-      onSuccess: (_, __, ___) => setView('SUCCESS'),
       onError: (error, _, __) => console.info(error),
       onMutate: (_) => [console.info('mutate'), setView('LOADING')],
+      onSuccess: (_, __, ___) => setView('SUCCESS'),
     },
   })
 
@@ -128,10 +123,10 @@ function RouteComponent() {
         <Layout.Header
           right={
             <Button
-              render={<Link to=".." />}
-              variant="outline"
-              size="square"
               className="block lg:hidden"
+              render={<Link to=".." />}
+              size="square"
+              variant="outline"
             >
               <XIcon className="size-5 text-gray10" />
             </Button>
@@ -168,10 +163,11 @@ function RouteComponent() {
                 {connectors.map((connector, _index) => (
                   <React.Fragment key={connector.id}>
                     <li
-                      data-connector={connector.id}
                       className="w-full rounded-md border-none py-2"
+                      data-connector={connector.id}
                     >
                       <Ariakit.Button
+                        className="flex h-12 w-full max-w-full flex-row items-center justify-between space-x-4 rounded-md border-none p-1 hover:bg-gray3"
                         onClick={async (event) => {
                           event.preventDefault()
                           event.stopPropagation()
@@ -192,10 +188,10 @@ function RouteComponent() {
                                     .then((_signature) =>
                                       toast.custom((t) => (
                                         <CustomToast
-                                          title="Signed Message"
-                                          kind="SUCCESS"
                                           className={t}
                                           description="You have successfully signed a message. Look at you"
+                                          kind="SUCCESS"
+                                          title="Signed Message"
                                         />
                                       )),
                                     ),
@@ -205,20 +201,19 @@ function RouteComponent() {
                               setView('DEFAULT')
                               toast.custom((t) => (
                                 <CustomToast
-                                  title="Error Signing"
-                                  kind="ERROR"
                                   className={t}
                                   description={error.message}
+                                  kind="ERROR"
+                                  title="Error Signing"
                                 />
                               ))
                             })
                         }}
-                        className="flex h-12 w-full max-w-full flex-row items-center justify-between space-x-4 rounded-md border-none p-1 hover:bg-gray3"
                       >
                         <img
-                          src={connector.icon}
                           alt={connector.name}
                           className="ml-1 size-9"
+                          src={connector.icon}
                         />
                         <span className="select-none text-xl">
                           {connector.name}
@@ -234,7 +229,7 @@ function RouteComponent() {
             <Button
               className="my-4 h-11! w-full font-medium text-lg!"
               render={
-                <Link to=".." className="">
+                <Link className="" to="..">
                   I'll do this later
                 </Link>
               }

@@ -23,8 +23,8 @@ const Authorization = Type.Object({
 })
 
 const Call = Type.Object({
-  to: Primitive.Address,
   data: Schema.Optional(Primitive.Hex),
+  to: Primitive.Address,
   value: Schema.Optional(Primitive.BigInt),
 })
 
@@ -32,10 +32,10 @@ export namespace wallet_getAccounts {
   /** Parameters for `wallet_getAccounts` request. */
   export const Parameters = Type.Object({
     /** Key identifier. */
-    id: Primitive.Hex,
+    chain_id: Type.Number(),
     /** Target chain ID. */
     // TODO: `Primitive.Number`
-    chain_id: Type.Number(),
+    id: Primitive.Hex,
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
 
@@ -105,9 +105,9 @@ export namespace wallet_prepareCreateAccount {
   /** Parameters for `wallet_prepareCreateAccount` request. */
   export const Parameters = Type.Object({
     /** The chain ID to create the account on. */
-    chainId: Primitive.Number,
-    /** Capabilities for the account. */
     capabilities: Capabilities,
+    /** Capabilities for the account. */
+    chainId: Primitive.Number,
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
 
@@ -125,9 +125,9 @@ export namespace wallet_prepareCreateAccount {
     context: Type.Object({
       account: Type.Object({
         address: Primitive.Address,
+        initCalls: Type.Array(Call),
         salt: Type.Number(),
         signedAuthorization: Authorization,
-        initCalls: Type.Array(Call),
       }),
       chainId: Primitive.Number,
     }),
@@ -197,9 +197,9 @@ export namespace wallet_prepareCalls {
     /** Metadata for the call bundle. */
     meta: C.meta.Request,
     /** Optional preOps to execute before signature verification. */
-    preOps: Schema.Optional(Type.Array(UserOp.UserOp)),
-    /** Whether the call bundle is to be considered a preop. */
     preOp: Schema.Optional(Type.Boolean()),
+    /** Whether the call bundle is to be considered a preop. */
+    preOps: Schema.Optional(Type.Array(UserOp.UserOp)),
     /** Keys to revoke on the account. */
     revokeKeys: Schema.Optional(C.revokeKeys.Request),
   })
@@ -244,11 +244,11 @@ export namespace wallet_prepareCalls {
   /** Response for `wallet_prepareCalls`. */
   export const Response = Type.Object({
     /** Quote for the call bundle. */
-    context: Quote.Signed,
-    /** Digest to sign over. */
-    digest: Primitive.Hex,
-    /** Capabilities. */
     capabilities: ResponseCapabilities,
+    /** Digest to sign over. */
+    context: Quote.Signed,
+    /** Capabilities. */
+    digest: Primitive.Hex,
   })
   export type Response = Schema.StaticDecode<typeof Response>
 }
@@ -276,9 +276,9 @@ export namespace wallet_prepareUpgradeAccount {
     address: Primitive.Address,
     /** Chain ID to initialize the account on. */
     // TODO: `Primitive.Number`
-    chainId: Type.Number(),
-    /** Capabilities. */
     capabilities: Capabilities,
+    /** Capabilities. */
+    chainId: Type.Number(),
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
 

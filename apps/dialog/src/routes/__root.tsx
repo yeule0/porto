@@ -1,5 +1,5 @@
 import { Porto } from '@porto/apps'
-import { HeadContent, Outlet, createRootRoute } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
 
@@ -55,8 +55,8 @@ function RouteComponent() {
             window.resizeTo(width, totalHeight)
           } else if (mode === 'iframe' || mode === 'inline-iframe') {
             Porto.porto.messenger.send('__internal', {
-              type: 'resize',
               height: totalHeight,
+              type: 'resize',
             })
           }
         }
@@ -81,8 +81,8 @@ function RouteComponent() {
 
       <div data-dialog>
         <header
-          ref={titlebarRef}
           data-element="dialog-header"
+          ref={titlebarRef}
           {...{
             [dataMode]: '',
           }}
@@ -93,9 +93,9 @@ function RouteComponent() {
               {icon ? (
                 <div className="p-[3px]">
                   <img
-                    src={icon}
                     alt={hostname}
                     className="size-full text-transparent"
+                    src={icon}
                   />
                 </div>
               ) : (
@@ -109,9 +109,9 @@ function RouteComponent() {
 
           {mode !== 'inline-iframe' && (
             <button
-              type="button"
               onClick={() => Actions.rejectAll(Porto.porto)}
               title="Close Dialog"
+              type="button"
             >
               <LucideX className="size-4.5 text-secondary" />
             </button>
@@ -135,9 +135,9 @@ function RouteComponent() {
       <React.Suspense>
         <TanStackRouterDevtools position="bottom-right" />
         <TanStackQueryDevtools
-          position="left"
-          initialIsOpen={false}
           buttonPosition="bottom-left"
+          initialIsOpen={false}
+          position="left"
         />
       </React.Suspense>
     </>

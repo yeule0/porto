@@ -29,8 +29,8 @@ export function Intro() {
             <a
               className="font-[500] text-[13px]"
               href="https://porto.sh"
-              target="_blank"
               rel="noreferrer"
+              target="_blank"
             >
               Documentation
             </a>

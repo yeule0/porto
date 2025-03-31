@@ -234,9 +234,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
+          hash: null,
           id: null,
           publicKey: null,
-          hash: null,
         })),
       ).matchSnapshot()
 
@@ -308,9 +308,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -457,9 +457,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -477,9 +477,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -525,9 +525,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -545,9 +545,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -624,8 +624,8 @@ describe.each([
           ...x,
           credential: null,
           expiry: null,
-          publicKey: null,
           hash: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -655,9 +655,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot(`
         [
@@ -706,9 +706,9 @@ describe.each([
         accounts![0]!.keys?.map((x) => ({
           ...x,
           expiry: null,
-          publicKey: null,
-          id: null,
           hash: null,
+          id: null,
+          publicKey: null,
         })),
       ).matchSnapshot()
 
@@ -753,10 +753,10 @@ describe.each([
       expect(
         accounts![0]!.keys?.map((x, i) => ({
           ...x,
-          id: i === 0 ? null : x.id,
           expiry: i === 0 ? null : x.expiry,
-          publicKey: i === 0 ? null : x.publicKey,
           hash: i === 0 ? null : x.hash,
+          id: i === 0 ? null : x.id,
+          publicKey: i === 0 ? null : x.publicKey,
         })),
       ).matchSnapshot()
 
@@ -849,13 +849,13 @@ describe.each([
         method: 'wallet_sendCalls',
         params: [
           {
-            from: address,
             calls: [
               {
                 to: alice,
                 value: Hex.fromNumber(69420),
               },
             ],
+            from: address,
             version: '1',
           },
         ],
@@ -898,13 +898,13 @@ describe.each([
         method: 'wallet_sendCalls',
         params: [
           {
-            from: address,
             calls: [
               {
                 to: alice,
                 value: Hex.fromNumber(69420),
               },
             ],
+            from: address,
             version: '1',
           },
         ],
@@ -946,16 +946,16 @@ describe.each([
         method: 'wallet_sendCalls',
         params: [
           {
-            capabilities: {
-              permissions,
-            },
-            from: address,
             calls: [
               {
                 to: alice,
                 value: Hex.fromNumber(69420),
               },
             ],
+            capabilities: {
+              permissions,
+            },
+            from: address,
             version: '1',
           },
         ],
@@ -998,16 +998,16 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              capabilities: {
-                permissions,
-              },
-              from: address,
               calls: [
                 {
                   to: alice,
                   value: Hex.fromNumber(69420),
                 },
               ],
+              capabilities: {
+                permissions,
+              },
+              from: address,
               version: '1',
             },
           ],
@@ -1053,16 +1053,16 @@ describe.each([
         method: 'wallet_sendCalls',
         params: [
           {
-            capabilities: {
-              permissions,
-            },
-            from: address,
             calls: [
               {
                 to: alice,
                 value: Hex.fromNumber(69420),
               },
             ],
+            capabilities: {
+              permissions,
+            },
+            from: address,
             version: '1',
           },
         ],
@@ -1073,16 +1073,16 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              capabilities: {
-                permissions,
-              },
-              from: address,
               calls: [
                 {
                   to: alice,
                   value: Hex.fromNumber(1),
                 },
               ],
+              capabilities: {
+                permissions,
+              },
+              from: address,
               version: '1',
             },
           ],
@@ -1122,16 +1122,16 @@ describe.each([
         method: 'wallet_sendCalls',
         params: [
           {
-            capabilities: {
-              permissions,
-            },
-            from: address,
             calls: [
               {
                 to: alice,
                 value: Hex.fromNumber(69420),
               },
             ],
+            capabilities: {
+              permissions,
+            },
+            from: address,
             version: '1',
           },
         ],
@@ -1149,16 +1149,16 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              capabilities: {
-                permissions,
-              },
-              from: address,
               calls: [
                 {
                   to: alice,
                   value: Hex.fromNumber(69420),
                 },
               ],
+              capabilities: {
+                permissions,
+              },
+              from: address,
               version: '1',
             },
           ],
@@ -1203,18 +1203,18 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              capabilities: {
-                permissions: {
-                  id,
-                },
-              },
-              from: address,
               calls: [
                 {
                   to: alice,
                   value: Hex.fromNumber(69420),
                 },
               ],
+              capabilities: {
+                permissions: {
+                  id,
+                },
+              },
+              from: address,
               version: '1',
             },
           ],
@@ -1243,18 +1243,18 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              capabilities: {
-                permissions: {
-                  id: '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
-                },
-              },
-              from: address,
               calls: [
                 {
                   to: alice,
                   value: Hex.fromNumber(69420),
                 },
               ],
+              capabilities: {
+                permissions: {
+                  id: '0x86a0d77beccf47a0a78cccfc19fdfe7317816740c9f9e6d7f696a02b0c66e0e21744d93c5699e9ce658a64ce60df2f32a17954cd577c713922bf62a1153cf68e',
+                },
+              },
+              from: address,
               version: '1',
             },
           ],
@@ -1274,13 +1274,13 @@ describe.each([
           method: 'wallet_sendCalls',
           params: [
             {
-              from: address,
               calls: [
                 // @ts-ignore
                 {
                   data: '0xdeadbeef',
                 },
               ],
+              from: address,
               version: '1',
             },
           ],
@@ -1789,12 +1789,44 @@ describe.each([
 
 const typedData = {
   domain: {
-    name: 'Ether Mail 🥵',
-    version: '1.1.1',
     chainId: 1,
+    name: 'Ether Mail 🥵',
     verifyingContract: '0x0000000000000000000000000000000000000000',
+    version: '1.1.1',
   },
+  message: {
+    contents: 'Hello, Bob! 🖤',
+    from: {
+      age: 69,
+      favoriteColors: ['red', 'green', 'blue'],
+      foo: 123123123123123123n,
+      isCool: false,
+      name: {
+        first: 'Cow',
+        last: 'Burns',
+      },
+      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+    },
+    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    timestamp: 1234567890n,
+    to: {
+      age: 70,
+      favoriteColors: ['orange', 'yellow', 'green'],
+      foo: 123123123123123123n,
+      isCool: true,
+      name: { first: 'Bob', last: 'Builder' },
+      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+    },
+  },
+  primaryType: 'Mail',
   types: {
+    Mail: [
+      { name: 'timestamp', type: 'uint256' },
+      { name: 'from', type: 'Person' },
+      { name: 'to', type: 'Person' },
+      { name: 'contents', type: 'string' },
+      { name: 'hash', type: 'bytes' },
+    ],
     Name: [
       { name: 'first', type: 'string' },
       { name: 'last', type: 'string' },
@@ -1807,37 +1839,5 @@ const typedData = {
       { name: 'age', type: 'uint8' },
       { name: 'isCool', type: 'bool' },
     ],
-    Mail: [
-      { name: 'timestamp', type: 'uint256' },
-      { name: 'from', type: 'Person' },
-      { name: 'to', type: 'Person' },
-      { name: 'contents', type: 'string' },
-      { name: 'hash', type: 'bytes' },
-    ],
-  },
-  primaryType: 'Mail',
-  message: {
-    timestamp: 1234567890n,
-    contents: 'Hello, Bob! 🖤',
-    hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-    from: {
-      name: {
-        first: 'Cow',
-        last: 'Burns',
-      },
-      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-      age: 69,
-      foo: 123123123123123123n,
-      favoriteColors: ['red', 'green', 'blue'],
-      isCool: false,
-    },
-    to: {
-      name: { first: 'Bob', last: 'Builder' },
-      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-      age: 70,
-      foo: 123123123123123123n,
-      favoriteColors: ['orange', 'yellow', 'green'],
-      isCool: true,
-    },
   },
 } as const

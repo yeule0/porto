@@ -2,19 +2,17 @@ import * as fs from 'node:fs'
 import { basename, dirname, resolve } from 'node:path'
 import { getExports } from './utils/exports.js'
 
-// biome-ignore lint/suspicious/noConsoleLog:
 console.log('Setting up packages for development.')
 
 const packagePath = resolve(import.meta.dirname, '../src/package.json')
 const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'))
 
-// biome-ignore lint/suspicious/noConsoleLog:
 console.log(`${packageJson.name} — ${dirname(packagePath)}`)
 
 const dir = resolve(dirname(packagePath))
 
 // Empty dist directories
-fs.rmSync(resolve(dir, '_dist'), { recursive: true, force: true })
+fs.rmSync(resolve(dir, '_dist'), { force: true, recursive: true })
 
 const exports = getExports()
 
@@ -51,5 +49,4 @@ for (const [key, distExports] of Object.entries(exports.dist ?? {})) {
   }
 }
 
-// biome-ignore lint/suspicious/noConsoleLog:
 console.log('Done.')

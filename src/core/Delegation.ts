@@ -15,8 +15,8 @@ import {
   zeroAddress,
 } from 'viem'
 import {
-  type SimulateParameters,
   createAccessList,
+  type SimulateParameters,
   simulate as simulate_viem,
 } from 'viem/actions'
 import type { EncodeExecuteDataParameters } from 'viem/experimental/erc7821'
@@ -51,7 +51,6 @@ export async function simulate<
   const getBalanceData = AbiConstructor.encode(
     AbiConstructor.from('constructor(bytes, bytes)'),
     {
-      bytecode: deploylessCallCode,
       args: [
         getBalanceCode,
         AbiFunction.encodeData(
@@ -59,6 +58,7 @@ export async function simulate<
           [account.address],
         ),
       ],
+      bytecode: deploylessCallCode,
     },
   )
 
@@ -111,11 +111,11 @@ export async function simulate<
           abi: [
             AbiFunction.from('function balanceOf(address) returns (uint256)'),
           ],
-          functionName: 'balanceOf',
           args: [account.address],
-          to: address,
           from: zeroAddress,
+          functionName: 'balanceOf',
           nonce: i,
+          to: address,
         })),
         stateOverrides: [
           {
@@ -155,11 +155,11 @@ export async function simulate<
           abi: [
             AbiFunction.from('function balanceOf(address) returns (uint256)'),
           ],
-          functionName: 'balanceOf',
           args: [account.address],
-          to: address,
           from: zeroAddress,
+          functionName: 'balanceOf',
           nonce: i,
+          to: address,
         })),
         stateOverrides: [
           {
@@ -172,11 +172,11 @@ export async function simulate<
       // ERC20 decimals
       {
         calls: erc20Addresses.map((address, i) => ({
-          to: address,
           abi: [AbiFunction.from('function decimals() returns (uint256)')],
-          functionName: 'decimals',
           from: zeroAddress,
+          functionName: 'decimals',
           nonce: i,
+          to: address,
         })),
         stateOverrides: [
           {
@@ -189,11 +189,11 @@ export async function simulate<
       // ERC20 symbols
       {
         calls: erc20Addresses.map((address, i) => ({
-          to: address,
           abi: [AbiFunction.from('function symbol() returns (string)')],
-          functionName: 'symbol',
           from: zeroAddress,
+          functionName: 'symbol',
           nonce: i,
+          to: address,
         })),
         stateOverrides: [
           {
@@ -275,9 +275,9 @@ export async function simulate<
     balances.push({
       token,
       value: {
-        pre: balancePre,
-        post: balancePost,
         diff,
+        post: balancePost,
+        pre: balancePre,
       },
     })
   }

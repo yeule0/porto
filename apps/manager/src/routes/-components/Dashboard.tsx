@@ -1,6 +1,5 @@
-import { Button, Spinner } from '@porto/apps/components'
-
 import * as Ariakit from '@ariakit/react'
+import { Button, Spinner } from '@porto/apps/components'
 import { Link } from '@tanstack/react-router'
 import { Cuer } from 'cuer'
 import { cx } from 'cva'
@@ -12,6 +11,14 @@ import { toast } from 'sonner'
 import { encodeFunctionData, erc20Abi, formatEther } from 'viem'
 import { useAccount, useBlockNumber } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
+import { CustomToast } from '~/components/CustomToast'
+import { DevOnly } from '~/components/DevOnly'
+import { ShowMore } from '~/components/ShowMore'
+import { TruncatedAddress } from '~/components/TruncatedAddress'
+import { useAddressTransfers } from '~/hooks/useBlockscoutApi'
+import { useSwapAssets } from '~/hooks/useSwapAssets'
+import { config } from '~/lib/Wagmi'
+import { DateFormatter, StringFormatter, sum, ValueFormatter } from '~/utils'
 import ArrowLeftRightIcon from '~icons/lucide/arrow-left-right'
 import ArrowRightIcon from '~icons/lucide/arrow-right'
 import ClipboardCopyIcon from '~icons/lucide/clipboard-copy'
@@ -23,15 +30,6 @@ import XIcon from '~icons/lucide/x'
 import AccountIcon from '~icons/material-symbols/account-circle-full'
 import NullIcon from '~icons/material-symbols/do-not-disturb-on-outline'
 import WorldIcon from '~icons/tabler/world'
-
-import { CustomToast } from '~/components/CustomToast'
-import { DevOnly } from '~/components/DevOnly'
-import { ShowMore } from '~/components/ShowMore'
-import { TruncatedAddress } from '~/components/TruncatedAddress'
-import { useAddressTransfers } from '~/hooks/useBlockscoutApi'
-import { useSwapAssets } from '~/hooks/useSwapAssets'
-import { config } from '~/lib/Wagmi'
-import { DateFormatter, StringFormatter, ValueFormatter, sum } from '~/utils'
 import { Layout } from './Layout'
 
 type TableProps<T> = {
@@ -74,11 +72,11 @@ function PaginatedTable<T>({
           <tr className="text-gray10 *:font-normal *:text-sm">
             {columns.map((col) => (
               <th
-                key={col.key}
                 className={cx(
                   col.width,
                   col.align === 'right' ? 'text-right' : 'text-left',
                 )}
+                key={col.key}
               >
                 {col.header}
               </th>
@@ -93,7 +91,7 @@ function PaginatedTable<T>({
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} className="text-center text-gray12">
+              <td className="text-center text-gray12" colSpan={columns.length}>
                 <p className="mt-2 text-sm">{emptyMessage}</p>
               </td>
             </tr>
@@ -103,9 +101,9 @@ function PaginatedTable<T>({
       {remainingItems.length > 0 && (
         <div className="flex justify-start">
           <ShowMore
+            className="cursor-default font-medium text-gray10 text-sm"
             onChange={() => setShowAll(showAll === 'ALL' ? 'DEFAULT' : 'ALL')}
             text={`Show ${remainingItems.length} ${showMoreText}`}
-            className="cursor-default font-medium text-gray10 text-sm"
           />
         </div>
       )}
@@ -173,7 +171,7 @@ export function Dashboard() {
         left={undefined}
         right={
           <div className="flex gap-2">
-            <Button size="small" className="">
+            <Button className="" size="small">
               Help
             </Button>
             <Button
@@ -207,13 +205,13 @@ export function Dashboard() {
           </div>
         </div>
         <Ariakit.Button
+          className="flex w-[150px] items-center justify-center gap-3 hover:cursor-pointer!"
           onClick={() =>
             navigator.clipboard
               .writeText(account.address ?? '')
               .then(() => toast.success('Copied address to clipboard'))
               .catch(() => toast.error('Failed to copy address to clipboard'))
           }
-          className="flex w-[150px] items-center justify-center gap-3 hover:cursor-pointer!"
         >
           <Cuer.Root
             className="rounded-lg border border-surface bg-white p-2.5 dark:bg-secondary"
@@ -238,14 +236,14 @@ export function Dashboard() {
         </summary>
 
         <PaginatedTable
-          emptyMessage="No balances available for this account"
-          data={assets}
           columns={[
             { header: 'Name', key: 'name', width: 'w-[40%]' },
             { align: 'right', header: '', key: 'balance', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'symbol', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
           ]}
+          data={assets}
+          emptyMessage="No balances available for this account"
           renderRow={(asset) => (
             <AssetRow
               address={asset.address}
@@ -274,24 +272,24 @@ export function Dashboard() {
         </summary>
 
         <PaginatedTable
-          data={filteredTransfers}
-          emptyMessage="No transactions yet"
           columns={[
             { header: 'Time', key: 'time' },
             { header: 'Account', key: 'recipient' },
             { align: 'right', header: 'Amount', key: 'amount' },
           ]}
+          data={filteredTransfers}
+          emptyMessage="No transactions yet"
           renderRow={(transfer) => (
             <tr
-              key={`${transfer?.transaction_hash}-${transfer?.block_number}`}
               className="text-xs sm:text-sm "
+              key={`${transfer?.transaction_hash}-${transfer?.block_number}`}
             >
               <td className="py-1 text-left">
                 <a
-                  target="_blank"
-                  rel="noreferrer"
                   className="flex flex-row items-center"
                   href={`https://explorer.ithaca.xyz/tx/${transfer?.transaction_hash}`}
+                  rel="noreferrer"
+                  target="_blank"
                 >
                   <span className="min-w-[65px] text-gray11">
                     {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))} ago
@@ -304,8 +302,8 @@ export function Dashboard() {
                   <AccountIcon className="size-4 rounded-full text-gray10" />
                 </div>
                 <TruncatedAddress
-                  className="ml-2"
                   address={transfer?.to.hash ?? ''}
+                  className="ml-2"
                 />
               </td>
               <td className="py-1 text-right text-gray12">
@@ -340,10 +338,6 @@ export function Dashboard() {
         </summary>
 
         <PaginatedTable
-          data={permissions?.data}
-          emptyMessage="No permissions added yet"
-          initialCount={3}
-          showMoreText="more permissions"
           columns={[
             { header: 'Time', key: 'time' },
             { header: 'Name', key: 'name', width: '' },
@@ -357,6 +351,9 @@ export function Dashboard() {
             { align: 'left', header: '', key: 'period', width: 'w-[60px]' },
             { align: 'right', header: '', key: 'action' },
           ]}
+          data={permissions?.data}
+          emptyMessage="No permissions added yet"
+          initialCount={3}
           renderRow={(permission) => {
             const [spend] = permission?.permissions?.spend ?? []
             const [calls] = permission?.permissions?.calls ?? []
@@ -364,15 +361,15 @@ export function Dashboard() {
             const time = DateFormatter.timeToDuration(permission.expiry * 1_000)
             return (
               <tr
-                key={`${permission.id}-${permission.expiry}`}
                 className="*:text-xs! *:sm:text-sm!"
+                key={`${permission.id}-${permission.expiry}`}
               >
                 <td className="max-w-[50px] py-3 text-left">
                   <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={`https://explorer.ithaca.xyz/address/${permission.address}`}
                     className="flex flex-row items-center"
+                    href={`https://explorer.ithaca.xyz/address/${permission.address}`}
+                    rel="noreferrer"
+                    target="_blank"
                   >
                     <span className="min-w-[37px] text-gray11">{time}</span>
                     <ExternalLinkIcon className="mr-2 size-4 text-gray10" />
@@ -385,8 +382,8 @@ export function Dashboard() {
                     </div>
 
                     <TruncatedAddress
-                      className="ml-1 font-medium"
                       address={permission.address}
+                      className="ml-1 font-medium"
                     />
                   </div>
                 </td>
@@ -404,8 +401,8 @@ export function Dashboard() {
                     </span>
                     <span className="truncate">
                       {StringFormatter.truncate(spend?.token ?? '', {
-                        start: 4,
                         end: 4,
+                        start: 4,
                       })}
                     </span>
                   </div>
@@ -415,13 +412,13 @@ export function Dashboard() {
                 </td>
                 <td className="w-min max-w-[25px] text-right">
                   <Ariakit.Button
-                    disabled={time === 'expired'}
                     className={cx(
                       'size-8 rounded-full p-1',
                       time === 'expired'
                         ? 'text-gray10'
                         : 'text-gray11 hover:bg-red-100 hover:text-red-500',
                     )}
+                    disabled={time === 'expired'}
                     onClick={() => {
                       revokePermissions.mutate({ id: permission.id })
                     }}
@@ -436,6 +433,7 @@ export function Dashboard() {
               </tr>
             )
           }}
+          showMoreText="more permissions"
         />
       </details>
 
@@ -447,11 +445,11 @@ export function Dashboard() {
         <summary className='relative my-auto cursor-default list-none space-x-1 pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
           <span>Recovery</span>
           <Button
+            className="ml-2"
+            render={<Link to="/recovery" />}
             size="small"
             type="button"
-            className="ml-2"
             variant="default"
-            render={<Link to="/recovery" />}
           >
             Add wallet
           </Button>
@@ -467,7 +465,7 @@ export function Dashboard() {
           <tbody className="border-transparent border-t-10">
             {recoveryMethods.length ? (
               recoveryMethods.map((method) => (
-                <tr key={method.address} className="text-xs sm:text-sm">
+                <tr className="text-xs sm:text-sm" key={method.address}>
                   <td className="w-[73%] text-right">
                     <div className="flex flex-row items-center gap-x-2">
                       <div className="flex size-7 items-center justify-center rounded-full bg-emerald-100">
@@ -482,17 +480,13 @@ export function Dashboard() {
                   <td className="text-right">
                     <Ariakit.Button
                       className="size-8 rounded-full p-1 hover:bg-gray4"
-                      onClick={() => {
-                        console.info('')
-                      }}
+                      onClick={() => {}}
                     >
                       <CopyIcon className={cx('m-auto size-5 text-gray10')} />
                     </Ariakit.Button>
                     <Ariakit.Button
                       className="size-8 rounded-full p-1 hover:bg-red-100"
-                      onClick={() => {
-                        console.info('')
-                      }}
+                      onClick={() => {}}
                     >
                       <XIcon className={cx('m-auto size-5 text-red-500')} />
                     </Ariakit.Button>
@@ -501,7 +495,7 @@ export function Dashboard() {
               ))
             ) : (
               <tr>
-                <td colSpan={2} className="text-center text-gray12">
+                <td className="text-center text-gray12" colSpan={2}>
                   <p className="text-sm">No recovery methods added yet</p>
                 </td>
               </tr>
@@ -543,51 +537,20 @@ function AssetRow({
 
   const sendCalls = useSendCalls({
     mutation: {
-      onSuccess: (data) => {
-        refetchSwapAssets()
-        toast.custom(
-          (t) => (
-            <CustomToast
-              className={t}
-              kind="SUCCESS"
-              title="Transaction completed"
-              description={
-                <p>
-                  You successfully sent {sendFormState.values.sendAmount}{' '}
-                  {symbol}
-                  <br />
-                  <a
-                    href={`https://explorer.ithaca.xyz/tx/${data}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray12 underline"
-                  >
-                    View on explorer
-                  </a>
-                </p>
-              }
-            />
-          ),
-
-          { duration: 4_500 },
-        )
-        sendForm.setState('submitSucceed', (count) => +count + 1)
-        sendForm.setState('submitFailed', 0)
-      },
       onError: (error) => {
         const notAllowed = error.message.includes('not allowed')
         toast.custom(
           (t) => (
             <CustomToast
               className={t}
-              kind={notAllowed ? 'WARN' : 'ERROR'}
-              title={
-                notAllowed ? 'Transaction cancelled' : 'Transaction failed'
-              }
               description={
                 notAllowed
                   ? 'Transaction submission was cancelled.'
                   : 'You do not have enough balance to complete this transaction.'
+              }
+              kind={notAllowed ? 'WARN' : 'ERROR'}
+              title={
+                notAllowed ? 'Transaction cancelled' : 'Transaction failed'
               }
             />
           ),
@@ -597,14 +560,45 @@ function AssetRow({
         sendForm.setState('submitFailed', (count) => +count + 1)
         sendForm.setState('submitSucceed', 0)
       },
+      onSuccess: (data) => {
+        refetchSwapAssets()
+        toast.custom(
+          (t) => (
+            <CustomToast
+              className={t}
+              description={
+                <p>
+                  You successfully sent {sendFormState.values.sendAmount}{' '}
+                  {symbol}
+                  <br />
+                  <a
+                    className="text-gray12 underline"
+                    href={`https://explorer.ithaca.xyz/tx/${data}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    View on explorer
+                  </a>
+                </p>
+              }
+              kind="SUCCESS"
+              title="Transaction completed"
+            />
+          ),
+
+          { duration: 4_500 },
+        )
+        sendForm.setState('submitSucceed', (count) => +count + 1)
+        sendForm.setState('submitFailed', 0)
+      },
     },
   })
 
   const sendForm = Ariakit.useFormStore({
     defaultValues: {
       sendAmount: '',
-      sendRecipient: '',
       sendAsset: address,
+      sendRecipient: '',
     },
   })
   const sendFormState = Ariakit.useStoreState(sendForm)
@@ -616,7 +610,6 @@ function AssetRow({
   })
 
   sendForm.useSubmit(async (state) => {
-    console.info(state)
     if (
       !Address.validate(state.values.sendRecipient) ||
       !state.values.sendAmount
@@ -625,15 +618,15 @@ function AssetRow({
     sendCalls.sendCalls({
       calls: [
         {
-          to: address,
           data: encodeFunctionData({
             abi: erc20Abi,
-            functionName: 'transfer',
             args: [
               state.values.sendRecipient,
               Value.from(state.values.sendAmount, decimals),
             ],
+            functionName: 'transfer',
           }),
+          to: address,
         },
       ],
     })
@@ -641,50 +634,20 @@ function AssetRow({
 
   const swapCalls = useSendCalls({
     mutation: {
-      onSuccess: (data) => {
-        refetchSwapAssets()
-        toast.custom(
-          (t) => (
-            <CustomToast
-              className={t}
-              kind="SUCCESS"
-              title="Transaction completed"
-              description={
-                <p>
-                  You successfully received {swapFormState.values.swapAmount}{' '}
-                  {symbol}
-                  <br />
-                  <a
-                    href={`https://explorer.ithaca.xyz/tx/${data}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray12 underline"
-                  >
-                    View on explorer
-                  </a>
-                </p>
-              }
-            />
-          ),
-          { duration: 3_500 },
-        )
-        swapForm.setState('submitSucceed', (count) => +count + 1)
-        swapForm.setState('submitFailed', 0)
-      },
       onError: (error) => {
         const notAllowed = error.message.includes('not allowed')
         toast.custom(
           (t) => (
             <CustomToast
               className={t}
-              kind={notAllowed ? 'WARN' : 'ERROR'}
-              title={
-                notAllowed ? 'Transaction cancelled' : 'Transaction failed'
-              }
               description={
                 notAllowed
                   ? 'Transaction submission was cancelled.'
                   : 'You do not have enough balance to complete this transaction.'
+              }
+              kind={notAllowed ? 'WARN' : 'ERROR'}
+              title={
+                notAllowed ? 'Transaction cancelled' : 'Transaction failed'
               }
             />
           ),
@@ -692,6 +655,36 @@ function AssetRow({
         )
         swapForm.setState('submitFailed', (count) => +count + 1)
         swapForm.setState('submitSucceed', 0)
+      },
+      onSuccess: (data) => {
+        refetchSwapAssets()
+        toast.custom(
+          (t) => (
+            <CustomToast
+              className={t}
+              description={
+                <p>
+                  You successfully received {swapFormState.values.swapAmount}{' '}
+                  {symbol}
+                  <br />
+                  <a
+                    className="text-gray12 underline"
+                    href={`https://explorer.ithaca.xyz/tx/${data}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    View on explorer
+                  </a>
+                </p>
+              }
+              kind="SUCCESS"
+              title="Transaction completed"
+            />
+          ),
+          { duration: 3_500 },
+        )
+        swapForm.setState('submitSucceed', (count) => +count + 1)
+        swapForm.setState('submitFailed', 0)
       },
     },
   })
@@ -736,8 +729,8 @@ function AssetRow({
   const matches = React.useMemo(
     () =>
       matchSorter(swapAssetsExcludingCurrent, swapSearchValue, {
-        keys: ['symbol', 'name', 'address'],
         baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+        keys: ['symbol', 'name', 'address'],
       }),
     [swapSearchValue, swapAssetsExcludingCurrent],
   )
@@ -776,15 +769,15 @@ function AssetRow({
           </td>
         </>
       ) : viewState === 'swap' ? (
-        <td colSpan={4} className="w-full py-2">
+        <td className="w-full py-2" colSpan={4}>
           <Ariakit.Form
-            store={swapForm}
-            validateOnBlur={true}
-            validateOnChange={true}
             className={cx(
               'flex gap-x-2',
               '*:h-[62px] *:w-1/2 *:rounded-xl *:border-1 *:border-gray6 *:bg-white *:dark:bg-gray1',
             )}
+            store={swapForm}
+            validateOnBlur={true}
+            validateOnChange={true}
           >
             <div className="z-[10000] flex items-center gap-x-2 shadow-xs focus-within:border-gray8 focus:outline-sky-500">
               <Ariakit.ComboboxProvider
@@ -802,17 +795,17 @@ function AssetRow({
                   </Ariakit.VisuallyHidden>
                   <Ariakit.Select className="flex w-full rounded-xl py-2.5 pr-2 pl-3">
                     <img
-                      src={logo}
                       alt="asset icon"
                       className="my-auto size-7"
+                      src={logo}
                     />
                     <div className="mx-1.5 my-auto">
                       <ArrowRightIcon className="size-5 text-gray10" />
                     </div>
                     <img
-                      src={selectedAsset?.logo}
                       alt="asset icon"
                       className="my-auto size-7"
+                      src={selectedAsset?.logo}
                     />
                     <div className="my-auto ml-2 flex flex-col items-start overflow-hidden text-ellipsis whitespace-nowrap">
                       <span className="font-normal text-gray10 text-xs">
@@ -827,20 +820,20 @@ function AssetRow({
                     </div>
                   </Ariakit.Select>
                   <Ariakit.SelectPopover
-                    gutter={24}
-                    sameWidth={true}
-                    unmountOnHide={true}
                     className={cx(
                       'rounded-xl border border-gray6 bg-white shadow-sm dark:border-gray4 dark:bg-gray1',
                       'scale-[0.95] opacity-0 data-[enter]:scale-[1] data-[enter]:opacity-100',
                     )}
+                    gutter={24}
+                    sameWidth={true}
                     style={{
-                      transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                      transformOrigin: 'top',
                       transitionDuration: '150ms',
                       transitionProperty: 'opacity, scale, translate',
-                      transformOrigin: 'top',
+                      transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
                       translate: '0 -0.5rem',
                     }}
+                    unmountOnHide={true}
                   >
                     <div className="flex flex-row items-center gap-x-2">
                       <Ariakit.Combobox
@@ -853,10 +846,9 @@ function AssetRow({
                     <Ariakit.ComboboxList className="mt-2 border-t border-t-gray6">
                       {matches.map((value, index) => (
                         <Ariakit.SelectItem
-                          key={value.symbol}
-                          value={value.symbol}
-                          onClick={() => setSelectedAsset(value)}
                           className="focus:bg-sky-100 focus:outline-none data-[active-item]:bg-sky-100 dark:data-[active-item]:bg-gray3 dark:focus:bg-sky-900"
+                          key={value.symbol}
+                          onClick={() => setSelectedAsset(value)}
                           render={
                             <Ariakit.ComboboxItem
                               className={cx(
@@ -868,6 +860,7 @@ function AssetRow({
                               )}
                             />
                           }
+                          value={value.symbol}
                         >
                           <img
                             alt="asset icon"
@@ -900,32 +893,29 @@ function AssetRow({
             >
               <div className="flex w-full flex-col gap-y-1">
                 <Ariakit.FormLabel
-                  name={swapForm.names.swapAmount}
                   className="text-gray10 text-xs"
+                  name={swapForm.names.swapAmount}
                 >
                   Amount
                 </Ariakit.FormLabel>
                 <Ariakit.FormInput
-                  step="any"
-                  type="number"
-                  required={true}
-                  autoCorrect="off"
-                  autoComplete="off"
-                  spellCheck={false}
-                  placeholder="0.00"
-                  inputMode="decimal"
                   autoCapitalize="off"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="w-full font-mono text-md placeholder:text-gray10 focus:outline-none"
+                  data-field={`${address}-amount`}
+                  inputMode="decimal"
                   max={formattedBalance}
                   name={swapForm.names.swapAmount}
-                  data-field={`${address}-amount`}
-                  className="w-full font-mono text-md placeholder:text-gray10 focus:outline-none"
+                  placeholder="0.00"
+                  required={true}
+                  spellCheck={false}
+                  step="any"
+                  type="number"
                 />
               </div>
 
               <Button
-                size="small"
-                type="button"
-                variant="default"
                 className="mx-1 my-auto font-[600]! text-gray11! text-xs!"
                 onClick={() =>
                   swapForm.setValue(
@@ -933,6 +923,9 @@ function AssetRow({
                     Number(formattedBalance),
                   )
                 }
+                size="small"
+                type="button"
+                variant="default"
               >
                 Max
               </Button>
@@ -961,10 +954,10 @@ function AssetRow({
           </Ariakit.Form>
         </td>
       ) : viewState === 'send' ? (
-        <td colSpan={4} className="w-full">
+        <td className="w-full" colSpan={4}>
           <Ariakit.Form
-            store={sendForm}
             className="relative my-2 flex h-16 w-full rounded-2xl border-1 border-gray6 bg-white p-2 dark:bg-gray1"
+            store={sendForm}
           >
             <div className="flex w-[75px] flex-row items-center gap-x-2 border-gray6 border-r pr-1.5 pl-1 sm:w-[85px] sm:pl-2">
               <img alt="asset icon" className="size-8" src={logo} />
@@ -972,15 +965,14 @@ function AssetRow({
             <div className="ml-3 flex w-full flex-row gap-y-1 border-gray7 border-r pr-3">
               <div className="flex w-full flex-col gap-y-1">
                 <Ariakit.FormLabel
-                  name={sendForm.names.sendRecipient}
                   className="mt-1 text-gray10 text-xs sm:text-[12px]"
+                  name={sendForm.names.sendRecipient}
                 >
                   Recipient
                 </Ariakit.FormLabel>
 
                 <Ariakit.FormControl
                   name={sendForm.names.sendRecipient}
-                  type="text"
                   render={(props) => {
                     const valid = Address.validate(
                       sendFormState.values.sendRecipient,
@@ -989,39 +981,38 @@ function AssetRow({
                       <div className="relative">
                         <Ariakit.FormInput
                           {...props}
-                          type="text"
-                          required={true}
-                          autoFocus={true}
-                          autoCorrect="off"
-                          spellCheck={false}
-                          autoComplete="off"
                           autoCapitalize="off"
-                          placeholder="0xAbcD..."
-                          pattern="^0x[a-fA-F0-9]{40}$"
-                          data-field={`${address}-recipient`}
-                          name={sendForm.names.sendRecipient}
-                          value={sendFormState.values.sendRecipient}
-                          onInput={(value) =>
-                            sendForm.setValue(
-                              sendForm.names.sendRecipient,
-                              value,
-                            )
-                          }
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoFocus={true}
                           className={cx(
                             'peer',
                             'w-full font-mono text-sm placeholder:text-gray10 focus:outline-none dark:text-gray12',
                             valid &&
                               'not-data-focus-visible:not-focus-visible:not-focus:not-aria-invalid:text-transparent',
                           )}
+                          data-field={`${address}-recipient`}
+                          name={sendForm.names.sendRecipient}
+                          onInput={(value) =>
+                            sendForm.setValue(
+                              sendForm.names.sendRecipient,
+                              value,
+                            )
+                          }
+                          pattern="^0x[a-fA-F0-9]{40}$"
+                          placeholder="0xAbcD..."
+                          required={true}
+                          spellCheck={false}
+                          type="text"
+                          value={sendFormState.values.sendRecipient}
                         />
                         <TruncatedAddress
-                          end={5}
-                          start={5}
+                          address={sendFormState.values.sendRecipient}
                           className={cx(
                             '-top-0 absolute w-min cursor-pointer text-left peer-focus:hidden',
                             !valid && 'hidden',
                           )}
-                          address={sendFormState.values.sendRecipient}
+                          end={5}
                           onClick={() =>
                             document
                               .querySelector(
@@ -1029,10 +1020,12 @@ function AssetRow({
                               )
                               ?.focus()
                           }
+                          start={5}
                         />
                       </div>
                     )
                   }}
+                  type="text"
                 />
               </div>
               <Ariakit.Button className="my-auto ml-auto rounded-full bg-gray4 p-2">
@@ -1042,34 +1035,32 @@ function AssetRow({
 
             <div className="flex w-[65px] max-w-min flex-col gap-y-1 px-2.5 sm:w-[80px]">
               <Ariakit.FormLabel
-                name={sendForm.names.sendAmount}
                 className="text-gray10 text-xs sm:text-[12px]"
+                name={sendForm.names.sendAmount}
               >
                 Amount
               </Ariakit.FormLabel>
               <div className="flex flex-row gap-x-1">
                 <Ariakit.FormInput
-                  type="number"
-                  step="any"
-                  required={true}
-                  autoCorrect="off"
-                  placeholder="0.00"
-                  inputMode="decimal"
-                  spellCheck={false}
-                  autoComplete="off"
                   autoCapitalize="off"
-                  max={formattedBalance}
-                  name={sendForm.names.sendAmount}
-                  data-field={`${address}-amount`}
+                  autoComplete="off"
+                  autoCorrect="off"
                   className={cx(
                     'w-min font-mono text-sm placeholder:text-gray10 focus:outline-none sm:text-md',
                   )}
+                  data-field={`${address}-amount`}
+                  inputMode="decimal"
+                  max={formattedBalance}
+                  name={sendForm.names.sendAmount}
+                  placeholder="0.00"
+                  required={true}
+                  spellCheck={false}
+                  step="any"
+                  type="number"
                 />
               </div>
             </div>
             <Button
-              size="small"
-              variant="default"
               className="mx-0.5 my-auto text-gray11! text-xs! sm:mx-1"
               onClick={(event) => {
                 event.preventDefault()
@@ -1078,6 +1069,8 @@ function AssetRow({
                   Number(formattedBalance),
                 )
               }}
+              size="small"
+              variant="default"
             >
               Max
             </Button>

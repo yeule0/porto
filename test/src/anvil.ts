@@ -1,13 +1,13 @@
-import { Provider, RpcTransport } from 'ox'
 import type { Address } from 'ox'
+import { Provider, RpcTransport } from 'ox'
 import { createServer } from 'prool'
 import { type AnvilParameters, anvil } from 'prool/instances'
 import {
-  http,
-  type TransactionRequest,
   createClient,
   createTestClient,
   formatTransaction,
+  http,
+  type TransactionRequest,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { prepareTransactionRequest, signTransaction } from 'viem/actions'
@@ -114,9 +114,9 @@ export async function loadState(parameters: {
     // Deploy EntryPoint contract.
     const hash = await deployContract(client, {
       abi: EntryPoint.abi,
+      args: [account.address],
       bytecode: EntryPoint.code,
       chain: null,
-      args: [account.address],
     })
     const { contractAddress } = await getTransactionReceipt(client, {
       hash,
@@ -134,8 +134,8 @@ export async function loadState(parameters: {
     // Deploy Delegation contract.
     const hash = await deployContract(client, {
       abi: Delegation.abi,
-      bytecode: Delegation.code,
       args: [entryPointAddress],
+      bytecode: Delegation.code,
       chain: null,
     })
     const { contractAddress } = await getTransactionReceipt(client, {
@@ -145,8 +145,8 @@ export async function loadState(parameters: {
     // Deploy EIP7702Proxy contract.
     const hash_2 = await deployContract(client, {
       abi: EIP7702Proxy.abi,
-      bytecode: EIP7702Proxy.code,
       args: [contractAddress!, account.address],
+      bytecode: EIP7702Proxy.code,
       chain: null,
     })
     const { contractAddress: contractAddress_2 } = await getTransactionReceipt(

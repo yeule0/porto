@@ -90,9 +90,9 @@ export namespace createAccount {
          */
         keys:
           | readonly Key.Key[]
-          | ((p: { ids: readonly Hex.Hex[] }) => MaybePromise<
-              readonly Key.Key[]
-            >)
+          | ((p: {
+              ids: readonly Hex.Hex[]
+            }) => MaybePromise<readonly Key.Key[]>)
       })
   >
 
@@ -528,8 +528,8 @@ export async function sendCalls<const calls extends readonly unknown[]>(
       const { context, digest } = await prepareCalls(client, {
         account,
         authorizeKeys,
-        feeToken: parameters.feeToken,
         calls,
+        feeToken: parameters.feeToken,
         key,
         pre: true,
         revokeKeys,

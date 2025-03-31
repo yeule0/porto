@@ -1,7 +1,6 @@
+import type { Union } from '@sinclair/typebox/type'
 import * as Json from 'ox/Json'
 import * as RpcResponse from 'ox/RpcResponse'
-
-import type { Union } from '@sinclair/typebox/type'
 import * as RpcRequest from './request.js'
 import { type StaticDecode, type StaticEncode, Type, Value } from './schema.js'
 

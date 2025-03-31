@@ -71,8 +71,8 @@ export async function getUpgradedAccount(
 
   const request = await Relay.prepareUpgradeAccount(client, {
     address: account.address,
-    keys,
     feeToken: exp1Address,
+    keys,
   })
 
   const signatures = await Promise.all(
@@ -102,12 +102,12 @@ export async function setBalance(
       value,
     })
     await writeContract(client, {
-      account: privateKeyToAccount(Anvil.accounts[0]!.privateKey),
-      chain: null,
-      address: exp1Address,
       abi: exp1Abi,
-      functionName: 'mint',
+      account: privateKeyToAccount(Anvil.accounts[0]!.privateKey),
+      address: exp1Address,
       args: [address, value],
+      chain: null,
+      functionName: 'mint',
     })
   } else {
     const key = Key.fromP256({
@@ -123,9 +123,9 @@ export async function setBalance(
       calls: [
         {
           abi: exp1Abi,
-          to: exp1Address,
-          functionName: 'mint',
           args: [address, value],
+          functionName: 'mint',
+          to: exp1Address,
         },
       ],
       feeToken: exp1Address,

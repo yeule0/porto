@@ -1,77 +1,13 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "files": {
-    "ignore": [
-      "contracts/lib",
-      "dist",
-      "extension/.output",
-      "extension/.wxt",
-      "src/core/internal/_generated",
-      "tsconfig.json",
-      "tsconfig.*.json",
-      "apps/**/routeTree.gen.ts",
-      "apps/**/dist"
-    ]
-  },
-  "organizeImports": {
-    "enabled": true
-  },
-  "formatter": {
-    "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "complexity": {
-        "noBannedTypes": "off"
-      },
-      "a11y": {
-        "useKeyWithClickEvents": "off"
-      },
-      "correctness": {
-        "noInvalidPositionAtImportRule": "off"
-      },
-      "nursery": {
-        "useSortedClasses": {
-          "fix": "unsafe",
-          "level": "error",
-          "options": {}
-        }
-      },
-      "performance": {
-        "noDelete": "off"
-      },
-      "style": {
-        "noNonNullAssertion": "off",
-        "useTemplate": "off"
-      },
-      "suspicious": {
-        "noAssignInExpressions": "off",
-        "noConsoleLog": "error",
-        "noExplicitAny": "off",
-        "noShadowRestrictedNames": "off"
+  "$schema": "https://biomejs.dev/schemas/2.0.0-beta.1/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on",
+        "useSortedAttributes": "on",
+        "useSortedKeys": "on",
+        "useSortedProperties": "on"
       }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "trailingCommas": "all",
-      "semicolons": "asNeeded"
-    }
-  },
-  "json": {
-    "formatter": {
-      "enabled": true
-    },
-    "parser": {
-      "allowTrailingCommas": true
-    },
-    "linter": {
-      "enabled": true
     }
   },
   "css": {
@@ -82,9 +18,85 @@
       "enabled": true
     }
   },
-  "vcs": {
+  "files": {
+    "includes": [
+      "**",
+      "!contracts/lib/**",
+      "!coverage/**",
+      "!dist/**",
+      "!extension/.output/**",
+      "!extension/.wxt/**",
+      "!src/core/internal/_generated/**",
+      "!**/*tsconfig.json",
+      "!**/*tsconfig.*.json",
+      "!**/*package.json",
+      "!apps/**/routeTree.gen.ts",
+      "!apps/**/dist/**"
+    ]
+  },
+  "formatter": {
     "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "all"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true
+    },
+    "linter": {
+      "enabled": true
+    },
+    "parser": {
+      "allowTrailingCommas": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "a11y": {
+        "useKeyWithClickEvents": "off"
+      },
+      "complexity": {
+        "noBannedTypes": "off"
+      },
+      "correctness": {
+        "noInvalidPositionAtImportRule": "off",
+        "useExhaustiveDependencies": "error"
+      },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "useSortedClasses": {
+          "fix": "unsafe",
+          "level": "error",
+          "options": {}
+        }
+      },
+      "performance": {
+        "noDelete": "off"
+      },
+      "recommended": true,
+      "style": {
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "error",
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "off",
+        "noExplicitAny": "off",
+        "noShadowRestrictedNames": "off"
+      }
+    }
+  },
+  "vcs": {
     "clientKind": "git",
+    "enabled": true,
     "useIgnoreFile": true
   }
 }

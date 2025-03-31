@@ -26,9 +26,9 @@ export function Landing() {
           {account.isConnecting ? (
             <IndeterminateLoader
               align="vertical"
-              title="Signing in"
               description="Please check for a system prompt."
               hint="You can choose any of your existing Porto passkeys to sign in."
+              title="Signing in"
             />
           ) : (
             <>
@@ -49,21 +49,21 @@ export function Landing() {
               <div>
                 <div className="flex h-12.5 items-center rounded-4xl border border-gray7 bg-gray1 py-2 pr-2 pl-4">
                   <input
-                    type="text"
-                    maxLength={32}
-                    spellCheck={false}
-                    autoCorrect="off"
-                    autoComplete="off"
                     autoCapitalize="off"
-                    placeholder="Enter a name…"
-                    value={label}
-                    onChange={(e) => setLabel(e.target.value)}
+                    autoComplete="off"
+                    autoCorrect="off"
                     className="w-full font-[500] text-[19px] focus:outline-none focus:ring-0"
+                    maxLength={32}
+                    onChange={(e) => setLabel(e.target.value)}
+                    placeholder="Enter a name…"
+                    spellCheck={false}
+                    type="text"
+                    value={label}
                   />
                   <button
-                    type="button"
-                    onClick={() => setLabel(id())}
                     className="rounded-full bg-accentTint p-2 transition-all duration-200 hover:bg-accentTintHover active:scale-90"
+                    onClick={() => setLabel(id())}
+                    type="button"
                   >
                     <SparkIcon className="size-5 text-accent" />
                   </button>
@@ -78,8 +78,6 @@ export function Landing() {
                 <div className="h-4" />
 
                 <Button
-                  type="button"
-                  variant="default"
                   className="h-12.5! w-full bg-gray12! text-gray1! text-lg! hover:bg-gray12/90!"
                   onClick={() =>
                     connect.mutate({
@@ -87,6 +85,8 @@ export function Landing() {
                       createAccount: { label },
                     })
                   }
+                  type="button"
+                  variant="default"
                 >
                   Create
                 </Button>
@@ -102,14 +102,14 @@ export function Landing() {
                 <div className="h-6" />
 
                 <Button
-                  type="button"
-                  variant="accent"
                   className="h-12.5! w-full text-lg!"
                   onClick={() =>
                     connect.mutate({
                       connector: connector!,
                     })
                   }
+                  type="button"
+                  variant="accent"
                 >
                   Sign in
                 </Button>

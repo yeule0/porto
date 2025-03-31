@@ -1,15 +1,6 @@
 {
-  "editor.defaultFormatter": "biomejs.biome",
-  "editor.formatOnSave": true,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "javascript.preferences.autoImportFileExcludePatterns": ["**/index.js"],
-  "typescript.preferences.autoImportFileExcludePatterns": ["**/index.js"],
-  "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
@@ -17,34 +8,35 @@
   "[javascriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "[markdown]": {
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
-  },
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnSave": true,
   "editor.quickSuggestions": {
     "strings": "on"
   },
-  "tailwindCSS.includeLanguages": {
-    "plaintext": "html"
-  },
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-    ["cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
   "files.associations": {
-    ".env.example": "dotenv",
     ".dev.vars": "dotenv",
     ".dev.vars.example": "dotenv",
-    "*.css": "tailwindcss",
-    "biome.json": "jsonc",
+    ".env.example": "dotenv",
     ".vscode/*.json": "jsonc",
+    "*.css": "tailwindcss",
+    "*.svg": "html",
     "**/wrangler.json": "jsonc",
-    "*.svg": "html"
+    "biome.json": "jsonc"
   },
 
   "files.exclude": {
@@ -52,18 +44,23 @@
     "**/.wrangler/**": true,
     "**/*.tsbuildinfo": true
   },
-  "search.exclude": {
-    "**/dist/**": true,
-    "pnpm-lock.yaml": true,
-    "**/routeTree.gen.ts": true
-  },
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },
-  // "files.readonlyInclude": {
-  //   "**/routeTree.gen.ts": true
-  // },
-  "[html]": {
-    "editor.defaultFormatter": "vscode.html-language-features"
-  }
+  "javascript.preferences.autoImportFileExcludePatterns": ["**/index.js"],
+  "search.exclude": {
+    "**/dist/**": true,
+    "**/routeTree.gen.ts": true,
+    "pnpm-lock.yaml": true
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  },
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.autoImportFileExcludePatterns": ["**/index.js"],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

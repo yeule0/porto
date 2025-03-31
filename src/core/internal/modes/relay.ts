@@ -135,8 +135,8 @@ export function relay(config: relay.Parameters = {}) {
           if (mock) {
             if (!id_internal) throw new Error('id_internal not found.')
             return {
-              keyId: id_internal,
               credentialId: undefined,
+              keyId: id_internal,
             } as const
           }
 
@@ -144,8 +144,8 @@ export function relay(config: relay.Parameters = {}) {
           // WebAuthn discovery step.
           if (parameters.keyId && parameters.credentialId)
             return {
-              keyId: parameters.keyId,
               credentialId: parameters.credentialId,
+              keyId: parameters.keyId,
             }
 
           // Discovery step. We will sign a random challenge. We need to do this
@@ -258,6 +258,7 @@ export function relay(config: relay.Parameters = {}) {
 
         const { context, digests } = await Relay.prepareUpgradeAccount(client, {
           address,
+          feeToken,
           async keys({ ids }) {
             const id = ids[0]!
             const label =
@@ -280,7 +281,6 @@ export function relay(config: relay.Parameters = {}) {
 
             return [key, ...(authorizeKey ? [authorizeKey] : [])]
           },
-          feeToken,
         })
 
         return {
@@ -301,8 +301,8 @@ export function relay(config: relay.Parameters = {}) {
         try {
           await Relay.sendCalls(client, {
             account,
-            revokeKeys: [key],
             feeToken,
+            revokeKeys: [key],
           })
         } catch (e) {
           const error = e as Relay.sendCalls.ErrorType
@@ -330,8 +330,8 @@ export function relay(config: relay.Parameters = {}) {
         try {
           await Relay.sendCalls(client, {
             account,
-            revokeKeys: [key],
             feeToken,
+            revokeKeys: [key],
           })
         } catch (e) {
           const error = e as Relay.sendCalls.ErrorType
@@ -482,8 +482,8 @@ async function preauthKey(client: Client, parameters: preauthKey.Parameters) {
   const { context, digest } = await Relay.prepareCalls(client, {
     account,
     authorizeKeys: [authorizeKey],
-    key: adminKey,
     feeToken,
+    key: adminKey,
     pre: true,
   })
   const signature = await Key.sign(adminKey, {

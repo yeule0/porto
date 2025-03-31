@@ -28,7 +28,10 @@ function RouteComponent() {
     mutationFn({
       signIn,
       selectAccount,
-    }: { signIn?: boolean; selectAccount?: boolean }) {
+    }: {
+      signIn?: boolean
+      selectAccount?: boolean
+    }) {
       if (!request) throw new Error('no request found.')
       return Actions.respond<
         RpcSchema.ExtractReturnType<porto_RpcSchema.Schema, 'wallet_connect'>
@@ -61,7 +64,7 @@ function RouteComponent() {
       <SignIn
         loading={respond.isPending}
         onApprove={({ selectAccount }) =>
-          respond.mutate({ signIn: true, selectAccount })
+          respond.mutate({ selectAccount, signIn: true })
         }
       />
     )
@@ -70,7 +73,7 @@ function RouteComponent() {
       enableSignIn={true}
       loading={respond.isPending}
       onApprove={({ signIn, selectAccount }) =>
-        respond.mutate({ signIn, selectAccount })
+        respond.mutate({ selectAccount, signIn })
       }
       onReject={() => Actions.reject(porto, request)}
     />

@@ -29,8 +29,8 @@ const offRequests = Events.onRequests(porto, (requests) => {
     return
   }
   Router.router.navigate({
-    to: '/dialog/' + (request?.method ?? ''),
     search: request as never,
+    to: '/dialog/' + (request?.method ?? ''),
   })
 })
 

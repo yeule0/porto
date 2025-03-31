@@ -392,11 +392,11 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 method: 'wallet_prepareCalls',
                 params: [
                   {
+                    calls,
                     capabilities:
                       request._decoded.method === 'wallet_sendCalls'
                         ? request._decoded.params?.[0]?.capabilities
                         : undefined,
-                    calls,
                     chainId: client.chain.id,
                     from: account.address,
                     key,

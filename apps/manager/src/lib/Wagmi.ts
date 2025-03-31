@@ -1,6 +1,6 @@
 import { Porto as SharedPorto } from '@porto/apps'
 import { Mode, Porto } from 'porto'
-import { http, createConfig, createStorage } from 'wagmi'
+import { createConfig, createStorage, http } from 'wagmi'
 import { base, baseSepolia, odysseyTestnet } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
@@ -15,8 +15,6 @@ export type ChainId = (typeof chainIds)[number]
 
 export const config = createConfig({
   chains: [base, odysseyTestnet, baseSepolia],
-  storage: createStorage({ storage: localStorage }),
-  multiInjectedProviderDiscovery: false,
   connectors: [
     injected({
       target: () => ({
@@ -26,6 +24,8 @@ export const config = createConfig({
       }),
     }),
   ],
+  multiInjectedProviderDiscovery: false,
+  storage: createStorage({ storage: localStorage }),
   transports: {
     [base.id]: http(),
     [baseSepolia.id]: http(),

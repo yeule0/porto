@@ -19,12 +19,12 @@ export async function reject(
     'rpc-response',
     Object.assign(
       RpcResponse.from({
-        id: request.id,
-        jsonrpc: '2.0',
         error: {
           code: Provider.UserRejectedRequestError.code,
           message: 'User rejected the request.',
         },
+        id: request.id,
+        jsonrpc: '2.0',
       }),
       {
         _request: request,
@@ -78,7 +78,7 @@ export async function respond<result>(
     const error = e as RpcResponse.BaseError
     messenger.send(
       'rpc-response',
-      Object.assign(RpcResponse.from({ ...shared, status: 'error', error }), {
+      Object.assign(RpcResponse.from({ ...shared, error, status: 'error' }), {
         _request: request,
       }),
     )

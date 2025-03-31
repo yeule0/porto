@@ -1,8 +1,8 @@
-import { type PublicRpcSchema, fallback } from 'viem'
+import { fallback, type PublicRpcSchema } from 'viem'
 import {
-  type TransportConfig,
   createClient,
   createTransport,
+  type TransportConfig,
   type Account as viem_Account,
   type Client as viem_Client,
   type Transport as viem_Transport,
@@ -102,6 +102,7 @@ export function getClient<
   if (clientCache.has(key)) return clientCache.get(key)!
   const client = createClient({
     chain,
+    pollingInterval: 1_000,
     transport: relay
       ? fallback([
           getTransport(relay, {
@@ -112,7 +113,6 @@ export function getClient<
           }),
         ])
       : default_,
-    pollingInterval: 1_000,
   })
   clientCache.set(key, client)
   return client

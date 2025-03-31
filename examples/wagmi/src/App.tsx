@@ -1,11 +1,17 @@
 import { Hooks } from 'porto/wagmi'
+import { useState } from 'react'
 import {
   type EIP1193Provider,
-  type Hex,
   formatEther,
+  type Hex,
   parseEther,
   stringify,
 } from 'viem'
+import {
+  generatePrivateKey,
+  privateKeyToAccount,
+  privateKeyToAddress,
+} from 'viem/accounts'
 import {
   type BaseError,
   useAccount,
@@ -13,13 +19,6 @@ import {
   useReadContract,
 } from 'wagmi'
 import { useSendCalls, useWaitForCallsStatus } from 'wagmi/experimental'
-
-import { useState } from 'react'
-import {
-  generatePrivateKey,
-  privateKeyToAccount,
-  privateKeyToAddress,
-} from 'viem/accounts'
 import { exp1Address, exp1Config } from './_generated/contracts'
 
 const key = () =>
@@ -83,7 +82,7 @@ function Account() {
       </div>
 
       {account.status !== 'disconnected' && (
-        <button type="button" onClick={() => disconnect.mutate({})}>
+        <button onClick={() => disconnect.mutate({})} type="button">
           Log Out
         </button>
       )}
@@ -102,9 +101,9 @@ function Connect() {
       <h2>Connect</h2>
       <label>
         <input
-          type="checkbox"
           checked={grantPermissions}
           onChange={() => setGrantPermissions((x) => !x)}
+          type="checkbox"
         />
         Grant Permissions
       </label>
@@ -164,8 +163,8 @@ function UpgradeAccount() {
             const privateKey = generatePrivateKey()
             setPrivateKey(privateKey)
             setAccountData({
-              privateKey,
               address: privateKeyToAddress(privateKey),
+              privateKey,
             })
           }}
           type="button"
@@ -176,19 +175,19 @@ function UpgradeAccount() {
       </p>
       <div>
         <input
-          type="text"
-          value={privateKey}
           onChange={(e) => setPrivateKey(e.target.value)}
           placeholder="Private Key"
           style={{ width: '300px' }}
+          type="text"
+          value={privateKey}
         />
       </div>
       <div>
         <label>
           <input
-            type="checkbox"
             checked={grantPermissions}
             onChange={() => setGrantPermissions((x) => !x)}
+            type="checkbox"
           />
           Grant Permissions
         </label>
@@ -220,12 +219,12 @@ function Balance() {
   const { address } = useAccount()
   const { data: balance } = useReadContract({
     ...exp1Config,
+    args: [address!],
+    functionName: 'balanceOf',
     query: {
       enabled: !!address,
       refetchInterval: 2_000,
     },
-    functionName: 'balanceOf',
-    args: [address!],
   })
 
   return (
@@ -313,9 +312,9 @@ function Mint() {
             calls: [
               {
                 ...exp1Config,
-                to: exp1Address,
-                functionName: 'mint',
                 args: [address!, parseEther('100')],
+                functionName: 'mint',
+                to: exp1Address,
               },
             ],
           })

@@ -308,7 +308,7 @@ export function contract(parameters: contract.Parameters = {}) {
 
         await Delegation.execute(client, {
           account,
-          calls: [Call.setCanExecute({ key, enabled: false })],
+          calls: [Call.setCanExecute({ enabled: false, key })],
           storage: internal.config.storage,
         })
       },

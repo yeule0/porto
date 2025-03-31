@@ -11,9 +11,9 @@ function RouteComponent() {
     <Layout>
       <Layout.Header>
         <Layout.Header.Default
-          title="Listening..."
           content={<p className="text-secondary">No active requests yet.</p>}
           icon={Ear}
+          title="Listening..."
         />
       </Layout.Header>
     </Layout>

@@ -23,14 +23,14 @@ export const Quote = Type.Object({
   // TODO: `Primitive.Number`
   chainId: Type.Number(),
   /** The `UserOp` the quote is for. */
-  op: UserOp.UserOp,
-  /** The fee estimate for the bundle in the destination chains native token. */
   nativeFeeEstimate: Type.Object({
     /** The maximum fee per gas for the bundle. */
     maxFeePerGas: Primitive.BigInt,
     /** The maximum priority fee per gas for the bundle. */
     maxPriorityFeePerGas: Primitive.BigInt,
   }),
+  /** The fee estimate for the bundle in the destination chains native token. */
+  op: UserOp.UserOp,
   /** The time-to-live of the quote. */
   ttl: Type.Number(),
   /** The recommended gas limit for the bundle. */

@@ -200,8 +200,8 @@ export async function getEip712Domain<chain extends Chain | undefined>(
   return {
     chainId: client.chain.id,
     name,
-    version,
     verifyingContract: account.address,
+    version,
   }
 }
 
@@ -232,8 +232,8 @@ export async function keyAt<chain extends Chain | undefined>(
   const key = await readContract(client, {
     abi: Delegation.abi,
     address: account.address,
-    functionName: 'keyAt',
     args: [BigInt(index)],
+    functionName: 'keyAt',
   })
 
   return Key.deserialize(key)
@@ -320,10 +320,6 @@ export async function prepareExecute<
     ])
 
   return {
-    signPayloads: [
-      executePayload,
-      ...(authorizationPayload ? [authorizationPayload] : []),
-    ],
     request: {
       ...rest,
       account,
@@ -332,6 +328,10 @@ export async function prepareExecute<
       executor,
       nonce,
     },
+    signPayloads: [
+      executePayload,
+      ...(authorizationPayload ? [authorizationPayload] : []),
+    ],
   } as never
 }
 
@@ -462,11 +462,17 @@ async function getExecuteSignPayload<
   if (!client.chain) throw new Error('chain is required.')
   return TypedData.getSignPayload({
     domain: {
-      name: domain.name,
       chainId: client.chain.id,
+      name: domain.name,
       verifyingContract: account.address,
       version: domain.version,
     },
+    message: {
+      calls,
+      multichain: Boolean(multichain),
+      nonce,
+    },
+    primaryType: 'Execute',
     types: {
       Call: [
         { name: 'target', type: 'address' },
@@ -479,12 +485,6 @@ async function getExecuteSignPayload<
         { name: 'nonce', type: 'uint256' },
       ],
     },
-    message: {
-      multichain: Boolean(multichain),
-      calls,
-      nonce,
-    },
-    primaryType: 'Execute',
   })
 }
 

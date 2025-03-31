@@ -1,12 +1,12 @@
 import { Porto } from '@porto/apps'
-import { type Transport, createConfig, createStorage } from 'wagmi'
+import { createConfig, createStorage, type Transport } from 'wagmi'
 
 const porto = Porto.porto
 
 export const config = createConfig({
   chains: porto._internal.config.chains,
-  storage: createStorage({ storage: localStorage }),
   multiInjectedProviderDiscovery: false,
+  storage: createStorage({ storage: localStorage }),
   transports: Object.entries(porto._internal.config.transports).reduce(
     (acc, [key, value]) => ({
       ...(acc as any),

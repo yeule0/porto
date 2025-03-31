@@ -191,8 +191,8 @@ export namespace experimental_prepareUpgradeAccount {
 
   export const Parameters = Type.Object({
     address: Primitive.Address,
-    chainId: Schema.Optional(Primitive.Number),
     capabilities: Schema.Optional(Capabilities),
+    chainId: Schema.Optional(Primitive.Number),
     label: Schema.Optional(Type.String()),
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
@@ -362,6 +362,9 @@ export namespace wallet_getCallsStatus {
     receipts: Schema.Optional(
       Type.Array(
         Type.Object({
+          blockHash: Primitive.Hex,
+          blockNumber: Primitive.Hex,
+          gasUsed: Primitive.Hex,
           logs: Type.Array(
             Type.Object({
               address: Primitive.Address,
@@ -370,9 +373,6 @@ export namespace wallet_getCallsStatus {
             }),
           ),
           status: Primitive.Hex,
-          blockHash: Primitive.Hex,
-          blockNumber: Primitive.Hex,
-          gasUsed: Primitive.Hex,
           transactionHash: Primitive.Hex,
         }),
       ),
@@ -416,11 +416,14 @@ export namespace wallet_prepareCalls {
   export const Parameters = Type.Object({
     calls: Type.Array(
       Type.Object({
-        to: Primitive.Address,
         data: Schema.Optional(Primitive.Hex),
+        to: Primitive.Address,
         value: Schema.Optional(Primitive.BigInt),
       }),
     ),
+    capabilities: Schema.Optional(Capabilities),
+    chainId: Schema.Optional(Primitive.Number),
+    from: Schema.Optional(Primitive.Address),
     key: Type.Object({
       prehash: Schema.Optional(Type.Boolean()),
       publicKey: Primitive.Hex,
@@ -431,9 +434,6 @@ export namespace wallet_prepareCalls {
         Type.Literal('address'),
       ]),
     }),
-    capabilities: Schema.Optional(Capabilities),
-    chainId: Schema.Optional(Primitive.Number),
-    from: Schema.Optional(Primitive.Address),
     version: Schema.Optional(Type.String()),
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
@@ -490,8 +490,8 @@ export namespace wallet_sendPreparedCalls {
 
   export const Response = Type.Array(
     Type.Object({
-      id: Primitive.Hex,
       capabilities: Schema.Optional(Type.Record(Type.String(), Type.Any())),
+      id: Primitive.Hex,
     }),
   )
   export type Response = Schema.StaticDecode<typeof Response>

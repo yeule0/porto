@@ -5,24 +5,23 @@ export const client: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       gcTime: 1000 * 60 * 60 * 24, // 24 hours
-      retry: 0,
       refetchOnReconnect: () => !client.isMutating(),
+      retry: 0,
     },
   },
   /**
    * @see https://tkdodo.eu/blog/react-query-error-handling#putting-it-all-together
    */
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      if (query.state.data !== undefined) {
-        console.error(error)
-      }
-    },
-  }),
   mutationCache: new MutationCache({
     onSettled: () => {
       if (client.isMutating() === 1) {
         return client.invalidateQueries()
+      }
+    },
+  }),
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      if (query.state.data !== undefined) {
       }
     },
   }),

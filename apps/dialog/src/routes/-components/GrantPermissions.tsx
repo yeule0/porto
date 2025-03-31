@@ -27,21 +27,21 @@ export function GrantPermissions(props: GrantPermissions.Props) {
         <Layout.Footer.Actions>
           <Button
             className="flex-1"
+            onClick={onReject}
             type="button"
             variant="destructive"
-            onClick={onReject}
           >
             Deny
           </Button>
 
           <Button
             className="flex-1"
-            type="button"
-            variant="success"
             onClick={() => {
               if (index < permissions!.spend!.length - 1) setIndex(index + 1)
               else onApprove()
             }}
+            type="button"
+            variant="success"
           >
             Approve
           </Button>
@@ -96,14 +96,14 @@ export function GrantSpendPermission(props: GrantSpendPermission.Props) {
     <>
       <Layout.Header>
         <Layout.Header.Default
-          icon={LucideKey}
-          title="Authorize Spending"
           content={
             <div>
               <span className="font-medium">{hostname}</span> would like
               permissions to spend the following amount:
             </div>
           }
+          icon={LucideKey}
+          title="Authorize Spending"
         />
       </Layout.Header>
       <Layout.Content>

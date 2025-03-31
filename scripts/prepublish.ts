@@ -23,9 +23,9 @@ const exports = getExports({
       resolve(import.meta.dirname, '../src', entryName, 'package.json'),
       JSON.stringify(
         {
+          main: relative(modulePath(), modulePath('_dist')) + '.js',
           type: 'module',
           types: relative(modulePath(), modulePath('_dist')) + '.d.ts',
-          main: relative(modulePath(), modulePath('_dist')) + '.js',
         },
         null,
         2,

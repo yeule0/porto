@@ -15,5 +15,5 @@ export function withResolvers<type>(): PromiseWithResolvers<type> {
     reject = reject_
   })
 
-  return { promise, resolve, reject }
+  return { promise, reject, resolve }
 }

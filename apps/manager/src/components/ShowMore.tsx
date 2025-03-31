@@ -17,10 +17,10 @@ export function ShowMore({
 
   return (
     <Ariakit.Checkbox
+      className={cx(className, '')}
+      onChange={onChange}
       render={<p />}
       store={checkbox}
-      onChange={onChange}
-      className={cx(className, '')}
     >
       {label}
     </Ariakit.Checkbox>

@@ -33,7 +33,6 @@ export function ActionRequest(props: ActionRequest.Props) {
   }, [chainId])
 
   const simulate = useQuery({
-    queryKey: ['simulate', client.uid, calls],
     queryFn: async () => {
       const { balances, results } = await Delegation.simulate(client, {
         account: account!.address!,
@@ -43,6 +42,7 @@ export function ActionRequest(props: ActionRequest.Props) {
       if (failure) throw failure.error
       return { balances, results }
     },
+    queryKey: ['simulate', client.uid, calls],
   })
   const balances =
     simulate.data?.balances.filter((x) => x.value.diff !== 0n) ?? []
@@ -51,9 +51,9 @@ export function ActionRequest(props: ActionRequest.Props) {
     <Layout loading={loading} loadingTitle="Sending...">
       <Layout.Header>
         <Layout.Header.Default
-          title="Action Request"
-          icon={simulate.status === 'error' ? TriangleAlert : Star}
           content={<>Review the action to perform below.</>}
+          icon={simulate.status === 'error' ? TriangleAlert : Star}
+          title="Action Request"
           variant={simulate.status === 'error' ? 'warning' : 'default'}
         />
       </Layout.Header>
@@ -106,22 +106,22 @@ export function ActionRequest(props: ActionRequest.Props) {
 
                       return (
                         <div
-                          key={token.address}
                           className="flex gap-2 font-medium"
+                          key={token.address}
                         >
                           <div
                             className={cx(
                               'flex size-[24px] items-center justify-center rounded-full',
                               {
-                                'bg-successTint': receiving,
                                 'bg-destructiveTint': !receiving,
+                                'bg-successTint': receiving,
                               },
                             )}
                           >
                             <Icon
                               className={cx('size-4 text-current', {
-                                'text-success': receiving,
                                 'text-destructive': !receiving,
+                                'text-success': receiving,
                               })}
                             />
                           </div>
@@ -177,18 +177,18 @@ export function ActionRequest(props: ActionRequest.Props) {
           <Layout.Footer.Actions>
             <Button
               className="flex-grow"
+              onClick={onReject}
               type="button"
               variant="destructive"
-              onClick={onReject}
             >
               Deny
             </Button>
 
             <Button
               className="flex-grow"
+              onClick={onApprove}
               type="button"
               variant="success"
-              onClick={onApprove}
             >
               Approve
             </Button>
@@ -199,17 +199,17 @@ export function ActionRequest(props: ActionRequest.Props) {
           <Layout.Footer.Actions>
             <Button
               className="flex-grow"
+              onClick={onReject}
               type="button"
               variant="destructive"
-              onClick={onReject}
             >
               Deny
             </Button>
             <Button
               className="flex-grow"
+              onClick={onApprove}
               type="button"
               variant="default"
-              onClick={onApprove}
             >
               Approve anyway
             </Button>

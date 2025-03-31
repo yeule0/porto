@@ -2,15 +2,15 @@ import type * as RpcRequest from 'ox/RpcRequest'
 import type * as RpcResponse from 'ox/RpcResponse'
 import { http } from 'viem'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
-import { type Mutate, type StoreApi, createStore } from 'zustand/vanilla'
+import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
 
 import * as Chains from './Chains.js'
-import * as Mode from './Mode.js'
-import * as Storage from './Storage.js'
 import type * as Account from './internal/account.js'
 import type * as internal from './internal/porto.js'
 import * as Provider from './internal/provider.js'
 import type { ExactPartial, OneOf } from './internal/types.js'
+import * as Mode from './Mode.js'
+import * as Storage from './Storage.js'
 
 export const defaultConfig = {
   announceProvider: true,
@@ -69,7 +69,6 @@ export function create(
             return {
               accounts: state.accounts.map((account) => ({
                 ...account,
-                sign: undefined,
                 keys: account.keys?.map((key) => ({
                   ...key,
                   privateKey:
@@ -77,6 +76,7 @@ export function create(
                       ? undefined
                       : key.privateKey,
                 })),
+                sign: undefined,
               })),
               chain: state.chain,
             } as unknown as State
@@ -92,10 +92,10 @@ export function create(
 
   const internal = {
     config,
-    id: crypto.randomUUID(),
     getMode() {
       return mode
     },
+    id: crypto.randomUUID(),
     setMode(i) {
       destroy?.()
       mode = i
@@ -117,12 +117,12 @@ export function create(
       : () => {}
 
   return {
+    _internal: internal,
     destroy() {
       destroy()
       provider._internal.destroy()
     },
     provider,
-    _internal: internal,
   }
 }
 

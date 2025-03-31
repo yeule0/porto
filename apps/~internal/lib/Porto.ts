@@ -18,6 +18,16 @@ export const config = {
       },
     },
   },
+  prod: {
+    chains: [Chains.odysseyTestnet],
+    mode: Mode.contract(),
+    transports: {
+      [Chains.odysseyTestnet.id]: {
+        default: http(),
+        relay: http('https://relay.ithaca.xyz'),
+      },
+    },
+  },
   stg: {
     chains: [Chains.odysseyTestnet],
     mode: Mode.relay({
@@ -30,28 +40,18 @@ export const config = {
       },
     },
   },
-  prod: {
-    chains: [Chains.odysseyTestnet],
-    mode: Mode.contract(),
-    transports: {
-      [Chains.odysseyTestnet.id]: {
-        default: http(),
-        relay: http('https://relay.ithaca.xyz'),
-      },
-    },
-  },
 } as const satisfies Record<Env.Env, Partial<Porto.Config>>
 
 export const dialogHosts = {
   anvil: import.meta.env.PROD
     ? undefined
     : 'https://anvil.localhost:5174/dialog/',
-  stg: import.meta.env.PROD
-    ? 'https://stg.id.porto.sh/dialog/'
-    : 'https://stg.localhost:5174/dialog/',
   prod: import.meta.env.PROD
     ? 'https://id.porto.sh/dialog/'
     : 'https://localhost:5174/dialog/',
+  stg: import.meta.env.PROD
+    ? 'https://stg.id.porto.sh/dialog/'
+    : 'https://stg.localhost:5174/dialog/',
 } as const satisfies Record<Env.Env, string | undefined>
 
 export const porto = Porto.create({

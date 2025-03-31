@@ -42,9 +42,9 @@ export function Connect(props: Connect.Props) {
           </div>
         </Button>
         <Button
+          onClick={() => disconnect.mutate({})}
           size={size}
           variant="destructive"
-          onClick={() => disconnect.mutate({})}
         >
           Sign out
         </Button>

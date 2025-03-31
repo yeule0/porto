@@ -1,4 +1,5 @@
 import * as AriaKit from '@ariakit/react'
+import { Query } from '@porto/apps'
 import { Button } from '@porto/apps/components'
 import {
   exp1Abi,
@@ -13,8 +14,6 @@ import * as React from 'react'
 import { parseEther } from 'viem'
 import { useAccount } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
-
-import { Query } from '@porto/apps'
 import { useClickOutside } from '~/hooks/useClickOutside'
 import { useSwapAssets } from '~/hooks/useSwapAssets'
 import type { ChainId } from '~/lib/Wagmi'
@@ -64,8 +63,8 @@ export function DevOnly() {
   return (
     <div>
       <AriaKit.Button
-        onClick={() => setOpen(true)}
         className="absolute top-0 right-0 font-mono text-md text-transparent hover:text-gray11"
+        onClick={() => setOpen(true)}
       >
         --
       </AriaKit.Button>
@@ -73,62 +72,59 @@ export function DevOnly() {
         <div className="fixed right-0 bottom-0 flex h-fit max-w-full flex-col justify-start gap-x-2 bg-gray1 p-4 outline-none lg:mx-16 lg:max-w-1/2 lg:flex-row">
           <div className="grid w-full grid-cols-1 gap-x-2 lg:grid-cols-3">
             <Button
-              variant="default"
               className="min-w-[120px] max-w-[200px] rounded-none! text-xs sm:w-auto sm:text-base"
               onClick={() => grantPermissions.mutate(key())}
+              variant="default"
             >
               Grant
             </Button>
             <Button
-              variant="default"
-              disabled={!permissions.data?.[0]}
               className="min-w-[120px] max-w-[200px] rounded-none! text-xs sm:w-auto sm:text-base"
+              disabled={!permissions.data?.[0]}
               onClick={() => {
                 if (permissions.data?.[0])
                   revokePermissions.mutate({ id: permissions.data[0].id })
               }}
+              variant="default"
             >
               Revoke
             </Button>
             <Button
-              disabled={!account.address}
               className="min-w-[120px] max-w-[200px] rounded-none! text-xs sm:w-auto sm:text-base"
-              variant="default"
+              disabled={!account.address}
               onClick={() => {
                 if (!account.address) return
-                console.info('minting EXP&EXP2')
                 send.sendCalls({
                   calls: [
                     {
-                      to: exp1Address,
                       data: AbiFunction.encodeData(
                         AbiFunction.fromAbi(exp1Abi, 'mint'),
                         [account.address, Value.fromEther('100')],
                       ),
+                      to: exp1Address,
                     },
                     {
-                      to: exp2Address,
                       data: AbiFunction.encodeData(
                         AbiFunction.fromAbi(exp2Abi, 'mint'),
                         [account.address, Value.fromEther('100')],
                       ),
+                      to: exp2Address,
                     },
                   ],
                 })
-
-                console.info(send)
               }}
+              variant="default"
             >
               Mint EXP&EXP2
             </Button>
             <Button
+              className="w-[120px] max-w-[200px] rounded-none! text-xs sm:w-auto sm:text-base"
               onClick={() => {
                 Query.client
                   .invalidateQueries()
                   .then(() => Query.client.refetchQueries())
               }}
               variant="default"
-              className="w-[120px] max-w-[200px] rounded-none! text-xs sm:w-auto sm:text-base"
             >
               refetch all
             </Button>
@@ -136,15 +132,15 @@ export function DevOnly() {
           <pre className="text-xs">
             {JSON.stringify(
               {
-                chain: { name: account.chain?.name, id: account.chainId },
+                chain: { id: account.chainId, name: account.chain?.name },
               },
               undefined,
               2,
             )}
           </pre>
           <AriaKit.Button
-            onClick={() => setOpen(false)}
             className="size-3 text-red-500"
+            onClick={() => setOpen(false)}
           >
             ❌
           </AriaKit.Button>

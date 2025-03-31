@@ -47,8 +47,8 @@ describe('execute', () => {
       ).toEqual({
         canSign: false,
         expiry: key.expiry,
-        publicKey: key.publicKey,
         hash: key.hash,
+        publicKey: key.publicKey,
         role: key.role,
         type: 'p256',
       })
@@ -83,11 +83,11 @@ describe('execute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: key.expiry,
-        publicKey: key.publicKey,
-        hash: key.hash,
-        role: key.role,
         canSign: false,
+        expiry: key.expiry,
+        hash: key.hash,
+        publicKey: key.publicKey,
+        role: key.role,
         type: 'p256',
       })
     })
@@ -117,11 +117,11 @@ describe('execute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: key.expiry,
-        publicKey: key.publicKey,
-        hash: key.hash,
-        role: key.role,
         canSign: false,
+        expiry: key.expiry,
+        hash: key.hash,
+        publicKey: key.publicKey,
+        role: key.role,
         type: 'p256',
       })
     })
@@ -156,11 +156,11 @@ describe('execute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: key.expiry,
-        publicKey: key.publicKey,
-        hash: key.hash,
-        role: key.role,
         canSign: false,
+        expiry: key.expiry,
+        hash: key.hash,
+        publicKey: key.publicKey,
+        role: key.role,
         type: 'p256',
       })
     })
@@ -203,11 +203,11 @@ describe('execute', () => {
           index: 1,
         }),
       ).toEqual({
-        expiry: nextKey.expiry,
-        publicKey: nextKey.publicKey,
-        hash: nextKey.hash,
-        role: nextKey.role,
         canSign: false,
+        expiry: nextKey.expiry,
+        hash: nextKey.hash,
+        publicKey: nextKey.publicKey,
+        role: nextKey.role,
         type: 'p256',
       })
     })
@@ -250,11 +250,11 @@ describe('execute', () => {
           index: 1,
         }),
       ).toEqual({
-        expiry: nextKey.expiry,
-        publicKey: nextKey.publicKey,
-        hash: nextKey.hash,
-        role: nextKey.role,
         canSign: false,
+        expiry: nextKey.expiry,
+        hash: nextKey.hash,
+        publicKey: nextKey.publicKey,
+        role: nextKey.role,
         type: 'p256',
       })
     })
@@ -338,8 +338,8 @@ describe('execute', () => {
 
       const balance = await readContract(client, {
         ...exp1Config,
-        functionName: 'balanceOf',
         args: [account.address],
+        functionName: 'balanceOf',
       })
 
       expect(balance).toEqual(Value.fromEther('11000'))
@@ -547,8 +547,8 @@ describe('execute', () => {
           Call.authorize({ key }),
           Call.setSpendLimit({
             key,
-            period: 'day',
             limit: Value.fromEther('1.5'),
+            period: 'day',
           }),
         ],
         delegation,
@@ -708,11 +708,11 @@ describe('prepareExecute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: keyToAuthorize.expiry,
-        publicKey: keyToAuthorize.publicKey,
-        hash: keyToAuthorize.hash,
-        role: keyToAuthorize.role,
         canSign: false,
+        expiry: keyToAuthorize.expiry,
+        hash: keyToAuthorize.hash,
+        publicKey: keyToAuthorize.publicKey,
+        role: keyToAuthorize.role,
         type: 'p256',
       })
     })
@@ -758,11 +758,11 @@ describe('prepareExecute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: keyToAuthorize.expiry,
-        publicKey: keyToAuthorize.publicKey,
-        hash: keyToAuthorize.hash,
-        role: keyToAuthorize.role,
         canSign: false,
+        expiry: keyToAuthorize.expiry,
+        hash: keyToAuthorize.hash,
+        publicKey: keyToAuthorize.publicKey,
+        role: keyToAuthorize.role,
         type: 'p256',
       })
     })
@@ -804,11 +804,11 @@ describe('prepareExecute', () => {
           index: 0,
         }),
       ).toEqual({
-        expiry: keyToAuthorize.expiry,
-        publicKey: keyToAuthorize.publicKey,
-        hash: keyToAuthorize.hash,
-        role: keyToAuthorize.role,
         canSign: false,
+        expiry: keyToAuthorize.expiry,
+        hash: keyToAuthorize.hash,
+        publicKey: keyToAuthorize.publicKey,
+        role: keyToAuthorize.role,
         type: 'p256',
       })
     })
@@ -830,8 +830,8 @@ test.skip('e2e (https://relay.ithaca.xyz)', async () => {
   {
     const hash = await Delegation.execute(client, {
       account,
-      delegation,
       calls: [],
+      delegation,
     })
     await waitForTransactionReceipt(client, { hash })
   }

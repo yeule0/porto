@@ -39,20 +39,20 @@ function RouteComponent() {
       if (shouldAuthorize)
         navigate({
           // @ts-ignore
-          search: (prev) => ({ ...prev, step: 'authorize' }),
           replace: true,
+          search: (prev) => ({ ...prev, step: 'authorize' }),
         })
       else
         navigate({
           // @ts-ignore
-          search: (prev) => ({ ...prev, step: 'signIn' }),
           replace: true,
+          search: (prev) => ({ ...prev, step: 'signIn' }),
         })
     } else
       navigate({
         // @ts-ignore
-        search: (prev) => ({ ...prev, step: 'signUp' }),
         replace: true,
+        search: (prev) => ({ ...prev, step: 'signUp' }),
       })
   }, [navigate, signIn, shouldAuthorize])
 
@@ -60,7 +60,10 @@ function RouteComponent() {
     mutationFn({
       signIn,
       selectAccount,
-    }: { signIn?: boolean; selectAccount?: boolean }) {
+    }: {
+      signIn?: boolean
+      selectAccount?: boolean
+    }) {
       if (!request) throw new Error('no request found.')
       if (request.method !== 'wallet_connect')
         throw new Error('request is not a wallet_connect request.')

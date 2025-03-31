@@ -54,14 +54,14 @@ export function useReadBalances({
   })
 
   useWatchBlockNumber({
-    onBlockNumber: () => refetch(),
     enabled: account.status === 'connected',
+    onBlockNumber: () => refetch(),
   })
 
   return {
     data,
-    refetch,
     isLoading,
     isPending,
+    refetch,
   }
 }

@@ -13,35 +13,35 @@ export function SignIn(props: SignIn.Props) {
     <Layout loading={loading} loadingTitle="Signing in...">
       <Layout.Header className="flex-grow">
         <Layout.Header.Default
-          title="Sign in"
-          icon={LucideLogIn}
           content={
             <>
               Sign in with your wallet to continue using{' '}
               <span className="font-medium">{hostname}</span>.
             </>
           }
+          icon={LucideLogIn}
+          title="Sign in"
         />
       </Layout.Header>
 
       <Layout.Footer>
         <Layout.Footer.Actions>
-          <Button type="button" onClick={() => onApprove({ signIn: false })}>
+          <Button onClick={() => onApprove({ signIn: false })} type="button">
             Sign up
           </Button>
 
           <Button
             className="flex-grow"
+            onClick={() => onApprove({ signIn: true })}
             type="button"
             variant="accent"
-            onClick={() => onApprove({ signIn: true })}
           >
             Sign in
           </Button>
         </Layout.Footer.Actions>
 
         <Layout.Footer.Account
-          onClick={() => onApprove({ signIn: true, selectAccount: true })}
+          onClick={() => onApprove({ selectAccount: true, signIn: true })}
         />
       </Layout.Footer>
     </Layout>

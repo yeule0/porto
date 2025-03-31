@@ -19,11 +19,10 @@ import {
   type EIP1193Provider,
   type PrivateKeyAccount,
 } from 'viem'
-
-import type * as RpcSchema from '../../core/RpcSchema.js'
 import * as Request from '../../core/internal/typebox/request.js'
 import * as Rpc from '../../core/internal/typebox/rpc.js'
 import * as Schema from '../../core/internal/typebox/schema.js'
+import type * as RpcSchema from '../../core/RpcSchema.js'
 import type { ChainIdParameter, ConnectorParameter } from './types.js'
 
 export async function connect<config extends Config>(
@@ -72,8 +71,8 @@ export async function connect<config extends Config>(
       params: [
         {
           capabilities: Schema.Encode(Request.wallet_connect.Capabilities, {
-            grantPermissions,
             createAccount,
+            grantPermissions,
           }),
         },
       ],

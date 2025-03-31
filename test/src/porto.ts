@@ -1,6 +1,6 @@
 import type { Address } from 'ox'
 import { Chains, Mode, Porto, Storage } from 'porto'
-import { http, type Transport, custom, defineChain } from 'viem'
+import { custom, defineChain, http, type Transport } from 'viem'
 
 import { type Chain, odysseyTestnet } from '../../src/core/Chains.js'
 import * as Porto_internal from '../../src/core/internal/porto.js'

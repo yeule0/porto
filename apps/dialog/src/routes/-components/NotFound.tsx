@@ -22,14 +22,14 @@ export function NotFound() {
     <Layout loading={respond.isPending} loadingTitle="Responding...">
       <Layout.Header>
         <Layout.Header.Default
-          title="Method Not implemented"
-          icon={LucideTriangleAlert}
           content={
             <>
               UI support for method "{request?.method}" is not implemented yet.
               You may still proceed by rejecting or responding.
             </>
           }
+          icon={LucideTriangleAlert}
+          title="Method Not implemented"
           variant="warning"
         />
       </Layout.Header>
@@ -44,17 +44,17 @@ export function NotFound() {
         <div className="flex gap-2 px-3">
           <Button
             className="flex-grow"
-            type="button"
             onClick={() => Actions.reject(porto, request!)}
+            type="button"
           >
             Reject
           </Button>
 
           <Button
             className="flex-grow"
+            onClick={() => respond.mutate()}
             type="button"
             variant="warning"
-            onClick={() => respond.mutate()}
           >
             Respond
           </Button>

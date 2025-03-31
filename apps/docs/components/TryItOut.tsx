@@ -32,8 +32,8 @@ export function TryItOut(props: TryItOut.Props) {
         {
           lang: 'typescript',
           themes: {
-            light: 'github-light',
             dark: 'github-dark',
+            light: 'github-light',
           },
         },
       ).catch(() => undefined)
@@ -54,7 +54,7 @@ export function TryItOut(props: TryItOut.Props) {
               : 'Try it out'}
         </Button>
         {mutation.data ? (
-          <Button variant="destructive" onClick={() => mutation.reset()}>
+          <Button onClick={() => mutation.reset()} variant="destructive">
             Reset
           </Button>
         ) : null}
@@ -86,9 +86,7 @@ export function TryItOut(props: TryItOut.Props) {
 export namespace TryItOut {
   export interface Props {
     exampleSlug?: string
-    fn: (parameters: {
-      provider: Porto.Porto['provider']
-    }) => Promise<unknown>
+    fn: (parameters: { provider: Porto.Porto['provider'] }) => Promise<unknown>
     requireConnection?: boolean
     transformResultCode?: (code: string) => string
   }

@@ -9,8 +9,8 @@ import {
 import * as TestActions from '../../../../test/src/actions.js'
 import { getPorto } from '../../../../test/src/porto.js'
 import * as Key from '../key.js'
-import { sendCalls } from '../relay.js'
 import type * as Capabilities from '../relay/typebox/capabilities.js'
+import { sendCalls } from '../relay.js'
 import {
   createAccount,
   getAccounts,
@@ -250,8 +250,8 @@ describe('getAccounts', () => {
     await sendCalls(client, {
       account,
       calls: [],
-      nonce: 0n,
       feeToken,
+      nonce: 0n,
     })
 
     const result = await getAccounts(client, {
@@ -280,8 +280,8 @@ describe('getKeys', () => {
     await sendCalls(client, {
       account,
       calls: [],
-      nonce: 0n,
       feeToken,
+      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -330,8 +330,8 @@ describe('getKeys', () => {
     await sendCalls(client, {
       account,
       calls: [],
-      nonce: 0n,
       feeToken,
+      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -358,8 +358,8 @@ describe('getKeys', () => {
     await sendCalls(client, {
       account,
       calls: [],
-      nonce: 0n,
       feeToken,
+      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -431,8 +431,8 @@ describe('prepareCalls + sendPreparedCalls', () => {
       calls: [
         {
           abi: exp1Abi,
-          functionName: 'mint',
           args: [account.address, Value.fromEther('1')],
+          functionName: 'mint',
           to: exp1Address,
         },
       ],

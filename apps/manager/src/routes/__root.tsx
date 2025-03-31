@@ -1,4 +1,4 @@
-import { HeadContent, Outlet, createRootRoute } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router'
 import * as React from 'react'
 import { Toaster } from 'sonner'
 
@@ -14,11 +14,11 @@ function RouteComponent() {
       <Outlet />
 
       <Toaster
-        theme="light"
+        className="z-[42069] select-none"
         expand={false}
         position="bottom-right"
-        className="z-[42069] select-none"
         swipeDirections={['right', 'left', 'top', 'bottom']}
+        theme="light"
         toastOptions={{
           style: {
             borderRadius: '1.5rem',
@@ -29,9 +29,9 @@ function RouteComponent() {
       <React.Suspense>
         <TanStackRouterDevtools position="bottom-right" />
         <TanStackQueryDevtools
-          position="left"
-          initialIsOpen={false}
           buttonPosition="bottom-left"
+          initialIsOpen={false}
+          position="left"
         />
       </React.Suspense>
     </>

@@ -1,6 +1,6 @@
 import { Porto } from '@porto/apps'
 import { IndeterminateLoader } from '@porto/apps/components'
-import { type VariantProps, cva, cx } from 'cva'
+import { cva, cx, type VariantProps } from 'cva'
 import { Hooks } from 'porto/remote'
 import type * as React from 'react'
 
@@ -84,16 +84,16 @@ export namespace Layout {
       export const className = cva(
         'flex size-8 items-center justify-center rounded-full',
         {
+          defaultVariants: {
+            variant: 'default',
+          },
           variants: {
             variant: {
               default: 'bg-accentTint text-accent',
+              destructive: 'bg-destructive text-destructive',
               primary: 'bg-accentTint text-accent',
               warning: 'bg-warningTint text-warning',
-              destructive: 'bg-destructive text-destructive',
             },
-          },
-          defaultVariants: {
-            variant: 'default',
           },
         },
       )
@@ -155,13 +155,13 @@ export namespace Layout {
           </div>
 
           <button
-            disabled={!onClick}
             className="-my-1 -mx-2 flex items-center gap-1.5 rounded-lg px-2 py-1 hover:not-disabled:bg-surface"
+            disabled={!onClick}
             onClick={onClick}
             type="button"
           >
             <div className="font-medium text-[14px] text-primary">
-              {StringFormatter.truncate(address, { start: 8, end: 6 })}
+              {StringFormatter.truncate(address, { end: 6, start: 8 })}
             </div>
             {onClick && <ChevronDown className="size-4 text-secondary" />}
           </button>

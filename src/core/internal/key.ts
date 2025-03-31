@@ -87,8 +87,8 @@ export type Serialized = {
 /** Relay key type to key type mapping. */
 export const fromRelayKeyType = {
   p256: 'p256',
-  webauthnp256: 'webauthn-p256',
   secp256k1: 'secp256k1',
+  webauthnp256: 'webauthn-p256',
 } as const
 
 /** Relay key role to key role mapping. */
@@ -118,8 +118,8 @@ export const fromSerializedSpendPeriod = {
 export const toRelayKeyType = {
   address: 'secp256k1',
   p256: 'p256',
-  'webauthn-p256': 'webauthnp256',
   secp256k1: 'secp256k1',
+  'webauthn-p256': 'webauthnp256',
 } as const
 
 /** Key role to relay key role mapping. */
@@ -130,19 +130,19 @@ export const toRelayKeyRole = {
 
 /** Key type to serialized (contract-compatible) key type mapping. */
 export const toSerializedKeyType = {
-  p256: 0,
-  'webauthn-p256': 1,
-  secp256k1: 2,
   address: 2,
+  p256: 0,
+  secp256k1: 2,
+  'webauthn-p256': 1,
 } as const
 
 /** Period to serialized (contract-compatible) spend period mapping. */
 export const toSerializedSpendPeriod = {
-  minute: 0,
-  hour: 1,
   day: 2,
-  week: 3,
+  hour: 1,
+  minute: 0,
   month: 4,
+  week: 3,
   year: 5,
 } as const
 
@@ -279,8 +279,8 @@ export async function createWebAuthnP256<const role extends Key['role']>(
       : undefined,
     user: {
       displayName: label,
-      name: label,
       id: userId,
+      name: label,
     },
   })
 
@@ -383,10 +383,10 @@ export function deserialize(serialized: Serialized): Key {
   const publicKey = serialized.publicKey
   const type = (fromSerializedKeyType as any)[serialized.keyType]
   return from({
+    canSign: false,
     expiry: serialized.expiry,
     publicKey,
     role: serialized.isSuperAdmin ? 'admin' : 'session',
-    canSign: false,
     type,
   })
 }
@@ -493,12 +493,12 @@ export function fromP256<const role extends Key['role']>(
   return from({
     canSign: true,
     expiry: parameters.expiry ?? 0,
-    publicKey,
-    role: parameters.role as Key['role'],
     permissions: parameters.permissions,
     privateKey() {
       return privateKey
     },
+    publicKey,
+    role: parameters.role as Key['role'],
     type: 'p256',
   })
 }
@@ -597,10 +597,10 @@ export function fromSecp256k1<const role extends Key['role']>(
   return from({
     canSign: Boolean(privateKey),
     expiry: parameters.expiry ?? 0,
-    publicKey,
-    role,
     permissions: parameters.permissions,
     privateKey: privateKey ? () => privateKey : undefined,
+    publicKey,
+    role,
     type: 'secp256k1',
   } as Secp256k1Key)
 }
@@ -732,10 +732,10 @@ export function fromWebCryptoP256<const role extends Key['role']>(
     canSign: true,
     expiry: parameters.expiry ?? 0,
     permissions: parameters.permissions,
-    publicKey,
-    role: parameters.role as Key['role'],
     prehash: true,
     privateKey,
+    publicKey,
+    role: parameters.role as Key['role'],
     type: 'p256',
   })
 }
@@ -917,8 +917,8 @@ export async function sign(
   if (wrap)
     return wrapSignature(signature, {
       keyType,
-      publicKey,
       prehash,
+      publicKey,
     })
   return signature
 }
@@ -952,9 +952,9 @@ export function toRelay(
             return AbiFunction.getSelector(signature)
           })()
           return {
-            type: 'call',
-            to: to ?? Call.anyTarget,
             selector,
+            to: to ?? Call.anyTarget,
+            type: 'call',
           } as const satisfies RelayPermission_typebox.CallPermission
         })
       }
@@ -963,10 +963,10 @@ export function toRelay(
         const value = v as Key_typebox.SpendPermissions
         return value.map(({ limit, period, token }) => {
           return {
-            type: 'spend',
             limit,
             period,
             token,
+            type: 'spend',
           } as const satisfies RelayPermission_typebox.SpendPermission
         })
       }

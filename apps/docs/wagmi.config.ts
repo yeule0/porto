@@ -1,6 +1,6 @@
 import { Env, Porto as PortoConfig } from '@porto/apps'
 import { Mode, Porto } from 'porto'
-import { http, createConfig, createStorage } from 'wagmi'
+import { createConfig, createStorage, http } from 'wagmi'
 import { odysseyTestnet } from 'wagmi/chains'
 
 if (typeof window !== 'undefined') {

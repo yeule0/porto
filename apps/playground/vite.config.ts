@@ -17,17 +17,16 @@ const logger = createLogger('info', {
 export default defineConfig({
   plugins: [
     mkcert({
+      force: true,
       hosts: [
         'localhost',
         'stg.localhost',
         process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
       ],
-      force: true,
     }),
     react(),
     tailwindcss(),
     {
-      name: 'anvil',
       async configureServer() {
         if (process.env.ANVIL !== 'true') return
 
@@ -56,8 +55,8 @@ export default defineConfig({
         }).start()
 
         await Anvil.loadState({
-          entryPointAddress: chain.contracts.entryPoint.address,
           delegationAddress: chain.contracts.delegation.address,
+          entryPointAddress: chain.contracts.entryPoint.address,
           rpcUrl: anvilConfig.rpcUrl,
         })
 
@@ -72,10 +71,10 @@ export default defineConfig({
               '0x0000000000000000000000000000000000000000',
               exp1Address,
             ],
-            userOpGasBuffer: 100_000n,
             http: {
               port: relayConfig.port,
             },
+            userOpGasBuffer: 100_000n,
           }),
           port: relayConfig.port,
         }).start()
@@ -83,6 +82,7 @@ export default defineConfig({
 
         logger.info('Relay started on ' + relayConfig.rpcUrl)
       },
+      name: 'anvil',
     },
   ],
 })

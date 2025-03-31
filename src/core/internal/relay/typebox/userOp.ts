@@ -12,12 +12,12 @@ export const UserOp = Type.Object({
   /** The combined gas limit for payment, verification, and calling the EOA. */
   combinedGas: Primitive.BigInt,
   /** Users address. */
-  eoa: Primitive.Address,
+  encodedPreOps: Type.Array(Primitive.Hex),
   /**
    * Optional array of encoded UserOps that will be verified and executed
    * after PREP (if any) and before the validation of the overall UserOp.
    */
-  encodedPreOps: Type.Array(Primitive.Hex),
+  eoa: Primitive.Address,
   /**
    * An encoded array of calls, using ERC7579 batch execution encoding.
    *

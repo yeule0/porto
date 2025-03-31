@@ -245,8 +245,8 @@ describe('sign', () => {
 
     const nextAccount = Account.from({
       ...account,
-      sign: undefined,
       keys: [key],
+      sign: undefined,
     })
 
     const payloads = [Hex.random(32), Hex.random(32)] as const
