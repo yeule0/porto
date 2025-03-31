@@ -5,15 +5,17 @@ import { Hex, Siwe } from 'ox'
 import { Actions } from 'porto/remote'
 import { useMemo } from 'react'
 
-import type * as Router from '~/lib/Router'
+import * as Router from '~/lib/Router'
 import { SignMessage } from '../-components/SignMessage'
 
 const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/personal_sign')({
   component: RouteComponent,
-  validateSearch(search): Router.RpcRequestToSearch<'personal_sign'> {
-    return search as never
+  validateSearch(search) {
+    return Router.parseSearchRequest(search, {
+      method: 'personal_sign',
+    })
   },
 })
 

@@ -68,7 +68,10 @@ export function DemoApp() {
       to: exp1Config.address,
     },
   ])({
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('mint', error)
+    },
     onSuccess() {
       mint.reset()
     },
@@ -306,7 +309,10 @@ export function MintDemo(props: MintDemo.Props) {
       },
     ],
   )({
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('mint', error)
+    },
   })
   const { isLoading: mintIsLoading, isSuccess: mintIsSuccess } =
     useWaitForCallsStatus({
@@ -433,7 +439,10 @@ export function SwapDemo(props: SwapDemo.Props) {
       },
     ]
   })({
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('swap', error)
+    },
     onSuccess() {
       form.setValues((x) => ({ ...x, fromValue: '', toValue: '' }))
     },
@@ -503,7 +512,10 @@ export function SwapDemo(props: SwapDemo.Props) {
       },
     ],
   )({
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('mint', error)
+    },
     onSuccess() {
       setTimeout(() => mint.reset(), successTimeout)
     },
@@ -713,7 +725,10 @@ export function PayDemo(props: PayDemo.Props) {
       ]
     },
   )({
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('pay', error)
+    },
   })
   const { isLoading: payIsLoading, isSuccess: payIsSuccess } =
     useWaitForCallsStatus({
@@ -935,7 +950,10 @@ export function LimitDemo(props: LimitDemo.Props) {
           params: [{ id: variables.id }],
         })
     },
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('revoke', error)
+    },
     onSuccess() {
       refetch()
       setTimeout(() => revoke.reset(), successTimeout)
@@ -974,7 +992,10 @@ export function LimitDemo(props: LimitDemo.Props) {
         ],
       })
     },
-    onError(error) {},
+    onError(error) {
+      // TODO: Error toast
+      console.error('grant', error)
+    },
     onSuccess() {
       refetch()
     },

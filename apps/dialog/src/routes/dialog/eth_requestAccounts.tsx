@@ -5,7 +5,7 @@ import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
-import type * as Router from '~/lib/Router'
+import * as Router from '~/lib/Router'
 import { SignIn } from '../-components/SignIn'
 import { SignUp } from '../-components/SignUp'
 
@@ -13,8 +13,11 @@ const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/eth_requestAccounts')({
   component: RouteComponent,
-  validateSearch: (search): Router.RpcRequestToSearch<'eth_requestAccounts'> =>
-    search as never,
+  validateSearch(search) {
+    return Router.parseSearchRequest(search, {
+      method: 'eth_requestAccounts',
+    })
+  },
 })
 
 function RouteComponent() {

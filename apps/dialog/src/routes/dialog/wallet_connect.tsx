@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 import { useEffect } from 'react'
 
-import type * as Router from '~/lib/Router'
+import * as Router from '~/lib/Router'
 import { GrantPermissions } from '../-components/GrantPermissions'
 import { SignIn } from '../-components/SignIn'
 import { SignUp } from '../-components/SignUp'
@@ -13,11 +13,15 @@ const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/wallet_connect')({
   component: RouteComponent,
-  validateSearch: (
-    search,
-  ): Router.RpcRequestToSearch<'wallet_connect'> & {
-    step?: 'authorize' | 'signIn' | 'signUp'
-  } => search as never,
+  validateSearch: (search) => {
+    const request = Router.parseSearchRequest(search, {
+      method: 'wallet_connect',
+    })
+    return {
+      ...request,
+      step: search.step as 'authorize' | 'signIn' | 'signUp',
+    }
+  },
 })
 
 function RouteComponent() {
@@ -38,19 +42,16 @@ function RouteComponent() {
     if (signIn) {
       if (shouldAuthorize)
         navigate({
-          // @ts-ignore
           replace: true,
           search: (prev) => ({ ...prev, step: 'authorize' }),
         })
       else
         navigate({
-          // @ts-ignore
           replace: true,
           search: (prev) => ({ ...prev, step: 'signIn' }),
         })
     } else
       navigate({
-        // @ts-ignore
         replace: true,
         search: (prev) => ({ ...prev, step: 'signUp' }),
       })

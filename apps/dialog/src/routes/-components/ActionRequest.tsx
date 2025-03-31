@@ -2,10 +2,10 @@ import { Porto } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
 import { useQuery } from '@tanstack/react-query'
 import { cx } from 'cva'
-import type { RpcSchema } from 'ox'
 import { Delegation } from 'porto'
 import { Hooks } from 'porto/remote'
 import * as React from 'react'
+import { Call } from 'viem'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
@@ -36,7 +36,7 @@ export function ActionRequest(props: ActionRequest.Props) {
     queryFn: async () => {
       const { balances, results } = await Delegation.simulate(client, {
         account: account!.address!,
-        calls: calls as any,
+        calls,
       })
       const failure = results.find((x) => x.status === 'failure')
       if (failure) throw failure.error
@@ -223,10 +223,7 @@ export function ActionRequest(props: ActionRequest.Props) {
 
 export namespace ActionRequest {
   export type Props = {
-    calls: RpcSchema.ExtractParams<
-      RpcSchema.Wallet,
-      'wallet_sendCalls'
-    >[0]['calls']
+    calls: readonly Call[]
     chainId?: number | undefined
     loading?: boolean | undefined
     onApprove: () => void

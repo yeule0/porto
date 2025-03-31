@@ -3,17 +3,17 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Actions } from 'porto/remote'
 
-import type * as Router from '~/lib/Router'
+import * as Router from '~/lib/Router'
 import { GrantPermissions } from '../-components/GrantPermissions'
 
 const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/experimental_grantPermissions')({
   component: RouteComponent,
-  validateSearch(
-    search,
-  ): Router.RpcRequestToSearch<'experimental_grantPermissions'> {
-    return search as never
+  validateSearch(search) {
+    return Router.parseSearchRequest(search, {
+      method: 'experimental_grantPermissions',
+    })
   },
 })
 

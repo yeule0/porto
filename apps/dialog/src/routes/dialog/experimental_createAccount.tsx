@@ -3,17 +3,17 @@ import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 
-import type * as Router from '~/lib/Router'
+import * as Router from '~/lib/Router'
 import { SignUp } from '../-components/SignUp'
 
 const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/experimental_createAccount')({
   component: RouteComponent,
-  validateSearch(
-    search,
-  ): Router.RpcRequestToSearch<'experimental_createAccount'> {
-    return search as never
+  validateSearch(search) {
+    return Router.parseSearchRequest(search, {
+      method: 'experimental_createAccount',
+    })
   },
 })
 
