@@ -22,7 +22,6 @@ import type {
   ExactPartial,
   Mutable,
   OneOf,
-  Undefined,
   UnionOmit,
   UnionRequiredBy,
 } from './types.js'
@@ -45,7 +44,7 @@ export type BaseKey<type extends string = string, properties = {}> = Compute<
       | ({
           /** Whether the key can sign. */
           canSign: false
-        } & Undefined<properties>)
+        } & ExactPartial<properties>)
     >
 >
 
@@ -417,9 +416,7 @@ export function deserialize(serialized: Serialized): Key {
  * @param key - Key.
  * @returns Key.
  */
-export function from<const key extends from.Value>(
-  key: from.Parameters<key>,
-): from.ReturnType<key> {
+export function from(key: from.Value): Key {
   if ('isSuperAdmin' in key) return deserialize(key) as never
   const { canSign = false, expiry = 0, role = 'session', type } = key
 
@@ -453,16 +450,12 @@ export function from<const key extends from.Value>(
 }
 
 export declare namespace from {
-  type Value = UnionRequiredBy<
-    ExactPartial<UnionOmit<Key, 'hash'>>,
-    'publicKey' | 'type'
-  >
-
-  type Parameters<key extends from.Value> = key | Key | Serialized
-
-  type ReturnType<key extends from.Value> = key extends from.Value
-    ? key & Pick<Key, 'canSign' | 'expiry' | 'hash' | 'role'>
-    : Key
+  type Value =
+    | UnionRequiredBy<
+        ExactPartial<UnionOmit<Key, 'hash'>>,
+        'publicKey' | 'type'
+      >
+    | Serialized
 }
 
 /**

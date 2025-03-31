@@ -98,7 +98,7 @@ export function relay(config: relay.Parameters = {}) {
         const authorizeKey = Key.from({
           ...parameters.key,
           role: 'admin',
-        } as Key.Key)
+        })
 
         await Relay.sendCalls(client, {
           account,

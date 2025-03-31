@@ -183,7 +183,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // const [params] = request._decoded.params
 
-        // const key = Key.from({ ...params.key, role: 'admin' } as Key.Key)
+        // const key = Key.from({ ...params.key, role: 'admin' })
         // if (!key) throw new Error('no key found.')
 
         // // Send a request off to the dialog to authorize the admin.

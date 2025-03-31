@@ -137,13 +137,13 @@ export function contract(parameters: contract.Parameters = {}) {
         const authorizeKey = Key.from({
           ...parameters.key,
           role: 'admin',
-        } as Key.Key)
+        })
 
         // TODO: wait for tx to be included?
         await Delegation.execute(client, {
           account,
           // Extract calls to authorize the key.
-          calls: Mode.getAuthorizeCalls([authorizeKey as Key.Key]),
+          calls: Mode.getAuthorizeCalls([authorizeKey]),
           storage: internal.config.storage,
         })
 
