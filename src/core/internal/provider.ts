@@ -277,6 +277,7 @@ export function from<
           const { context, signPayloads } =
             await getMode().actions.prepareUpgradeAccount({
               address,
+              feeToken: capabilities?.feeToken,
               permissions,
               label,
               internal: {
@@ -318,7 +319,7 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const [{ address, id }] = request._decoded.params
+          const [{ address, capabilities, id }] = request._decoded.params
 
           const account = address
             ? state.accounts.find((account) =>
@@ -331,6 +332,7 @@ export function from<
 
           await getMode().actions.revokePermissions({
             account,
+            feeToken: capabilities?.feeToken,
             id,
             internal: {
               client,
@@ -575,7 +577,7 @@ export function from<
 
         case 'wallet_prepareCalls': {
           const [parameters] = request._decoded.params
-          const { calls, chainId, key, from } = parameters
+          const { calls, capabilities, chainId, key, from } = parameters
 
           const client = getClient(chainId)
 
@@ -588,6 +590,7 @@ export function from<
           const { signPayloads, ...rest } =
             await getMode().actions.prepareCalls({
               calls,
+              feeToken: capabilities?.feeToken,
               key,
               internal: {
                 client,
@@ -664,6 +667,7 @@ export function from<
           const hash = await getMode().actions.sendCalls({
             account,
             calls,
+            feeToken: capabilities?.feeToken,
             permissionsId: capabilities?.permissions?.id,
             internal: {
               client,
