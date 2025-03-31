@@ -193,7 +193,7 @@ export function relay(config: relay.Parameters = {}) {
         })
 
         if (authorizeKey)
-          preauthKey(client, {
+          await preauthKey(client, {
             account,
             authorizeKey,
             feeToken: config.feeToken,

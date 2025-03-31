@@ -281,9 +281,11 @@ export function dialog(parameters: dialog.Parameters = {}) {
               const sessionKeys = account.capabilities?.permissions
                 ?.map((permission) => {
                   try {
-                    return Permissions.toKey(
+                    const key_ = Permissions.toKey(
                       Schema.Decode(Permissions.Schema, permission),
                     )
+                    if (key_.publicKey === key?.publicKey) return key
+                    return key_
                   } catch (err) {
                     return undefined
                   }
