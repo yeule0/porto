@@ -29,7 +29,7 @@ import type {
 
 type PrivateKeyFn = () => Hex.Hex
 
-export type BaseKey<type extends string, properties = {}> = Compute<
+export type BaseKey<type extends string = string, properties = {}> = Compute<
   Key_typebox.Base & {
     /** Permissions. */
     permissions?: Permissions | undefined
@@ -383,17 +383,13 @@ export declare namespace createWebCryptoP256 {
 export function deserialize(serialized: Serialized): Key {
   const publicKey = serialized.publicKey
   const type = (fromSerializedKeyType as any)[serialized.keyType]
-  return {
+  return from({
     expiry: serialized.expiry,
-    hash: hash({
-      publicKey,
-      type,
-    }),
     publicKey,
     role: serialized.isSuperAdmin ? 'admin' : 'session',
     canSign: false,
     type,
-  }
+  })
 }
 
 /**
@@ -437,7 +433,7 @@ export function from<const key extends from.Value>(
       const address = isAddress
         ? Hex.slice(publicKey, -20)
         : Address.fromPublicKey(PublicKey.fromHex(publicKey))
-      return Hex.padLeft(address, 32)
+      return address
     }
     return publicKey
   })()
@@ -782,13 +778,24 @@ export declare namespace fromWebCryptoP256 {
  * @returns Hashed key.
  */
 export function hash(key: Pick<Key, 'publicKey' | 'type'>): Hex.Hex {
-  const { publicKey, type } = key
+  const { type } = key
+  const publicKey = serializePublicKey(key.publicKey)
   return Hash.keccak256(
     AbiParameters.encode(
       [{ type: 'uint8' }, { type: 'bytes32' }],
       [toSerializedKeyType[type], Hash.keccak256(publicKey)],
     ),
   )
+}
+
+/**
+ * Serializes a public key.
+ *
+ * @param publicKey - Public key.
+ * @returns Serialized public key.
+ */
+export function serializePublicKey(publicKey: Hex.Hex): Hex.Hex {
+  return Hex.size(publicKey) < 32 ? Hex.padLeft(publicKey, 32) : publicKey
 }
 
 /**
@@ -814,7 +821,7 @@ export function serialize(key: Key): Serialized {
     expiry,
     isSuperAdmin: role === 'admin',
     keyType: toSerializedKeyType[type],
-    publicKey,
+    publicKey: serializePublicKey(publicKey),
   }
 }
 
@@ -986,7 +993,7 @@ export function toRelay(
   return {
     expiry,
     permissions: permissions ?? [],
-    publicKey,
+    publicKey: serializePublicKey(publicKey),
     role: toRelayKeyRole[role],
     signature,
     type: toRelayKeyType[type],

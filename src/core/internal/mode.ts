@@ -38,6 +38,17 @@ export type Mode = {
       account: Account.Account
     }>
 
+    grantAdmin: (parameters: {
+      /** Account to authorize the keys for. */
+      account: Account.Account
+      /** Internal properties. */
+      internal: ActionsInternal
+      /** Fee token to use for execution. If not provided, the native token (e.g. ETH) will be used. */
+      feeToken?: Address.Address | undefined
+      /** Key to authorize. */
+      key: Key.from.Value
+    }) => Promise<{ key: Key.Key }>
+
     grantPermissions: (parameters: {
       /** Account to authorize the keys for. */
       account: Account.Account
@@ -100,6 +111,17 @@ export type Mode = {
       /** Hex payloads to sign over. */
       signPayloads: readonly Hex.Hex[]
     }>
+
+    revokeAdmin: (parameters: {
+      /** Account to revoke the permissions for. */
+      account: Account.Account
+      /** Fee token to use for execution. If not provided, the native token (e.g. ETH) will be used. */
+      feeToken?: Address.Address | undefined
+      /** ID of the admin to revoke. */
+      id: Hex.Hex
+      /** Internal properties. */
+      internal: ActionsInternal
+    }) => Promise<void>
 
     revokePermissions: (parameters: {
       /** Account to revoke the permissions for. */

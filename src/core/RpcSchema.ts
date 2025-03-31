@@ -21,6 +21,10 @@ export type Schema =
           ReturnType: Static<typeof Rpc.experimental_createAccount.Response>
         }
       | {
+          Request: Static<typeof Rpc.experimental_grantAdmin.Request>
+          ReturnType: Static<typeof Rpc.experimental_grantAdmin.Response>
+        }
+      | {
           Request: Static<typeof Rpc.experimental_grantPermissions.Request>
           ReturnType: Static<typeof Rpc.experimental_grantPermissions.Response>
         }
@@ -35,8 +39,16 @@ export type Schema =
           ReturnType: Static<typeof Rpc.experimental_upgradeAccount.Response>
         }
       | {
-          Request: Static<typeof Rpc.experimental_permissions.Request>
-          ReturnType: Static<typeof Rpc.experimental_permissions.Response>
+          Request: Static<typeof Rpc.experimental_getAdmins.Request>
+          ReturnType: Static<typeof Rpc.experimental_getAdmins.Response>
+        }
+      | {
+          Request: Static<typeof Rpc.experimental_getPermissions.Request>
+          ReturnType: Static<typeof Rpc.experimental_getPermissions.Response>
+        }
+      | {
+          Request: Static<typeof Rpc.experimental_revokeAdmin.Request>
+          ReturnType: undefined
         }
       | {
           Request: Static<typeof Rpc.experimental_revokePermissions.Request>

@@ -130,6 +130,26 @@ export function contract(parameters: contract.Parameters = {}) {
         return { account }
       },
 
+      async grantAdmin(parameters) {
+        const { account, internal } = parameters
+        const { client } = internal
+
+        const authorizeKey = Key.from({
+          ...parameters.key,
+          role: 'admin',
+        } as Key.Key)
+
+        // TODO: wait for tx to be included?
+        await Delegation.execute(client, {
+          account,
+          // Extract calls to authorize the key.
+          calls: Mode.getAuthorizeCalls([authorizeKey as Key.Key]),
+          storage: internal.config.storage,
+        })
+
+        return { key: authorizeKey }
+      },
+
       async grantPermissions(parameters) {
         const { account, permissions, internal } = parameters
         const { client } = internal
@@ -202,22 +222,18 @@ export function contract(parameters: contract.Parameters = {}) {
         const account = Account.from({
           address,
           keys: [...keys, ...(extraKey ? [extraKey] : [])].map((key, i) => {
-            const credential = {
-              id: credentialId!,
-              publicKey: PublicKey.fromHex(key.publicKey),
-            }
             // Assume that the first key is the admin WebAuthn key.
             if (i === 0) {
               if (key.type === 'webauthn-p256')
                 return Key.fromWebAuthnP256({
                   ...key,
-                  credential,
+                  credential: {
+                    id: credentialId!,
+                    publicKey: PublicKey.fromHex(key.publicKey),
+                  },
                   id: address,
                 })
             }
-            // Add credential to session key to be able to restore from storage later
-            if ((key.type === 'p256' && key.role === 'session') || mock)
-              return { ...key, credential } as typeof key
             return key
           }),
         })
@@ -263,6 +279,20 @@ export function contract(parameters: contract.Parameters = {}) {
           label,
           mock,
           permissions,
+        })
+      },
+
+      async revokeAdmin(parameters) {
+        const { account, id, internal } = parameters
+        const { client } = internal
+
+        const key = account.keys?.find((key) => key.publicKey === id)
+        if (!key) return
+
+        await Delegation.execute(client, {
+          account,
+          calls: [Call.revoke({ keyHash: key.hash })],
+          storage: internal.config.storage,
         })
       },
 

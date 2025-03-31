@@ -136,7 +136,11 @@ export function dialog(parameters: dialog.Parameters = {}) {
             if (!account) throw new Error('no account found.')
 
             // Build keys to assign onto the account.
-            const keys = account.capabilities?.permissions
+            const adminKeys = account.capabilities?.admins
+              ?.map((key) => Key.from({ ...key, role: 'admin' }))
+              .filter(Boolean) as readonly Key.Key[]
+
+            const sessionKeys = account.capabilities?.permissions
               ?.map((permission) => {
                 if (permission.id === key?.publicKey) return key
                 try {
@@ -151,7 +155,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
             return Account.from({
               address: account.address,
-              keys,
+              keys: [...adminKeys, ...sessionKeys],
             })
           }
 
@@ -163,6 +167,33 @@ export function dialog(parameters: dialog.Parameters = {}) {
         return {
           account,
         }
+      },
+
+      async grantAdmin() {
+        // Note: we probably don't want to support this yet.
+        throw new Provider.UnsupportedMethodError()
+
+        // const { internal } = parameters
+        // const { request, store } = internal
+
+        // if (request.method !== 'experimental_grantAdmin')
+        //   throw new Error(
+        //     'Cannot authorize admin for method: ' + request.method,
+        //   )
+
+        // const [params] = request._decoded.params
+
+        // const key = Key.from({ ...params.key, role: 'admin' } as Key.Key)
+        // if (!key) throw new Error('no key found.')
+
+        // // Send a request off to the dialog to authorize the admin.
+        // const provider = getProvider(store)
+        // await provider.request({
+        //   method: 'experimental_grantAdmin',
+        //   params: request.params,
+        // })
+
+        // return { key }
       },
 
       async grantPermissions(parameters) {
@@ -238,9 +269,17 @@ export function dialog(parameters: dialog.Parameters = {}) {
             })
 
             return result.accounts.map((account) => {
-              const keys = account.capabilities?.permissions
+              const adminKeys = account.capabilities?.admins
+                ?.map((key) =>
+                  Key.from({
+                    ...key,
+                    canSign: true,
+                    role: 'admin',
+                  }),
+                )
+                .filter(Boolean) as readonly Key.Key[]
+              const sessionKeys = account.capabilities?.permissions
                 ?.map((permission) => {
-                  if (permission.id === key?.publicKey) return key
                   try {
                     return Permissions.toKey(
                       Schema.Decode(Permissions.Schema, permission),
@@ -253,7 +292,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
               return Account.from({
                 address: account.address,
-                keys,
+                keys: [...adminKeys, ...sessionKeys],
               })
             })
           }
@@ -291,6 +330,20 @@ export function dialog(parameters: dialog.Parameters = {}) {
           throw new Error(
             'Cannot prepare create account for method: ' + request.method,
           )
+
+        const provider = getProvider(store)
+        return await provider.request(request)
+      },
+
+      async revokeAdmin(parameters) {
+        const { account, id, internal } = parameters
+        const { store, request } = internal
+
+        if (request.method !== 'experimental_revokeAdmin')
+          throw new Error('Cannot revoke admin for method: ' + request.method)
+
+        const key = account.keys?.find((key) => key.publicKey === id)
+        if (!key) return
 
         const provider = getProvider(store)
         return await provider.request(request)

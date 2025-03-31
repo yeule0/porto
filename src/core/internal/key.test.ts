@@ -268,6 +268,47 @@ describe('deserialize', () => {
       }
     `)
   })
+
+  test('secp256k1', () => {
+    const key = Key.fromSecp256k1({
+      publicKey:
+        '0xec0effa5f2f378cbf7fd2fa7ca1e8dc51cf777c129fa1c00a0e9a9205f2e511ff3f20b34a4e0b50587d055c0e0fad33d32cf1147d3bb2538fbab0d15d8e65008',
+      role: 'admin',
+    })
+    const serialized = Key.serialize(key)
+    const deserialized = Key.deserialize(serialized)
+
+    expect(deserialized).toMatchInlineSnapshot(`
+      {
+        "canSign": false,
+        "expiry": 0,
+        "hash": "0x6364f61156f50881a6e5b27442a97c2f218cba981f5bcd1a398750515212b1ab",
+        "publicKey": "0xe9cf8e14602e9f081668f2839e63ceb23c6e0e5a",
+        "role": "admin",
+        "type": "secp256k1",
+      }
+    `)
+  })
+
+  test('address', () => {
+    const key = Key.fromSecp256k1({
+      address: '0xed7ac7c7b35b77e97be67b84f5889e0ab3412222',
+      role: 'admin',
+    })
+    const serialized = Key.serialize(key)
+    const deserialized = Key.deserialize(serialized)
+
+    expect(deserialized).toMatchInlineSnapshot(`
+      {
+        "canSign": false,
+        "expiry": 0,
+        "hash": "0xf3d20b7404e4008e6a4df9ffbce26e5f275296eda26b4e82e6c6ea05ad85b650",
+        "publicKey": "0xed7ac7c7b35b77e97be67b84f5889e0ab3412222",
+        "role": "admin",
+        "type": "secp256k1",
+      }
+    `)
+  })
 })
 
 describe('from', () => {
@@ -317,7 +358,7 @@ describe('from', () => {
         "canSign": false,
         "expiry": 0,
         "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
-        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "publicKey": "0xe57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
         "role": "session",
         "type": "secp256k1",
       }
@@ -334,7 +375,7 @@ describe('from', () => {
         "canSign": false,
         "expiry": 0,
         "hash": "0x8f76ad68e08f96d89aecd0d57e451be5152675b77ae73134389656e0bc3d695a",
-        "publicKey": "0x000000000000000000000000e57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
+        "publicKey": "0xe57cbdd55ccfbc5f30d9ccf59ffd080967229fe9",
         "role": "session",
         "type": "secp256k1",
       }
@@ -351,7 +392,7 @@ describe('from', () => {
         "canSign": false,
         "expiry": 0,
         "hash": "0xc17311fbf840057e649cef2df2acac84d1fc35a37d754f5f1aa5c00f0d887b21",
-        "publicKey": "0x00000000000000000000000003febc0a78f3e15613be7be0bd84abcd1652d3f0",
+        "publicKey": "0x03febc0a78f3e15613be7be0bd84abcd1652d3f0",
         "role": "session",
         "type": "secp256k1",
       }
@@ -513,7 +554,7 @@ describe('fromSecp256k1', () => {
         "hash": "0xd325ebfdb383f9fca8e4e1c443cdceddda39f1f860824156b75ec85f11b94a35",
         "permissions": undefined,
         "privateKey": [Function],
-        "publicKey": "0x000000000000000000000000673ee8aabd3a62434cb9e3d7c6f9492e286bcb08",
+        "publicKey": "0x673ee8aabd3a62434cb9e3d7c6f9492e286bcb08",
         "role": "admin",
         "type": "secp256k1",
       }
@@ -533,7 +574,7 @@ describe('fromSecp256k1', () => {
         "hash": "0x6ce15638cb31daec095a6f3834f344957f69c7dc09ff935917447b3d65976595",
         "permissions": undefined,
         "privateKey": undefined,
-        "publicKey": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "publicKey": "0x0000000000000000000000000000000000000000",
         "role": "admin",
         "type": "secp256k1",
       }
@@ -554,7 +595,7 @@ describe('fromSecp256k1', () => {
         "hash": "0xd325ebfdb383f9fca8e4e1c443cdceddda39f1f860824156b75ec85f11b94a35",
         "permissions": undefined,
         "privateKey": undefined,
-        "publicKey": "0x000000000000000000000000673ee8aabd3a62434cb9e3d7c6f9492e286bcb08",
+        "publicKey": "0x673ee8aabd3a62434cb9e3d7c6f9492e286bcb08",
         "role": "admin",
         "type": "secp256k1",
       }

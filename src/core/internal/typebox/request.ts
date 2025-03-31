@@ -1,4 +1,5 @@
 import * as C from './capabilities.js'
+import * as Key from './key.js'
 import * as Permissions from './permissions.js'
 import * as Primitive from './primitive.js'
 import * as Schema from './schema.js'
@@ -66,6 +67,62 @@ export namespace eth_signTypedData_v4 {
   export type Response = Schema.StaticDecode<typeof Response>
 }
 
+export namespace experimental_getAdmins {
+  export const Parameters = Type.Object({
+    address: Schema.Optional(Primitive.Address),
+  })
+  export type Parameters = Schema.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('experimental_getAdmins'),
+    params: Schema.Optional(Type.Tuple([Parameters])),
+  })
+  export type Request = Schema.StaticDecode<typeof Request>
+
+  export const Response = Type.Object({
+    address: Primitive.Address,
+    keys: Type.Array(Type.Pick(Key.Base, ['id', 'publicKey', 'type'])),
+  })
+  export type Response = Schema.StaticDecode<typeof Response>
+}
+
+export namespace experimental_grantAdmin {
+  export const Capabilities = Type.Object({
+    feeToken: Schema.Optional(Primitive.Address),
+  })
+  export type Capabilities = Schema.StaticDecode<typeof Capabilities>
+
+  export const Parameters = Type.Object({
+    /** Address of the account to authorize the admin for. */
+    address: Schema.Optional(Primitive.Address),
+    /** Capabilities. */
+    capabilities: Schema.Optional(Capabilities),
+    /** Chain ID. */
+    chainId: Schema.Optional(Primitive.Number),
+    /** Admin Key to authorize. */
+    key: Type.Object({
+      /** Public key. */
+      publicKey: Key.Base.properties.publicKey,
+      /** Key type. */
+      type: Key.Base.properties.type,
+    }),
+  })
+  export type Parameters = Schema.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('experimental_grantAdmin'),
+    params: Type.Tuple([Parameters]),
+  })
+  export type Request = Schema.StaticDecode<typeof Request>
+
+  export const Response = Type.Object({
+    address: Primitive.Address,
+    chainId: Primitive.Hex,
+    key: experimental_getAdmins.Response.properties.keys.items,
+  })
+  export type Response = Schema.StaticDecode<typeof Response>
+}
+
 export namespace experimental_createAccount {
   export const Parameters = Type.Intersect([
     Type.Object({
@@ -109,14 +166,14 @@ export namespace experimental_grantPermissions {
   export type Response = Schema.StaticDecode<typeof Response>
 }
 
-export namespace experimental_permissions {
+export namespace experimental_getPermissions {
   export const Parameters = Type.Object({
     address: Schema.Optional(Primitive.Address),
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
 
   export const Request = Type.Object({
-    method: Type.Literal('experimental_permissions'),
+    method: Type.Literal('experimental_getPermissions'),
     params: Schema.Optional(Type.Tuple([Parameters])),
   })
   export type Request = Schema.StaticDecode<typeof Request>
@@ -151,6 +208,29 @@ export namespace experimental_prepareUpgradeAccount {
     signPayloads: Type.Array(Primitive.Hex),
   })
   export type Response = Schema.StaticDecode<typeof Response>
+}
+
+export namespace experimental_revokeAdmin {
+  export const Capabilities = Type.Object({
+    feeToken: Schema.Optional(Primitive.Address),
+  })
+  export type Capabilities = Schema.StaticDecode<typeof Capabilities>
+
+  export const Parameters = Type.Object({
+    address: Schema.Optional(Primitive.Address),
+    capabilities: Schema.Optional(Capabilities),
+    chainId: Schema.Optional(Primitive.Number),
+    id: Primitive.Hex,
+  })
+  export type Parameters = Schema.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('experimental_revokeAdmin'),
+    params: Type.Tuple([Parameters]),
+  })
+  export type Request = Schema.StaticDecode<typeof Request>
+
+  export const Response = undefined
 }
 
 export namespace experimental_revokePermissions {
@@ -243,6 +323,7 @@ export namespace wallet_connect {
   export type Request = Schema.StaticDecode<typeof Request>
 
   export const ResponseCapabilities = Type.Object({
+    admins: Schema.Optional(experimental_getAdmins.Response.properties.keys),
     permissions: Schema.Optional(C.permissions.Response),
   })
   export type ResponseCapabilities = Schema.StaticDecode<

@@ -173,6 +173,65 @@ export function from<
           >
         }
 
+        case 'experimental_grantAdmin': {
+          if (state.accounts.length === 0)
+            throw new ox_Provider.DisconnectedError()
+
+          const [{ address, capabilities, chainId, key: keyToAuthorize }] =
+            request._decoded.params ?? [{}]
+
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
+          if (!account) throw new ox_Provider.UnauthorizedError()
+
+          const client = getClient(chainId)
+
+          const { key } = await getMode().actions.grantAdmin({
+            account,
+            feeToken: capabilities?.feeToken,
+            key: keyToAuthorize,
+            internal: {
+              client,
+              config,
+              request,
+              store,
+            },
+          })
+
+          store.setState((x) => {
+            const index = x.accounts.findIndex((x) =>
+              account ? Address.isEqual(x.address, account.address) : true,
+            )
+            if (index === -1) return x
+            return {
+              ...x,
+              accounts: x.accounts.map((account, i) =>
+                i === index
+                  ? { ...account, keys: [...(account.keys ?? []), key] }
+                  : account,
+              ),
+            }
+          })
+
+          const admins = getAdmins([...(account.keys ?? []), key])
+
+          emitter.emit('message', {
+            data: admins,
+            type: 'adminsChanged',
+          })
+
+          return Schema.Encode(Rpc.experimental_grantAdmin.Response, {
+            address: account.address,
+            chainId: Hex.fromNumber(client.chain.id),
+            key: admins.at(-1)!,
+          } satisfies Rpc.experimental_grantAdmin.Response) satisfies Schema.Static<
+            typeof Rpc.experimental_grantAdmin.Response
+          >
+        }
+
         case 'experimental_grantPermissions': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
@@ -266,6 +325,29 @@ export function from<
           >
         }
 
+        case 'experimental_getAdmins': {
+          if (state.accounts.length === 0)
+            throw new ox_Provider.DisconnectedError()
+
+          const [{ address }] = request._decoded.params ?? [{}]
+
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
+          if (!account) throw new ox_Provider.UnauthorizedError()
+
+          const keys = getAdmins(account.keys ?? [])
+
+          return Schema.Encode(Rpc.experimental_getAdmins.Response, {
+            address: account.address,
+            keys,
+          } satisfies Rpc.experimental_getAdmins.Response) satisfies Schema.Static<
+            typeof Rpc.experimental_getAdmins.Response
+          >
+        }
+
         case 'experimental_prepareUpgradeAccount': {
           const [{ address, capabilities, chainId, label }] = request._decoded
             .params ?? [{}]
@@ -298,7 +380,7 @@ export function from<
           >
         }
 
-        case 'experimental_permissions': {
+        case 'experimental_getPermissions': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
@@ -313,6 +395,57 @@ export function from<
           return getActivePermissions(account?.keys ?? [], {
             address: account!.address,
           })
+        }
+
+        case 'experimental_revokeAdmin': {
+          if (state.accounts.length === 0)
+            throw new ox_Provider.DisconnectedError()
+
+          const [{ address, capabilities, id }] = request._decoded.params
+
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
+          if (!account) throw new ox_Provider.UnauthorizedError()
+
+          const client = getClient()
+
+          await getMode().actions.revokeAdmin({
+            account,
+            feeToken: capabilities?.feeToken,
+            id,
+            internal: {
+              client,
+              config,
+              request,
+              store,
+            },
+          })
+
+          const keys = account.keys?.filter(
+            (key) => key.publicKey !== id && key.id !== id,
+          )
+
+          store.setState((x) => ({
+            ...x,
+            accounts: x.accounts.map((x) =>
+              Address.isEqual(x.address, account.address)
+                ? {
+                    ...x,
+                    keys,
+                  }
+                : x,
+            ),
+          }))
+
+          emitter.emit('message', {
+            data: getAdmins(keys ?? []),
+            type: 'adminsChanged',
+          })
+
+          return
         }
 
         case 'experimental_revokePermissions': {
@@ -342,7 +475,9 @@ export function from<
             },
           })
 
-          const keys = account.keys?.filter((key) => key.publicKey !== id)
+          const keys = account.keys?.filter(
+            (key) => key.publicKey !== id && key.id !== id,
+          )
 
           store.setState((x) => ({
             ...x,
@@ -517,6 +652,7 @@ export function from<
             accounts: accounts.map((account) => ({
               address: account.address,
               capabilities: {
+                admins: account.keys ? getAdmins(account.keys) : [],
                 permissions: account.keys
                   ? getActivePermissions(account.keys, {
                       address: account.address,
@@ -742,13 +878,35 @@ function announce(provider: Provider) {
   })
 }
 
+function getAdmins(
+  keys: readonly Key.Key[],
+): Schema.Static<(typeof Rpc.experimental_getAdmins.Response)['keys']> {
+  return keys
+    .map((key) => {
+      if (key.role !== 'admin') return undefined
+      try {
+        return Schema.Encode(
+          Rpc.experimental_getAdmins.Response.properties.keys.items,
+          {
+            id: key.id ?? key.publicKey,
+            publicKey: key.publicKey,
+            type: key.type,
+          } satisfies Rpc.experimental_getAdmins.Response['keys'][number],
+        )
+      } catch {
+        return undefined
+      }
+    })
+    .filter(Boolean) as never
+}
+
 function getActivePermissions(
   keys: readonly Key.Key[],
   {
     address,
     chainId,
   }: { address: Address.Address; chainId?: number | undefined },
-): Schema.Static<typeof Rpc.experimental_permissions.Response> {
+): Schema.Static<typeof Rpc.experimental_getPermissions.Response> {
   return keys
     .map((key) => {
       if (key.role !== 'session') return undefined
