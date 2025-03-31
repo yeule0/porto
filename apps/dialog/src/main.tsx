@@ -24,7 +24,7 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
 
 const offRequests = Events.onRequests(porto, (requests) => {
   const request = requests[0]?.request
-  if (!Dialog_porto.requiresConfirmation(request as never)) {
+  if (request && !Dialog_porto.requiresConfirmation(request)) {
     Actions.respond(porto, requests[0]!)
     return
   }
