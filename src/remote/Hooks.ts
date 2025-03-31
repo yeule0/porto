@@ -12,7 +12,9 @@ import type * as Remote from './Porto.js'
  * @param porto - Porto instance.
  * @returns Account.
  */
-export function useAccount(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useAccount<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   return usePortoStore(porto, (x) => x.accounts[0])
 }
 
@@ -22,7 +24,9 @@ export function useAccount(porto: Pick<Remote.Porto<any>, '_internal'>) {
  * @param porto - Porto instance.
  * @returns Accounts.
  */
-export function useAccounts(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useAccounts<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   return usePortoStore(porto, (x) => x.accounts)
 }
 
@@ -32,7 +36,9 @@ export function useAccounts(porto: Pick<Remote.Porto<any>, '_internal'>) {
  * @param porto - Porto instance.
  * @returns Chain.
  */
-export function useChain(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useChain<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   return usePortoStore(porto, (x) => x.chain)
 }
 
@@ -42,7 +48,9 @@ export function useChain(porto: Pick<Remote.Porto<any>, '_internal'>) {
  * @param porto - Porto instance.
  * @returns Client.
  */
-export function useClient(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useClient<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   const chain = useChain(porto)
   return Porto_internal.getClient(porto, { chainId: chain.id })
 }
@@ -99,7 +107,9 @@ export function useRemoteStore<
  * @param porto - Porto instance.
  * @returns Requests.
  */
-export function useRequests(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useRequests<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   return useRemoteStore(porto, (state) => state.requests)
 }
 
@@ -109,6 +119,8 @@ export function useRequests(porto: Pick<Remote.Porto<any>, '_internal'>) {
  * @param porto - Porto instance.
  * @returns Request.
  */
-export function useRequest(porto: Pick<Remote.Porto<any>, '_internal'>) {
+export function useRequest<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(porto: Pick<Remote.Porto<chains>, '_internal'>) {
   return useRemoteStore(porto, (state) => state.requests[0])
 }

@@ -1,10 +1,11 @@
+import * as React from 'react'
 import { Porto } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { cx } from 'cva'
 import type { RpcSchema } from 'ox'
 import { Delegation } from 'porto'
-import { Actions, Hooks } from 'porto/remote'
+import { Hooks } from 'porto/remote'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
@@ -17,25 +18,19 @@ import Star from '~icons/ph/star-four-bold'
 const porto = Porto.porto
 
 export function ActionRequest(props: ActionRequest.Props) {
-  const { calls } = props
+  const { calls, loading, onApprove, onReject } = props
 
   const account = Hooks.useAccount(porto)
   const client = Hooks.useClient(porto)
   const origin = Dialog.useStore((state) => state.referrer?.origin)
+
   const chainId =
     typeof props.chainId === 'number'
       ? props.chainId
       : Hooks.useChain(porto)?.id
-
-  // TODO
-  chainId
-
-  const request = Hooks.useRequest(porto)
-  const respond = useMutation({
-    mutationFn() {
-      return Actions.respond(porto, request!)
-    },
-  })
+  const chain = React.useMemo(() => {
+    return porto._internal.config.chains.find((x) => x.id === chainId)
+  }, [chainId])
 
   const simulate = useQuery({
     queryKey: ['simulate', client.uid, calls],
@@ -53,7 +48,7 @@ export function ActionRequest(props: ActionRequest.Props) {
     simulate.data?.balances.filter((x) => x.value.diff !== 0n) ?? []
 
   return (
-    <Layout loading={respond.isPending} loadingTitle="Sending...">
+    <Layout loading={loading} loadingTitle="Sending...">
       <Layout.Header>
         <Layout.Header.Default
           title="Action Request"
@@ -158,7 +153,6 @@ export function ActionRequest(props: ActionRequest.Props) {
                   <span className="font-medium">$0.01</span>
                 </div>
 
-                {/* TODO: Duration */}
                 <div className="flex justify-between text-[14px]">
                   <span className="text-[14px] text-secondary">
                     Duration (est.)
@@ -166,11 +160,12 @@ export function ActionRequest(props: ActionRequest.Props) {
                   <span className="font-medium">2 seconds</span>
                 </div>
 
-                {/* TODO: Network */}
-                <div className="flex justify-between text-[14px]">
-                  <span className="text-[14px] text-secondary">Network</span>
-                  <span className="font-medium">Odyssey Testnet</span>
-                </div>
+                {chain?.name && (
+                  <div className="flex justify-between text-[14px]">
+                    <span className="text-[14px] text-secondary">Network</span>
+                    <span className="font-medium">{chain?.name}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -184,7 +179,7 @@ export function ActionRequest(props: ActionRequest.Props) {
               className="flex-grow"
               type="button"
               variant="destructive"
-              onClick={() => Actions.reject(porto, request!)}
+              onClick={onReject}
             >
               Deny
             </Button>
@@ -193,7 +188,7 @@ export function ActionRequest(props: ActionRequest.Props) {
               className="flex-grow"
               type="button"
               variant="success"
-              onClick={() => respond.mutate()}
+              onClick={onApprove}
             >
               Approve
             </Button>
@@ -206,7 +201,7 @@ export function ActionRequest(props: ActionRequest.Props) {
               className="flex-grow"
               type="button"
               variant="destructive"
-              onClick={() => Actions.reject(porto, request!)}
+              onClick={onReject}
             >
               Deny
             </Button>
@@ -214,7 +209,7 @@ export function ActionRequest(props: ActionRequest.Props) {
               className="flex-grow"
               type="button"
               variant="default"
-              onClick={() => respond.mutate()}
+              onClick={onApprove}
             >
               Approve anyway
             </Button>
@@ -233,5 +228,8 @@ export namespace ActionRequest {
       'wallet_sendCalls'
     >[0]['calls']
     chainId?: number | undefined
+    loading?: boolean | undefined
+    onApprove: () => void
+    onReject: () => void
   }
 }
