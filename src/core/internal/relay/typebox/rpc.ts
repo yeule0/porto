@@ -104,9 +104,9 @@ export namespace wallet_prepareCreateAccount {
 
   /** Parameters for `wallet_prepareCreateAccount` request. */
   export const Parameters = Type.Object({
-    /** The chain ID to create the account on. */
-    capabilities: Capabilities,
     /** Capabilities for the account. */
+    capabilities: Capabilities,
+    /** The chain ID to create the account on. */
     chainId: Primitive.Number,
   })
   export type Parameters = Schema.StaticDecode<typeof Parameters>
@@ -222,9 +222,9 @@ export namespace wallet_prepareCalls {
 
   /** Parameters for `wallet_prepareCalls` request. */
   export const Parameters = Type.Object({
-    /** The calls to prepare. */
-    calls: Type.Array(Call),
     /** Capabilities for the account. */
+    calls: Type.Array(Call),
+    /** The calls to prepare. */
     capabilities: Capabilities,
     /** The chain ID of the call bundle. */
     // TODO: `Primitive.Number`
