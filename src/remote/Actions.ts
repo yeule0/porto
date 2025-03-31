@@ -12,14 +12,14 @@ import type * as Remote from './Porto.js'
  */
 export async function reject(
   porto: Pick<Remote.Porto<any>, 'messenger'>,
-  request: Porto.QueuedRequest,
+  request: Porto.QueuedRequest['request'],
 ) {
   const { messenger } = porto
   messenger.send(
     'rpc-response',
     Object.assign(
       RpcResponse.from({
-        id: request.request.id,
+        id: request.id,
         jsonrpc: '2.0',
         error: {
           code: Provider.UserRejectedRequestError.code,
@@ -43,7 +43,7 @@ export async function rejectAll(
 ) {
   const { _internal } = porto
   const requests = _internal.remoteStore.getState().requests
-  for (const request of requests) await reject(porto, request)
+  for (const request of requests) await reject(porto, request.request)
 }
 
 /**
@@ -54,16 +54,19 @@ export async function rejectAll(
  */
 export async function respond<result>(
   porto: Pick<Remote.Porto<any>, 'messenger' | 'provider'>,
-  request: Porto.QueuedRequest,
+  request: Porto.QueuedRequest['request'],
   options?: {
     selector?: (result: result) => unknown
   },
 ) {
   const { messenger, provider } = porto
   const { selector } = options ?? {}
-  const shared = { id: request.request.id, jsonrpc: '2.0' } as const
+  const shared = {
+    id: request.id,
+    jsonrpc: '2.0',
+  } as const
   try {
-    let result = await provider.request(request.request)
+    let result = await provider.request(request)
     if (selector) result = selector(result as never)
     messenger.send(
       'rpc-response',
@@ -75,7 +78,7 @@ export async function respond<result>(
     const error = e as RpcResponse.BaseError
     messenger.send(
       'rpc-response',
-      Object.assign(RpcResponse.from({ ...shared, error }), {
+      Object.assign(RpcResponse.from({ ...shared, status: 'error', error }), {
         _request: request,
       }),
     )

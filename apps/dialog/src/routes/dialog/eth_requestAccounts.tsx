@@ -5,6 +5,7 @@ import type { RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
+import type * as Router from '~/lib/Router'
 import { SignIn } from '../-components/SignIn'
 import { SignUp } from '../-components/SignUp'
 
@@ -12,43 +13,38 @@ const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/eth_requestAccounts')({
   component: RouteComponent,
-  validateSearch: (
-    search,
-  ): RpcSchema.ExtractParams<porto_RpcSchema.Schema, 'eth_requestAccounts'> =>
+  validateSearch: (search): Router.RpcRequestToSearch<'eth_requestAccounts'> =>
     search as never,
 })
 
 function RouteComponent() {
+  const request = Route.useSearch()
   const address = Hooks.usePortoStore(
     porto,
     (state) => state.accounts[0]?.address,
   )
 
-  const queued = Hooks.useRequest(porto)
   const respond = useMutation({
     mutationFn({
       signIn,
       selectAccount,
     }: { signIn?: boolean; selectAccount?: boolean }) {
-      if (!queued) throw new Error('no request queued.')
+      if (!request) throw new Error('no request found.')
       return Actions.respond<
         RpcSchema.ExtractReturnType<porto_RpcSchema.Schema, 'wallet_connect'>
       >(
         porto,
         {
-          ...queued,
-          request: {
-            ...queued.request,
-            method: 'wallet_connect',
-            params: [
-              {
-                capabilities: {
-                  createAccount: !signIn,
-                  selectAccount,
-                },
+          ...request,
+          method: 'wallet_connect',
+          params: [
+            {
+              capabilities: {
+                createAccount: !signIn,
+                selectAccount,
               },
-            ],
-          },
+            },
+          ],
         },
         {
           selector(result) {
@@ -76,7 +72,7 @@ function RouteComponent() {
       onApprove={({ signIn, selectAccount }) =>
         respond.mutate({ signIn, selectAccount })
       }
-      onReject={() => Actions.reject(porto, queued!)}
+      onReject={() => Actions.reject(porto, request)}
     />
   )
 }

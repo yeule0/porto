@@ -1,10 +1,9 @@
 import { Porto } from '@porto/apps'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import type { RpcSchema } from 'ox'
-import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Actions, Hooks } from 'porto/remote'
 
+import type * as Router from '~/lib/Router'
 import { SignUp } from '../-components/SignUp'
 
 const porto = Porto.porto
@@ -13,25 +12,22 @@ export const Route = createFileRoute('/dialog/experimental_createAccount')({
   component: RouteComponent,
   validateSearch(
     search,
-  ): RpcSchema.ExtractParams<
-    porto_RpcSchema.Schema,
-    'experimental_createAccount'
-  > {
+  ): Router.RpcRequestToSearch<'experimental_createAccount'> {
     return search as never
   },
 })
 
 function RouteComponent() {
+  const request = Route.useSearch()
   const address = Hooks.usePortoStore(
     porto,
     (state) => state.accounts[0]?.address,
   )
 
-  const queued = Hooks.useRequest(porto)
   const respond = useMutation({
     mutationFn() {
-      if (!queued) throw new Error('no request queued.')
-      return Actions.respond(porto, queued)
+      if (!request) throw new Error('no request found.')
+      return Actions.respond(porto, request)
     },
   })
 
@@ -40,7 +36,7 @@ function RouteComponent() {
       enableSignIn={!address}
       loading={respond.isPending}
       onApprove={() => respond.mutate()}
-      onReject={() => Actions.reject(porto, queued!)}
+      onReject={() => Actions.reject(porto, request)}
     />
   )
 }

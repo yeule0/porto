@@ -1,31 +1,28 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Hex, type RpcSchema } from 'ox'
-import type { RpcSchema as porto_RpcSchema } from 'porto'
-import { Actions, Hooks } from 'porto/remote'
-import { useMutation } from '@tanstack/react-query'
 import { Porto } from '@porto/apps'
+import { useMutation } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+import { Hex } from 'ox'
+import { Actions } from 'porto/remote'
+
+import type * as Router from '~/lib/Router'
+import { ActionRequest } from '../-components/ActionRequest'
 
 const porto = Porto.porto
 
-import { ActionRequest } from '../-components/ActionRequest'
-
 export const Route = createFileRoute('/dialog/eth_sendTransaction')({
   component: RouteComponent,
-  validateSearch(
-    search,
-  ): RpcSchema.ExtractParams<porto_RpcSchema.Schema, 'eth_sendTransaction'> {
+  validateSearch(search): Router.RpcRequestToSearch<'eth_sendTransaction'> {
     return search as never
   },
 })
 
 function RouteComponent() {
-  const { 0: parameters } = Route.useSearch() ?? {}
-  const { chainId, data, to, value } = parameters
+  const request = Route.useSearch()
+  const { chainId, data, to, value } = request.params[0]
 
-  const request = Hooks.useRequest(porto)
   const respond = useMutation({
     mutationFn() {
-      return Actions.respond(porto, request!)
+      return Actions.respond(porto, request)
     },
   })
 
@@ -35,7 +32,7 @@ function RouteComponent() {
       chainId={chainId ? Hex.toNumber(chainId) : undefined}
       loading={respond.isPending}
       onApprove={() => respond.mutate()}
-      onReject={() => Actions.reject(porto, request!)}
+      onReject={() => Actions.reject(porto, request)}
     />
   )
 }

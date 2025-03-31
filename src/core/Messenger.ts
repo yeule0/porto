@@ -1,3 +1,4 @@
+import type * as RpcRequest from 'ox/RpcRequest'
 import type * as RpcResponse from 'ox/RpcResponse'
 import type * as Porto from './Porto.js'
 import * as promise from './internal/promise.js'
@@ -46,7 +47,7 @@ export type Schema = [
   {
     topic: 'rpc-response'
     payload: RpcResponse.RpcResponse & {
-      _request: Porto.QueuedRequest
+      _request: RpcRequest.RpcRequest
     }
     response: undefined
   },

@@ -110,7 +110,9 @@ export function useRemoteStore<
 export function useRequests<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]],
 >(porto: Pick<Remote.Porto<chains>, '_internal'>) {
-  return useRemoteStore(porto, (state) => state.requests)
+  return useRemoteStore(porto, (state) =>
+    state.requests.filter((x) => x.status === 'pending').map((x) => x.request),
+  )
 }
 
 /**
@@ -122,5 +124,9 @@ export function useRequests<
 export function useRequest<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]],
 >(porto: Pick<Remote.Porto<chains>, '_internal'>) {
-  return useRemoteStore(porto, (state) => state.requests[0])
+  return useRemoteStore(
+    porto,
+    (state) =>
+      state.requests.find((request) => request.status === 'pending')?.request,
+  )
 }

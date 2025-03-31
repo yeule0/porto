@@ -71,7 +71,7 @@ function RouteComponent() {
     }
   }, [mode])
 
-  const id = request?.request.id ? request.request.id.toString() : '-1'
+  const id = request?.id ? request.id.toString() : '-1'
 
   const dataMode = `data-${mode === 'inline-iframe' ? 'iframe' : mode}`
 

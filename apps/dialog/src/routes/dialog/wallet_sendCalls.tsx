@@ -1,28 +1,25 @@
-import { createFileRoute } from '@tanstack/react-router'
 import { Porto } from '@porto/apps'
-import { Hex, type RpcSchema } from 'ox'
-import type { RpcSchema as porto_RpcSchema } from 'porto'
-import { Actions, Hooks } from 'porto/remote'
 import { useMutation } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+import { Hex } from 'ox'
+import { Actions } from 'porto/remote'
 
+import type * as Router from '~/lib/Router'
 import { ActionRequest } from '../-components/ActionRequest'
 
 const porto = Porto.porto
 
 export const Route = createFileRoute('/dialog/wallet_sendCalls')({
   component: RouteComponent,
-  validateSearch(
-    search,
-  ): RpcSchema.ExtractParams<porto_RpcSchema.Schema, 'wallet_sendCalls'> {
+  validateSearch(search): Router.RpcRequestToSearch<'wallet_sendCalls'> {
     return search as never
   },
 })
 
 function RouteComponent() {
-  const { 0: parameters } = Route.useSearch() ?? {}
-  const { calls, chainId } = parameters
+  const request = Route.useSearch()
+  const { calls, chainId } = request.params[0] ?? {}
 
-  const request = Hooks.useRequest(porto)
   const respond = useMutation({
     mutationFn() {
       return Actions.respond(porto, request!)

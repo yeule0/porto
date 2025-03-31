@@ -25,12 +25,12 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
 const offRequests = Events.onRequests(porto, (requests) => {
   const request = requests[0]?.request
   if (request && !Dialog_porto.requiresConfirmation(request)) {
-    Actions.respond(porto, requests[0]!)
+    Actions.respond(porto, request)
     return
   }
   Router.router.navigate({
     to: '/dialog/' + (request?.method ?? ''),
-    search: request?.params as never,
+    search: request as never,
   })
 })
 

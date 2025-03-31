@@ -26,8 +26,8 @@ export function NotFound() {
           icon={LucideTriangleAlert}
           content={
             <>
-              UI support for method "{request?.request?.method}" is not
-              implemented yet. You may still proceed by rejecting or responding.
+              UI support for method "{request?.method}" is not implemented yet.
+              You may still proceed by rejecting or responding.
             </>
           }
           variant="warning"
@@ -36,7 +36,7 @@ export function NotFound() {
 
       <Layout.Content>
         <pre className="max-h-[400px] overflow-scroll rounded-lg border border-primary bg-surface p-3 text-[14px] text-primary leading-[22px]">
-          {Json.stringify(request?.request ?? {}, null, 2)}
+          {Json.stringify(request ?? {}, null, 2)}
         </pre>
       </Layout.Content>
 

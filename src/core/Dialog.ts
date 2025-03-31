@@ -37,11 +37,11 @@ export function iframe() {
   const ua = navigator.userAgent.toLowerCase()
   const isSafari = ua.includes('safari') && !ua.includes('chrome')
   const includesUnsupported = (
-    requests: readonly QueuedRequest[] | undefined,
+    requests: readonly RpcRequest.RpcRequest[] | undefined,
   ) =>
     isSafari &&
     requests?.some((x) =>
-      ['wallet_connect', 'eth_requestAccounts'].includes(x.request.method),
+      ['wallet_connect', 'eth_requestAccounts'].includes(x.method),
     )
 
   return from({
@@ -205,7 +205,8 @@ export function iframe() {
           root.remove()
         },
         async syncRequests(requests) {
-          if (includesUnsupported(requests)) fallback.syncRequests(requests)
+          if (includesUnsupported(requests.map((x) => x.request)))
+            fallback.syncRequests(requests)
           else {
             const requiresConfirm = requests.some((x) =>
               requiresConfirmation(x.request),

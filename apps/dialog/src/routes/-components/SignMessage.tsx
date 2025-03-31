@@ -1,25 +1,14 @@
-import { Porto } from '@porto/apps'
 import { Button } from '@porto/apps/components'
-import { useMutation } from '@tanstack/react-query'
-import { Actions, Hooks } from 'porto/remote'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
 import LucideLogIn from '~icons/lucide/log-in'
 
-const porto = Porto.porto
-
-export function SignMessage({ message }: SignMessage.Props) {
-  const request = Hooks.useRequest(porto)
-
-  const respond = useMutation({
-    mutationFn() {
-      return Actions.respond(porto, request!)
-    },
-  })
+export function SignMessage(props: SignMessage.Props) {
+  const { message, loading, onApprove, onReject } = props
 
   return (
-    <Layout loading={respond.isPending} loadingTitle="Signing...">
+    <Layout loading={loading} loadingTitle="Signing...">
       <Layout.Header>
         <Layout.Header.Default
           title="Sign Message"
@@ -47,7 +36,7 @@ export function SignMessage({ message }: SignMessage.Props) {
           <Button
             className="flex-grow"
             type="button"
-            onClick={() => Actions.reject(porto, request!)}
+            onClick={() => onReject()}
           >
             No thanks
           </Button>
@@ -56,7 +45,7 @@ export function SignMessage({ message }: SignMessage.Props) {
             className="flex-grow"
             type="button"
             variant="accent"
-            onClick={() => respond.mutate()}
+            onClick={() => onApprove()}
           >
             Sign message
           </Button>
@@ -71,21 +60,18 @@ export function SignMessage({ message }: SignMessage.Props) {
 export namespace SignMessage {
   export type Props = {
     message: string
+    loading?: boolean | undefined
+    onApprove: () => void
+    onReject: () => void
   }
 
-  export function Siwe() {
-    const request = Hooks.useRequest(porto)
-
-    const respond = useMutation({
-      mutationFn() {
-        return Actions.respond(porto, request!)
-      },
-    })
+  export function Siwe(props: Siwe.Props) {
+    const { loading, onApprove, onReject } = props
 
     const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
     return (
-      <Layout loading={respond.isPending} loadingTitle="Authenticating...">
+      <Layout loading={loading} loadingTitle="Authenticating...">
         <Layout.Header className="flex-grow">
           <Layout.Header.Default
             title="Authenticate"
@@ -101,10 +87,7 @@ export namespace SignMessage {
 
         <Layout.Footer>
           <Layout.Footer.Actions>
-            <Button
-              type="button"
-              onClick={() => Actions.reject(porto, request!)}
-            >
+            <Button type="button" onClick={() => onReject()}>
               No thanks
             </Button>
 
@@ -112,7 +95,7 @@ export namespace SignMessage {
               className="flex-grow"
               type="button"
               variant="accent"
-              onClick={() => respond.mutate()}
+              onClick={() => onApprove()}
             >
               Approve
             </Button>
@@ -122,5 +105,13 @@ export namespace SignMessage {
         </Layout.Footer>
       </Layout>
     )
+  }
+
+  export namespace Siwe {
+    export type Props = {
+      loading?: boolean | undefined
+      onApprove: () => void
+      onReject: () => void
+    }
   }
 }
