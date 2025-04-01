@@ -26,7 +26,7 @@ import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
 
 type Provider = Porto.Porto['provider']
 const pollingInterval = 800
-const successTimeout = 2_000 // time to wait until reseting success state back to default
+const successTimeout = 4_000 // time to wait until reseting success state back to default
 
 export function DemoApp() {
   const isMountedFn = useIsMounted()
@@ -346,14 +346,14 @@ export function MintDemo(props: MintDemo.Props) {
       <div className="-tracking-[0.25px] text-center font-medium text-[13px] text-gray9 leading-[16px]">
         {(() => {
           if (!exp1Balance || exp1Balance === 0n)
-            return 'You do not have any EXP'
+            return 'You do not have any EXP1'
           return (
             <span>
               You have{' '}
               <span className="text-gray12">
                 {Value.formatEther(exp1Balance)}
               </span>{' '}
-              EXP
+              EXP1
             </span>
           )
         })()}
@@ -674,7 +674,7 @@ export function SwapDemo(props: SwapDemo.Props) {
             <span className={noFunds ? 'text-red10' : undefined}>
               {Value.formatEther(exp1Balance ?? 0n)}
             </span>{' '}
-            <span>EXP</span>
+            <span>EXP1</span>
           </div>
           <div className="h-[18.5px] w-px bg-gray6" />
           <div>
@@ -1533,13 +1533,13 @@ function PrivyDemo() {
           <div className="relative mx-auto flex size-20.5 items-center justify-center">
             <div
               className={cx(
-                'h-full w-full animate-rotation rounded-[50%] border border-4 border-b-transparent transition-border-color duration-800',
+                'h-full w-full animate-rotation rounded-[50%] border-4 border-b-transparent transition-border-color duration-800',
                 connect.isPending ? 'border-blue9' : 'border-red9',
               )}
             />
             <div
               className={cx(
-                'absolute inset-0 flex items-center justify-center rounded-[50%] border border-4 transition-border-color duration-800',
+                'absolute inset-0 flex items-center justify-center rounded-[50%] border-4 transition-border-color duration-800',
                 connect.isPending ? 'border-blue9/50' : 'border-red9',
               )}
             >
