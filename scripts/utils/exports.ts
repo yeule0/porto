@@ -44,8 +44,8 @@ export function getExports({
         src[entryName] = entryName
       } else {
         dist[entryName] = {
-          default: `./_dist/${name}.js`,
           types: `./_dist/${name}.d.ts`,
+          default: `./_dist/${name}.js`,
         }
         src[entryName] = `./${name}.ts`
 
@@ -75,8 +75,8 @@ export function getExports({
       const entryName = `.${parentEntry.name === 'core' ? '' : `/${parentEntry.name}`}${isIndex ? '' : `/${name}`}`
 
       dist[entryName] = {
-        default: `./_dist/${parentEntry.name}/${name}.js`,
         types: `./_dist/${parentEntry.name}/${name}.d.ts`,
+        default: `./_dist/${parentEntry.name}/${name}.js`,
       }
       src[entryName] = `./${parentEntry.name}/${name}.ts`
 

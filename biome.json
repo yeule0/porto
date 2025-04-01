@@ -8,7 +8,8 @@
         "useSortedKeys": "on",
         "useSortedProperties": "on"
       }
-    }
+    },
+    "includes": ["!scripts/**"]
   },
   "css": {
     "formatter": {
