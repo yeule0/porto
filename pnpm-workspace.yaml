@@ -21,7 +21,7 @@ catalog:
   "@wagmi/core": "^2.16.7"
   cva: "npm:class-variance-authority@^0.7.1"
   globals: "^16.0.0"
-  ox: "^0.6.11"
+  ox: "^0.6.12"
   react: "^19"
   react-dom: "^19"
   tailwindcss: "^4.0.15"

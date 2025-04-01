@@ -1,9 +1,13 @@
 import { createRouter } from '@tanstack/react-router'
-import type { RpcSchema } from 'ox'
+import { Provider, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import * as Rpc from 'porto/core/internal/typebox/rpc'
+import { Actions } from 'porto/remote'
+import { Porto } from '@porto/apps'
 
 import { routeTree } from '~/routeTree.gen.ts'
+
+const porto = Porto.porto
 
 export function parseSearchRequest<
   method extends RpcSchema.ExtractMethodName<porto_RpcSchema.Schema>,
@@ -12,15 +16,23 @@ export function parseSearchRequest<
   parameters: parseSearchRequest.Parameters<method>,
 ): parseSearchRequest.ReturnType<method> {
   const { method } = parameters
-  const request = Rpc.parseRequest(search)
-  if (request.method === method)
-    return {
-      ...request,
-      _returnType: undefined,
-      id: Number(search.id),
-      jsonrpc: '2.0',
-    } as never
-  throw new Error('invalid request')
+  try {
+    const request = Rpc.parseRequest(search)
+    if (request.method === method)
+      return {
+        ...request,
+        _returnType: undefined,
+        id: Number(search.id),
+        jsonrpc: '2.0',
+      } as never
+    throw new Error(
+      `method mismatch. expected "\`${method}\`" but got "\`${request.method}\`"`,
+    )
+  } catch (error) {
+    const rpcError = Provider.parseError(error)
+    Actions.rejectAll(porto, rpcError)
+    throw error
+  }
 }
 
 export namespace parseSearchRequest {
