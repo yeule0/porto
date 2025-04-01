@@ -4,6 +4,16 @@ import { defineConfig } from 'vocs'
 
 export default defineConfig({
   description: 'Next-gen Account for Ethereum',
+  head() {
+    return (
+      <>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
+        />
+      </>
+    )
+  },
   iconUrl: { dark: '/icon-dark.png', light: '/icon-light.png' },
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
   rootDir: '.',
