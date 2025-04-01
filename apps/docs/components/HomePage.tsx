@@ -26,13 +26,13 @@ export function HomePage() {
           Introducing
         </p>
 
-        <div className="h-1" />
+        <div className="h-2" />
 
-        <div className="w-[128px]">
+        <div className="w-[115px]">
           <LogoLockup />
         </div>
 
-        <div className="h-2" />
+        <div className="h-3" />
 
         <p className="font-[300] text-[15px] text-gray10 leading-[21px] tracking-[-2.8%] dark:text-gray11">
           Integrate onboarding, authentication, payments, and recovery into your

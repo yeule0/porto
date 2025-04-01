@@ -124,13 +124,21 @@ export function DemoApp() {
           </div>
 
           <div className="mb-6">
-            <h3 className="-tracking-[0.364px] w-fit! rounded-full bg-gray4 px-2.5 py-1.5 font-medium text-[13px] text-black leading-[16px] opacity-50 dark:text-white">
-              Select your provider
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="-tracking-[0.364px] w-fit! rounded-full bg-gray4 px-2.5 py-1.5 font-medium text-[13px] text-black leading-[16px] opacity-50 dark:text-white">
+                Select your provider
+              </h3>
+              <a
+                className="-tracking-[2.8%] text-[14px] text-blue9 leading-none"
+                href="#TODO"
+              >
+                Request →
+              </a>
+            </div>
 
             <Ariakit.RadioProvider>
-              <Ariakit.RadioGroup>
-                <div className="mt-4 flex flex-col gap-2">
+              <Ariakit.RadioGroup className="mt-4 flex flex-wrap gap-2">
+                <div className="flex w-full">
                   <Radio
                     checked={provider === 'wagmi'}
                     disabled={Boolean(address)}
@@ -140,39 +148,32 @@ export function DemoApp() {
                   >
                     Wagmi
                   </Radio>
-                  <Radio
-                    checked={provider === 'privy'}
-                    disabled={Boolean(address)}
-                    icon={<PrivyLogo />}
-                    onChange={setProvider}
-                    value="privy"
-                  >
-                    Privy
-                  </Radio>
-                  <Radio
-                    checked={provider === 'rainbowkit'}
-                    disabled={Boolean(address)}
-                    icon={<RainbowLogo />}
-                    onChange={setProvider}
-                    value="rainbowkit"
-                  >
-                    RainbowKit
-                  </Radio>
                 </div>
+                <Radio
+                  checked={provider === 'rainbowkit'}
+                  disabled={Boolean(address)}
+                  icon={<RainbowLogo />}
+                  onChange={setProvider}
+                  value="rainbowkit"
+                >
+                  RainbowKit
+                </Radio>
+                <Radio
+                  checked={provider === 'privy'}
+                  disabled={Boolean(address)}
+                  icon={<PrivyLogo />}
+                  onChange={setProvider}
+                  value="privy"
+                >
+                  Privy
+                </Radio>
               </Ariakit.RadioGroup>
             </Ariakit.RadioProvider>
-
-            <div className="-tracking-[0.392px] mt-5 font-medium text-[14px] text-gray9 leading-none">
-              Don’t see your provider?{' '}
-              <a className="text-blue9" href="#TODO">
-                Reach out →
-              </a>
-            </div>
           </div>
 
           <div className="mb-6">
             <h3 className="-tracking-[0.364px] w-fit! rounded-full bg-gray4 px-2.5 py-1.5 font-medium text-[13px] text-black leading-[16px] opacity-50 dark:text-white">
-              Start interacting
+              Manage Account
             </h3>
 
             <div {...{ [`data-${provider}`]: '' }} className="mt-4">
@@ -276,7 +277,7 @@ export function DemoApp() {
                   />
                 </Card>
 
-                <Card description="TODO" title="Limit">
+                <Card description="TODO" title="Spending Limit">
                   <LimitDemo address={address} />
                 </Card>
               </div>
@@ -1076,7 +1077,7 @@ export function LimitDemo(props: LimitDemo.Props) {
           <div className="relative flex flex-1 items-center gap-2 lg:max-w-[79px]">
             <Ariakit.VisuallyHidden>
               <Ariakit.FormLabel name={form.names.limit}>
-                Spending Limit
+                Limit
               </Ariakit.FormLabel>
             </Ariakit.VisuallyHidden>
             <Ariakit.FormInput
@@ -1793,7 +1794,7 @@ function Radio(props: Radio.Props) {
     <label
       {...(rest.checked ? { 'data-checked': true } : {})}
       {...(rest.disabled ? { 'data-disabled': true } : {})}
-      className="-tracking-[0.448px] flex w-full items-center gap-2 rounded-full border border-gray5 p-2.5 font-medium text-[16px] text-gray12 leading-none not-data-checked:not-data-disabled:hover:bg-white data-disabled:cursor-not-allowed data-checked:border-blue9 data-checked:bg-blue3 dark:not-data-disabled:not-data-checked:hover:bg-gray3"
+      className="-tracking-[0.448px] flex flex-1 items-center gap-2 rounded-full border border-gray5 p-2.5 font-medium text-[16px] text-gray12 leading-none not-data-checked:not-data-disabled:hover:bg-white data-disabled:cursor-not-allowed data-checked:border-blue9 data-checked:bg-blue3 dark:not-data-disabled:not-data-checked:hover:bg-gray3"
     >
       <Ariakit.VisuallyHidden>
         <Ariakit.Radio {...rest} onChange={() => onChange(props.value)} />
