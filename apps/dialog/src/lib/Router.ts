@@ -1,9 +1,9 @@
+import { Porto } from '@porto/apps'
 import { createRouter } from '@tanstack/react-router'
 import { Provider, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import * as Rpc from 'porto/core/internal/typebox/rpc'
 import { Actions } from 'porto/remote'
-import { Porto } from '@porto/apps'
 
 import { routeTree } from '~/routeTree.gen.ts'
 

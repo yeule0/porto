@@ -9,7 +9,7 @@
         "useSortedProperties": "on"
       }
     },
-    "includes": ["!scripts/**"]
+    "includes": ["**", "!scripts/**"]
   },
   "css": {
     "formatter": {

@@ -178,7 +178,7 @@ export function iframe() {
           root.removeAttribute(name)
         }
       })
-      observer.observe(root, { attributes: true, attributeOldValue: true })
+      observer.observe(root, { attributeOldValue: true, attributes: true })
 
       return {
         close() {
