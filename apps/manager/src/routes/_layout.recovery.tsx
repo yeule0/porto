@@ -1,3 +1,4 @@
+import 'viem/window'
 import * as Ariakit from '@ariakit/react'
 import { Button, Spinner } from '@porto/apps/components'
 import { createFileRoute, Link } from '@tanstack/react-router'
@@ -5,7 +6,7 @@ import { cx } from 'cva'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { useConnect, useConnectors, useDisconnect, useSignMessage } from 'wagmi'
+import { useConnect, useConnectors, useDisconnect } from 'wagmi'
 import { CustomToast } from '~/components/CustomToast'
 import { mipdConfig as config } from '~/lib/MipdWagmi'
 import SecurityIcon from '~icons/ic/outline-security'
@@ -18,10 +19,10 @@ export const Route = createFileRoute('/_layout/recovery')({
   component: RouteComponent,
 })
 
-function ActionableFeedback({ feedback }: { feedback: 'SUCCESS' | 'PENDING' }) {
+function ActionableFeedback({ feedback }: { feedback: 'success' | 'pending' }) {
   return (
     <div className="w-[350px]">
-      {feedback === 'PENDING' ? (
+      {feedback === 'pending' ? (
         <div className="mx-auto mb-3.5 flex size-12 items-center justify-center rounded-full bg-blue4 px-2 text-blue10">
           <Spinner />
         </div>
@@ -33,7 +34,7 @@ function ActionableFeedback({ feedback }: { feedback: 'SUCCESS' | 'PENDING' }) {
 
       <div className="flex flex-col items-center gap-y-2 text-center">
         <React.Fragment>
-          {feedback === 'PENDING' ? (
+          {feedback === 'pending' ? (
             <React.Fragment>
               <p className="text-center font-medium text-2xl">
                 Approve in wallet
@@ -68,50 +69,96 @@ function ActionableFeedback({ feedback }: { feedback: 'SUCCESS' | 'PENDING' }) {
 }
 
 function RouteComponent() {
-  React.useEffect(() => {
-    toast.warning('Not implemented', {
-      description: 'Will be implemented soon after relay is ready',
-      duration: Number.POSITIVE_INFINITY,
-      position: 'top-right',
-    })
-  })
-
-  const [view, setView] = React.useState<'DEFAULT' | 'SUCCESS' | 'LOADING'>(
+  const [view, setView] = React.useState<'DEFAULT' | 'success' | 'loading'>(
     'DEFAULT',
   )
 
-  const connect = useConnect({
-    mutation: {
-      onMutate: (_) => setView('LOADING'),
-    },
-  })
   const disconnect = useDisconnect()
   const _connectors = useConnectors({ config })
 
-  const connectors = React.useMemo(
-    () =>
-      _connectors.filter(
-        (connector) =>
-          connector.id !== 'xyz.ithaca.porto' &&
-          connector.name.toLowerCase() !== 'porto',
-      ),
-    [_connectors],
-  )
+  const connectors = React.useMemo(() => {
+    const uniqueConnectorsNames = new Set()
+    const uniqueConnectors = []
+    for (const connector of _connectors) {
+      if (uniqueConnectorsNames.has(connector.name)) {
+        continue
+      }
+      uniqueConnectorsNames.add(connector.name)
+      uniqueConnectors.push(connector)
+    }
+    return uniqueConnectors
+  }, [_connectors])
 
-  const { signMessageAsync, status: _signMessageStatus } = useSignMessage({
+  const admins = Hooks.useAdmins()
+
+  const grantAdmin = Hooks.useGrantAdmin({
     mutation: {
-      onError: (error, _, __) => console.info(error),
-      onMutate: (_) => setView('LOADING'),
-      onSuccess: (_, __, ___) => setView('SUCCESS'),
+      onError: (error, _, __) => {
+        console.info(error)
+        toast.custom((t) => (
+          <CustomToast
+            className={t}
+            description={error.message}
+            kind="error"
+            title="Error Granting Admin"
+          />
+        ))
+        setView('DEFAULT')
+      },
+      onMutate: (_) => [console.info('mutate'), setView('loading')],
+      onSuccess: (_) => {
+        toast.custom((t) => (
+          <CustomToast
+            className={t}
+            description="You are now an admin"
+            kind="success"
+            title="Admin Granted"
+          />
+        ))
+        setView('DEFAULT')
+      },
     },
   })
 
-  // @ts-expect-error
-  const createAccount = Hooks.useCreateAccount({
+  const connect = useConnect({
     mutation: {
-      onError: (error, _, __) => console.info(error),
-      onMutate: (_) => [console.info('mutate'), setView('LOADING')],
-      onSuccess: (_, __, ___) => setView('SUCCESS'),
+      onError: (error, _, __) => {
+        toast.custom((t) => (
+          <CustomToast
+            className={t}
+            description={error.message}
+            kind="error"
+            title="Error Connecting"
+          />
+        ))
+        setView('DEFAULT')
+      },
+      onMutate: (_) => setView('loading'),
+      onSuccess: (data) => {
+        const [address] = data.accounts
+        const existingAdmins = admins.data?.keys
+        const isAdmin = existingAdmins?.some(
+          (admin) => admin.publicKey.toLowerCase() === address.toLowerCase(),
+        )
+        if (isAdmin) {
+          toast.custom((t) => (
+            <CustomToast
+              className={t}
+              description="You are already an admin"
+              kind="warn"
+              title="Already an admin"
+            />
+          ))
+          setView('DEFAULT')
+          return
+        }
+        grantAdmin.mutate({
+          key: {
+            publicKey: address,
+            type: 'address',
+          },
+        })
+      },
     },
   })
 
@@ -139,10 +186,10 @@ function RouteComponent() {
           'mx-auto flex h-full w-full flex-col items-center justify-center bg-transparent min-[550px]:max-w-[395px]',
         )}
       >
-        {view === 'SUCCESS' ? (
-          <ActionableFeedback feedback="SUCCESS" />
-        ) : view === 'LOADING' ? (
-          <ActionableFeedback feedback="PENDING" />
+        {view === 'success' ? (
+          <ActionableFeedback feedback="success" />
+        ) : view === 'loading' ? (
+          <ActionableFeedback feedback="pending" />
         ) : (
           <React.Fragment>
             <section className="flex flex-col items-center gap-y-2">
@@ -175,36 +222,19 @@ function RouteComponent() {
                           disconnect
                             .disconnectAsync()
                             .catch((error) => console.info(error))
-                            .then(() =>
+                            .then(() => {
                               connect
                                 .connectAsync({ connector })
                                 .catch((error) => console.info(error))
-                                //
-                                .then(() =>
-                                  signMessageAsync({
-                                    message: `${new Date().toISOString()}\nI'm the owner of this wallet\nSigning a message to confirm my ownership`,
-                                  })
-                                    //
-                                    .then((_signature) =>
-                                      toast.custom((t) => (
-                                        <CustomToast
-                                          className={t}
-                                          description="You have successfully signed a message. Look at you"
-                                          kind="SUCCESS"
-                                          title="Signed Message"
-                                        />
-                                      )),
-                                    ),
-                                ),
-                            )
+                            })
                             .catch((error) => {
                               setView('DEFAULT')
                               toast.custom((t) => (
                                 <CustomToast
                                   className={t}
                                   description={error.message}
-                                  kind="ERROR"
-                                  title="Error Signing"
+                                  kind="error"
+                                  title="Error Connecting"
                                 />
                               ))
                             })
@@ -228,6 +258,7 @@ function RouteComponent() {
 
             <Button
               className="my-4 h-11! w-full font-medium text-lg!"
+              onClick={() => toast.dismiss()}
               render={
                 <Link className="" to="..">
                   I'll do this later

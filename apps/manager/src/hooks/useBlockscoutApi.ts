@@ -184,13 +184,7 @@ export function useAddressTransfers({
         .invalidateQueries({
           queryKey: ['address-transfers', userAddress],
         })
-        .then(() =>
-          Query.client
-            .refetchQueries({
-              queryKey: ['address-transfers', userAddress],
-            })
-            .then(() => refetchBalances()),
-        ),
+        .then(() => refetchBalances()),
     [userAddress, refetchBalances],
   )
 
