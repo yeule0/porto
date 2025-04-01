@@ -39,6 +39,16 @@ export function relay(config: relay.Parameters = {}) {
     return config.keystoreHost
   })()
 
+  const resolveFeeToken = (
+    client: Client,
+    feeToken: Address.Address | Record<number, Address.Address> | undefined,
+  ) => {
+    const { chain } = client
+    if (typeof feeToken === 'string') return feeToken
+    if (typeof feeToken === 'object') return feeToken[chain.id]
+    return undefined
+  }
+
   return Mode.from({
     actions: {
       async createAccount(parameters) {
@@ -79,7 +89,7 @@ export function relay(config: relay.Parameters = {}) {
           await preauthKey(client, {
             account,
             authorizeKey,
-            feeToken: config.feeToken,
+            feeToken: resolveFeeToken(client, config.feeToken),
             storage: parameters.internal.config.storage,
           })
 
@@ -103,7 +113,7 @@ export function relay(config: relay.Parameters = {}) {
         await Relay.sendCalls(client, {
           account,
           authorizeKeys: [authorizeKey],
-          feeToken,
+          feeToken: resolveFeeToken(client, feeToken),
         })
 
         return { key: authorizeKey }
@@ -120,7 +130,7 @@ export function relay(config: relay.Parameters = {}) {
         await preauthKey(client, {
           account,
           authorizeKey,
-          feeToken: config.feeToken,
+          feeToken: resolveFeeToken(client, config.feeToken),
           storage: internal.config.storage,
         })
 
@@ -196,7 +206,7 @@ export function relay(config: relay.Parameters = {}) {
           await preauthKey(client, {
             account,
             authorizeKey,
-            feeToken: config.feeToken,
+            feeToken: resolveFeeToken(client, config.feeToken),
             storage: internal.config.storage,
           })
 
@@ -227,7 +237,7 @@ export function relay(config: relay.Parameters = {}) {
         const { context, digest } = await Relay.prepareCalls(client, {
           account,
           calls,
-          feeToken,
+          feeToken: resolveFeeToken(client, feeToken),
           key,
           pre,
         })
@@ -258,7 +268,7 @@ export function relay(config: relay.Parameters = {}) {
 
         const { context, digests } = await Relay.prepareUpgradeAccount(client, {
           address,
-          feeToken,
+          feeToken: resolveFeeToken(client, feeToken),
           async keys({ ids }) {
             const id = ids[0]!
             const label =
@@ -301,7 +311,7 @@ export function relay(config: relay.Parameters = {}) {
         try {
           await Relay.sendCalls(client, {
             account,
-            feeToken,
+            feeToken: resolveFeeToken(client, feeToken),
             revokeKeys: [key],
           })
         } catch (e) {
@@ -330,7 +340,7 @@ export function relay(config: relay.Parameters = {}) {
         try {
           await Relay.sendCalls(client, {
             account,
-            feeToken,
+            feeToken: resolveFeeToken(client, feeToken),
             revokeKeys: [key],
           })
         } catch (e) {
@@ -374,7 +384,7 @@ export function relay(config: relay.Parameters = {}) {
         const { id } = await Relay.sendCalls(client, {
           account,
           calls,
-          feeToken,
+          feeToken: resolveFeeToken(client, feeToken),
           key,
           pre,
         })
@@ -454,9 +464,9 @@ export function relay(config: relay.Parameters = {}) {
 export declare namespace relay {
   type Parameters = {
     /**
-     * ERC20 token to use for fees. Defaults to ETH.
+     * Chain-aware ERC20 token to use for fees. Defaults to ETH.
      */
-    feeToken?: Address.Address | undefined
+    feeToken?: Record<number, Address.Address> | undefined
     /**
      * Mock mode. Testing purposes only.
      * @default false
