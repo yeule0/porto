@@ -533,6 +533,9 @@ importers:
 
   apps/~internal:
     dependencies:
+      '@sentry/react':
+        specifier: 'catalog:'
+        version: 9.10.1(react@19.1.0)
       '@tanstack/query-sync-storage-persister':
         specifier: 'catalog:'
         version: 5.70.0
