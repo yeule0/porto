@@ -29,7 +29,7 @@ export const odysseyTestnet = /*#__PURE__*/ define({
       address: '0x63e0B807c3E872152645103462BD403D4e48fE7e',
     },
     entryPoint: {
-      address: '0x5197adb49b4ecaa8e00f60f43757d3f5ad630227',
+      address: '0x78240fcd65120b477442d54f781d390990a97964',
     },
   },
 })
