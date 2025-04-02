@@ -26,14 +26,13 @@ export default defineConfig({
     Tailwindcss(),
     React(),
     Icons({ compiler: 'jsx', jsx: 'react' }),
-    SentryVitePlugin({
-      authToken:
-        process.env.VERCEL_ENV === 'production'
-          ? process.env.SENTRY_AUTH_TOKEN
-          : undefined,
-      org: 'ithaca',
-      project: 'porto-manager',
-    }),
+    process.env.VERCEL_ENV === 'production'
+      ? SentryVitePlugin({
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          org: 'ithaca',
+          project: 'porto-manager',
+        })
+      : null,
     TsconfigPaths(),
     TanStackRouterVite(),
   ],
