@@ -1027,28 +1027,6 @@ export function toRelay(
 // Internal
 ///////////////////////////////////////////////////////////////////////////
 
-/**
- * Creates a random P256 key.
- *
- * @example
- * ```ts
- * import * as Key from './key.js'
- *
- * // Admin Key
- * const key = Key.createP256({
- *   role: 'admin',
- * })
- *
- * // Session Key
- * const key = Key.createP256({
- *   expiry: 1714857600,
- *   role: 'session',
- * })
- * ```
- *
- * @param parameters - Key parameters.
- * @returns P256 key.
- */
 export function test_createWebAuthnP256<const role extends Key['role']>(
   parameters: test_createWebAuthnP256.Parameters<role>,
 ) {
@@ -1065,7 +1043,7 @@ export function test_createWebAuthnP256<const role extends Key['role']>(
     },
     publicKey,
     role: parameters.role as Key['role'],
-    type: 'webauthn-p256' as any,
+    type: 'webauthn-p256' as 'p256',
   })
 }
 
