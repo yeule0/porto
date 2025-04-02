@@ -5,7 +5,6 @@ import { http } from 'viem'
 
 import { exp1Address } from '../_generated/contracts'
 import * as Env from './Env'
-import * as Sentry from './Sentry'
 
 export const chains = Porto.defaultConfig.chains
 
@@ -32,7 +31,7 @@ export const config = {
     transports: {
       [Chains.odysseyTestnet.id]: {
         default: http(),
-        relay: http('https://relay.ithaca.xyz', Sentry.httpTransportOptions()),
+        relay: http('https://relay.ithaca.xyz'),
       },
     },
   },
@@ -44,10 +43,7 @@ export const config = {
     transports: {
       [Chains.odysseyTestnet.id]: {
         default: http(),
-        relay: http(
-          'https://relay-staging.ithaca.xyz',
-          Sentry.httpTransportOptions(),
-        ),
+        relay: http('https://relay-staging.ithaca.xyz'),
       },
     },
   },
