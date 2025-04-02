@@ -17,7 +17,6 @@ if (import.meta.env.PROD) {
     integrations: [
       Sentry.tanstackRouterBrowserTracingIntegration(Router.router),
     ],
-    tracesSampleRate: 1.0,
   })
 }
 
