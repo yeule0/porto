@@ -1,3 +1,4 @@
+import { sentryVitePlugin as SentryVitePlugin } from '@sentry/vite-plugin'
 import Tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import React from '@vitejs/plugin-react'
@@ -8,6 +9,9 @@ import TsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
   define: {
     'process.env': {},
   },
@@ -22,6 +26,14 @@ export default defineConfig({
     Tailwindcss(),
     React(),
     Icons({ compiler: 'jsx', jsx: 'react' }),
+    SentryVitePlugin({
+      authToken:
+        process.env.VERCEL_ENV === 'production'
+          ? process.env.SENTRY_AUTH_TOKEN
+          : undefined,
+      org: 'ithaca',
+      project: 'porto-manager',
+    }),
     TsconfigPaths(),
     TanStackRouterVite(),
   ],
