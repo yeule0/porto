@@ -22,7 +22,7 @@ const { client } = getPorto({
 
 describe('createAccount', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -38,7 +38,7 @@ describe('createAccount', () => {
       keys(p) {
         id = p.ids[0]
         return [
-          Key.createP256({
+          Key.test_createWebAuthnP256({
             role: 'admin',
           }),
         ]
@@ -50,11 +50,11 @@ describe('createAccount', () => {
   })
 
   test('behavior: multiple keys', async () => {
-    const key1 = Key.createP256({
+    const key1 = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
-    const key2 = await Key.createWebCryptoP256({
+    const key2 = Key.createSecp256k1({
       role: 'admin',
     })
 
@@ -68,7 +68,7 @@ describe('createAccount', () => {
   })
 
   test('behavior: permissions', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       permissions: {
         calls: [
           {
@@ -111,7 +111,7 @@ describe('createAccount', () => {
 
 describe('getAccounts', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -127,7 +127,7 @@ describe('getAccounts', () => {
 
 describe('getKeys', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -141,7 +141,7 @@ describe('getKeys', () => {
   })
 
   test('behavior: address', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -157,7 +157,7 @@ describe('getKeys', () => {
 
 describe('prepareUpgradeAccount + upgradeAccount', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const eoa = privateKeyToAccount(generatePrivateKey())
@@ -188,7 +188,7 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
 
 describe('sendCalls', () => {
   test('default', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
@@ -218,7 +218,7 @@ describe('sendCalls', () => {
   })
 
   test('behavior: via prepareCalls', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
@@ -259,12 +259,12 @@ describe('sendCalls', () => {
   })
 
   test('behavior: pre bundles', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
-    const newKey = Key.createP256({ role: 'admin' })
+    const newKey = Key.test_createWebAuthnP256({ role: 'admin' })
     const { id } = await Relay.sendCalls(client, {
       account,
       calls: [
@@ -297,7 +297,7 @@ describe('sendCalls', () => {
   })
 
   test('behavior: pre bundles (session key)', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
@@ -340,12 +340,12 @@ describe('sendCalls', () => {
   })
 
   test('behavior: pre bundles (via prepareCalls)', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
 
-    const newKey = Key.createP256({ role: 'admin' })
+    const newKey = Key.test_createWebAuthnP256({ role: 'admin' })
     const request_1 = await Relay.prepareCalls(client, {
       account,
       authorizeKeys: [newKey],
@@ -394,7 +394,7 @@ describe('sendCalls', () => {
   })
 
   test('behavior: pre bundles (via prepareCalls)', async () => {
-    const key = Key.createP256({ role: 'admin' })
+    const key = Key.test_createWebAuthnP256({ role: 'admin' })
     const account = await TestActions.createAccount(client, {
       keys: [key],
     })
@@ -465,7 +465,7 @@ describe.each([
   describe('behavior: arbitrary calls', () => {
     test('mint erc20', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -499,7 +499,7 @@ describe.each([
     // TODO(relay): fix
     test.skip('mint erc20; no fee token (ETH)', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -531,7 +531,7 @@ describe.each([
 
     test('noop', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -552,7 +552,7 @@ describe.each([
 
     test('error: contract error (insufficient erc20 balance)', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -576,7 +576,7 @@ describe.each([
 
     test('error: contract error (insufficient eth balance)', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -600,15 +600,15 @@ describe.each([
   describe('behavior: authorize keys', () => {
     test('authorize admin keys', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
 
       // 2. Define additional Admin Keys.
       const keys = [
-        Key.createP256({ role: 'admin' }),
-        await Key.createWebCryptoP256({ role: 'admin' }),
+        Key.test_createWebAuthnP256({ role: 'admin' }),
+        Key.createSecp256k1({ role: 'admin' }),
       ] as const
 
       // 3. Authorize additional Admin Keys.
@@ -643,13 +643,13 @@ describe.each([
 
     test('authorize key with previous key', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
 
       // 2. Authorize a new Admin Key.
-      const newKey = Key.createP256({ role: 'admin' })
+      const newKey = Key.test_createWebAuthnP256({ role: 'admin' })
       {
         const { id } = await Relay.sendCalls(client, {
           account,
@@ -690,7 +690,7 @@ describe.each([
 
     test('batch authorize + mint', async () => {
       // 1. Initialize Account with Admin Key.
-      const key = Key.createP256({ role: 'admin' })
+      const key = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [key],
       })
@@ -740,7 +740,7 @@ describe.each([
   describe('behavior: call permissions', () => {
     test('default', async () => {
       // 1. Initialize account with Admin Key
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -793,7 +793,7 @@ describe.each([
 
     test('multiple calls', async () => {
       // 1. Initialize account with Admin Key.
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -874,7 +874,7 @@ describe.each([
 
     test('multiple calls (w/ admin key, then session key)', async () => {
       // 1. Initialize account with Admin Key and Session Key (with call permission).
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -957,7 +957,7 @@ describe.each([
       const alice = Hex.random(20)
 
       // 1. Initialize account with Admin Key and Session Key (with call permission).
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -1017,7 +1017,7 @@ describe.each([
 
     test('error: invalid target', async () => {
       // 1. Initialize account with Admin Key.
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -1059,7 +1059,7 @@ describe.each([
 
     test('error: invalid selector', async () => {
       // 1. Initialize account with Admin Key.
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })
@@ -1103,7 +1103,7 @@ describe.each([
   describe('behavior: spend permissions', () => {
     test('admin key', async () => {
       // 1. Initialize Account with Admin Key (with spend permission).
-      const adminKey = Key.createP256({
+      const adminKey = Key.test_createWebAuthnP256({
         permissions: {
           spend: [{ limit: 100n, period: 'day', token: exp2Address }],
         },
@@ -1160,7 +1160,7 @@ describe.each([
 
     test('session key', async () => {
       // 1. Initialize account with Admin Key and Session Key (with permissions).
-      const adminKey = Key.createP256({ role: 'admin' })
+      const adminKey = Key.test_createWebAuthnP256({ role: 'admin' })
       const account = await initializeAccount(client, {
         keys: [adminKey],
       })

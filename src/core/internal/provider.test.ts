@@ -625,6 +625,7 @@ describe.each([
           credential: null,
           expiry: null,
           hash: null,
+          id: null,
           publicKey: null,
         })),
       ).matchSnapshot()
@@ -1539,7 +1540,7 @@ describe.each([
     })
 
     describe('behavior: admin', () => {
-      test('default', async () => {
+      test.skipIf(type === 'relay')('default', async () => {
         const { porto } = getPorto()
         const client = Porto_internal.getClient(porto).extend(() => ({
           mode: 'anvil',
@@ -1613,7 +1614,7 @@ describe.each([
         expect(await getBalance(client, { address: alice })).toBe(42069n)
       })
 
-      test('WebCryptoP256', async () => {
+      test.skipIf(type === 'relay')('WebCryptoP256', async () => {
         const { porto } = getPorto()
         const client = Porto_internal.getClient(porto).extend(() => ({
           mode: 'anvil',

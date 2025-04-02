@@ -76,7 +76,7 @@ exports[`contract > experimental_grantPermissions > behavior: provided key 3`] =
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -136,7 +136,7 @@ exports[`contract > experimental_grantPermissions > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -170,7 +170,7 @@ exports[`contract > experimental_revokeAdmin > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -195,7 +195,7 @@ exports[`contract > experimental_revokeAdmin > default 2`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -213,7 +213,7 @@ exports[`contract > experimental_revokePermissions > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -247,7 +247,7 @@ exports[`contract > experimental_revokePermissions > default 2`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -263,7 +263,7 @@ exports[`contract > wallet_connect > behavior: \`createAccount\` + \`grantPermis
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -295,7 +295,7 @@ exports[`contract > wallet_connect > behavior: \`createAccount\` + \`grantPermis
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -342,7 +342,7 @@ exports[`contract > wallet_connect > behavior: \`createAccount\` capability >
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -363,13 +363,16 @@ Path: params.0.capabilities.grantPermissions.expiry]
 exports[`contract > wallet_connect > default 1`] = `
 [
   {
-    "canSign": false,
+    "canSign": true,
     "credential": null,
     "expiry": null,
     "hash": null,
+    "id": null,
+    "permissions": undefined,
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "rpId": undefined,
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -466,7 +469,7 @@ exports[`relay > experimental_grantPermissions > behavior: provided key 3`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -526,7 +529,7 @@ exports[`relay > experimental_grantPermissions > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -560,7 +563,7 @@ exports[`relay > experimental_revokeAdmin > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -585,7 +588,7 @@ exports[`relay > experimental_revokeAdmin > default 2`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -603,7 +606,7 @@ exports[`relay > experimental_revokePermissions > default 1`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -637,7 +640,7 @@ exports[`relay > experimental_revokePermissions > default 2`] = `
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -653,7 +656,7 @@ exports[`relay > wallet_connect > behavior: \`createAccount\` + \`grantPermissio
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": false,
@@ -685,7 +688,7 @@ exports[`relay > wallet_connect > behavior: \`createAccount\` + \`grantPermissio
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
   {
     "canSign": true,
@@ -732,7 +735,7 @@ exports[`relay > wallet_connect > behavior: \`createAccount\` capability >
     "privateKey": [Function],
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "type": "webauthn-p256",
   },
 ]
 `;
@@ -753,14 +756,16 @@ Path: params.0.capabilities.grantPermissions.expiry]
 exports[`relay > wallet_connect > default 1`] = `
 [
   {
-    "canSign": false,
+    "canSign": true,
     "credential": null,
     "expiry": null,
     "hash": null,
+    "id": null,
     "permissions": {},
     "publicKey": null,
     "role": "admin",
-    "type": "p256",
+    "rpId": undefined,
+    "type": "webauthn-p256",
   },
 ]
 `;

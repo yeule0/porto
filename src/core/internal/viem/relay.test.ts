@@ -58,7 +58,7 @@ describe('prepareCreateAccount + createAccount', () => {
       ],
       publicKey,
       role: 'admin',
-      type: 'p256',
+      type: 'webauthnp256',
     }) as const satisfies Capabilities.authorizeKeys.Request[number]
 
   test('default', async () => {
@@ -219,7 +219,7 @@ describe('prepareCreateAccount + createAccount', () => {
 
 describe('getAccounts', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -236,11 +236,11 @@ describe('getAccounts', () => {
     expect(result[0]?.keys[0]?.hash).toBe(key.hash)
     expect(result[0]?.keys[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.keys[0]?.role).toBe(key.role)
-    expect(result[0]?.keys[0]?.type).toBe(key.type)
+    expect(result[0]?.keys[0]?.type).toBe('webauthnp256')
   })
 
   test('behavior: deployed account', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -264,13 +264,13 @@ describe('getAccounts', () => {
     expect(result[0]?.keys[0]?.hash).toBe(key.hash)
     expect(result[0]?.keys[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.keys[0]?.role).toBe(key.role)
-    expect(result[0]?.keys[0]?.type).toBe(key.type)
+    expect(result[0]?.keys[0]?.type).toBe('webauthnp256')
   })
 })
 
 describe('getKeys', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -291,11 +291,11 @@ describe('getKeys', () => {
     expect(result[0]?.hash).toBe(key.hash)
     expect(result[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.role).toBe(key.role)
-    expect(result[0]?.type).toBe(key.type)
+    expect(result[0]?.type).toBe('webauthnp256')
   })
 
   test('behavior: multiple keys', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const key_2 = Key.createSecp256k1({
@@ -312,7 +312,7 @@ describe('getKeys', () => {
     expect(result[0]?.hash).toBe(key.hash)
     expect(result[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.role).toBe(key.role)
-    expect(result[0]?.type).toBe(key.type)
+    expect(result[0]?.type).toBe('webauthnp256')
     expect(result[1]?.hash).toBe(key_2.hash)
     expect(result[1]?.publicKey).toBe(Hex.padLeft(key_2.publicKey, 32))
     expect(result[1]?.role).toBe(key_2.role)
@@ -320,7 +320,7 @@ describe('getKeys', () => {
   })
 
   test('behavior: deployed account', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -341,11 +341,11 @@ describe('getKeys', () => {
     expect(result[0]?.hash).toBe(key.hash)
     expect(result[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.role).toBe(key.role)
-    expect(result[0]?.type).toBe(key.type)
+    expect(result[0]?.type).toBe('webauthnp256')
   })
 
   test('behavior: deployed account; multiple keys', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const key_2 = Key.createSecp256k1({
@@ -369,7 +369,7 @@ describe('getKeys', () => {
     expect(result[0]?.hash).toBe(key.hash)
     expect(result[0]?.publicKey).toBe(key.publicKey)
     expect(result[0]?.role).toBe(key.role)
-    expect(result[0]?.type).toBe(key.type)
+    expect(result[0]?.type).toBe('webauthnp256')
     expect(result[1]?.hash).toBe(key_2.hash)
     expect(result[1]?.publicKey).toBe(Hex.padLeft(key_2.publicKey, 32))
     expect(result[1]?.role).toBe(key_2.role)
@@ -379,7 +379,7 @@ describe('getKeys', () => {
 
 describe('prepareCalls + sendPreparedCalls', () => {
   test('default', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -412,14 +412,14 @@ describe('prepareCalls + sendPreparedCalls', () => {
       context: request.context,
       signature: {
         publicKey: key.publicKey,
-        type: 'p256',
+        type: 'webauthnp256',
         value: signature,
       },
     })
   })
 
   test('behavior: contract calls', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -454,14 +454,14 @@ describe('prepareCalls + sendPreparedCalls', () => {
       context: request.context,
       signature: {
         publicKey: key.publicKey,
-        type: 'p256',
+        type: 'webauthnp256',
         value: signature,
       },
     })
   })
 
   test('error: schema encoding', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -492,7 +492,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
   })
 
   test('error: schema encoding', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
     const account = await TestActions.createAccount(client, {
@@ -576,7 +576,7 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
             publicKey: p256.publicKey,
             role: 'admin',
             signature,
-            type: 'p256',
+            type: 'webauthnp256',
           },
         ],
         delegation: client.chain.contracts.delegation.address,

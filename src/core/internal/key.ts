@@ -857,6 +857,36 @@ export async function sign(
       ]
     }
     if (keyType === 'webauthn-p256') {
+      if (typeof key.privateKey === 'function') {
+        const { payload: wrapped, metadata } = WebAuthnP256.getSignPayload({
+          challenge: payload,
+          origin: 'https://ithaca.xyz',
+          rpId: 'ithaca.xyz',
+        })
+        const { r, s } = P256.sign({
+          hash: true,
+          payload: wrapped,
+          privateKey: (key as any).privateKey(),
+        })
+        const signature = AbiParameters.encode(
+          AbiParameters.from([
+            'struct WebAuthnAuth { bytes authenticatorData; string clientDataJSON; uint256 challengeIndex; uint256 typeIndex; bytes32 r; bytes32 s; }',
+            'WebAuthnAuth auth',
+          ]),
+          [
+            {
+              authenticatorData: metadata.authenticatorData,
+              challengeIndex: BigInt(metadata.challengeIndex),
+              clientDataJSON: metadata.clientDataJSON,
+              r: Hex.fromNumber(r, { size: 32 }),
+              s: Hex.fromNumber(s, { size: 32 }),
+              typeIndex: BigInt(metadata.typeIndex),
+            },
+          ],
+        )
+        return [signature, false]
+      }
+
       const { credential, rpId } = key
 
       const cacheKey = `porto.webauthnVerified.${key.hash}`
@@ -996,6 +1026,59 @@ export function toRelay(
 ///////////////////////////////////////////////////////////////////////////
 // Internal
 ///////////////////////////////////////////////////////////////////////////
+
+/**
+ * Creates a random P256 key.
+ *
+ * @example
+ * ```ts
+ * import * as Key from './key.js'
+ *
+ * // Admin Key
+ * const key = Key.createP256({
+ *   role: 'admin',
+ * })
+ *
+ * // Session Key
+ * const key = Key.createP256({
+ *   expiry: 1714857600,
+ *   role: 'session',
+ * })
+ * ```
+ *
+ * @param parameters - Key parameters.
+ * @returns P256 key.
+ */
+export function test_createWebAuthnP256<const role extends Key['role']>(
+  parameters: test_createWebAuthnP256.Parameters<role>,
+) {
+  const privateKey = P256.randomPrivateKey()
+  const publicKey = PublicKey.toHex(P256.getPublicKey({ privateKey }), {
+    includePrefix: false,
+  })
+  return from({
+    canSign: true,
+    expiry: parameters.expiry ?? 0,
+    permissions: parameters.permissions,
+    privateKey() {
+      return privateKey
+    },
+    publicKey,
+    role: parameters.role as Key['role'],
+    type: 'webauthn-p256' as any,
+  })
+}
+
+export declare namespace test_createWebAuthnP256 {
+  type Parameters<role extends Key['role']> = {
+    /** Expiry. */
+    expiry?: fromP256.Parameters['expiry']
+    /** Permissions. */
+    permissions?: Permissions | undefined
+    /** Role. */
+    role: fromP256.Parameters<role>['role']
+  }
+}
 
 export function wrapSignature(
   signature: Hex.Hex,

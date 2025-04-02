@@ -99,7 +99,7 @@ describe('sign', () => {
   })
 
   test('args: key', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -151,7 +151,7 @@ describe('sign', () => {
   })
 
   test('behavior: with key', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -185,7 +185,7 @@ describe('sign', () => {
   })
 
   test('behavior: with authorization payload', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -227,7 +227,7 @@ describe('sign', () => {
   })
 
   test('behavior: with authorization payload, no root signing key', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
@@ -262,7 +262,7 @@ describe('sign', () => {
   })
 
   test('behavior: no keys', async () => {
-    const key = Key.createP256({
+    const key = Key.test_createWebAuthnP256({
       role: 'admin',
     })
 
