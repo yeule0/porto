@@ -4,11 +4,11 @@ import type * as Errors from 'ox/Errors'
 import type * as Hex from 'ox/Hex'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
+import type { ChainContract, Client } from 'viem'
 
 import type { Chain } from '../Chains.js'
 import * as Account from './account.js'
 import * as Key from './key.js'
-import type { Client } from './porto.js'
 import type * as Capabilities from './relay/typebox/capabilities.js'
 import type { MaybePromise, OneOf, RequiredBy } from './types.js'
 import * as Actions from './viem/relay.js'
@@ -337,9 +337,12 @@ export async function prepareCreateAccount(
 ) {
   const {
     chain = client.chain,
-    delegation = chain.contracts.delegation.address,
+    delegation = (chain?.contracts?.delegation as ChainContract | undefined)
+      ?.address,
     keys,
   } = parameters
+
+  if (!delegation) throw new Error('`delegation` is required')
 
   const authorizeKeys = keys.map(Key.toRelay)
 
@@ -403,9 +406,13 @@ export async function prepareUpgradeAccount(
 ) {
   const {
     address,
-    delegation = client.chain.contracts.delegation.address,
+    delegation = (
+      client.chain?.contracts?.delegation as ChainContract | undefined
+    )?.address,
     feeToken,
   } = parameters
+
+  if (!delegation) throw new Error('`delegation` is required')
 
   // Create root id signer
   const idSigner_root = createIdSigner()
