@@ -65,10 +65,13 @@ export type WebCryptoKey = BaseKey<
 >
 export type WebAuthnKey = BaseKey<
   'webauthn-p256',
-  {
-    credential: Pick<WebAuthnP256.P256Credential, 'id' | 'publicKey'>
-    rpId: string | undefined
-  }
+  | {
+      credential: Pick<WebAuthnP256.P256Credential, 'id' | 'publicKey'>
+      rpId: string | undefined
+    }
+  | {
+      privateKey: PrivateKeyFn
+    }
 >
 
 export type Permissions = Key_typebox.Permissions
@@ -779,7 +782,7 @@ export function fromHeadlessWebAuthnP256<const role extends Key['role']>(
     },
     publicKey,
     role: parameters.role as Key['role'],
-    type: 'webauthn-p256' as 'p256',
+    type: 'webauthn-p256',
   })
 }
 
