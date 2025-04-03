@@ -12,7 +12,6 @@ export type Account = {
   address: Address.Address
   keys?: readonly Key.Key[] | undefined
   sign?: ((parameters: { payload: Hex.Hex }) => Promise<Hex.Hex>) | undefined
-  type: 'delegated'
 }
 
 /**
@@ -27,7 +26,7 @@ export function from<const account extends from.Parameters>(
   const account = (
     typeof parameters === 'string' ? { address: parameters } : parameters
   ) as from.AccountParameter
-  return { ...account, type: 'delegated' } as never
+  return account as never
 }
 
 export declare namespace from {
@@ -44,9 +43,7 @@ export declare namespace from {
       | Address.Address
       | AccountParameter,
   > = Readonly<
-    (account extends AccountParameter ? account : { address: account }) & {
-      type: 'delegated'
-    }
+    account extends AccountParameter ? account : { address: account }
   >
 }
 

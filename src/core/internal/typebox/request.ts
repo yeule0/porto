@@ -451,7 +451,6 @@ export namespace wallet_prepareCalls {
     context: Type.Object({
       account: Type.Object({
         address: Primitive.Address,
-        type: Type.Literal('delegated'),
       }),
       calls: Parameters.properties.calls,
       nonce: Primitive.BigInt,

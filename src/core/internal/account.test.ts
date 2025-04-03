@@ -41,7 +41,6 @@ describe('from', () => {
             "type": "p256",
           },
         ],
-        "type": "delegated",
       }
     `)
   })
@@ -52,7 +51,6 @@ describe('from', () => {
     expect(account).toMatchInlineSnapshot(`
       {
         "address": "0x0000000000000000000000000000000000000000",
-        "type": "delegated",
       }
     `)
   })
@@ -69,7 +67,6 @@ describe('fromPrivateKey', () => {
         "address": "0x673ee8aabd3a62434cb9e3d7c6f9492e286bcb08",
         "keys": undefined,
         "sign": [Function],
-        "type": "delegated",
       }
     `)
   })

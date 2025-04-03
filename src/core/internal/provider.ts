@@ -746,7 +746,6 @@ export function from<
               ...rest.context,
               account: {
                 address: rest.account.address,
-                type: rest.account.type,
               },
               calls: rest.context.calls,
               nonce: rest.context.nonce,
