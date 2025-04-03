@@ -12,7 +12,7 @@ export namespace StringFormatter {
 
 export namespace ValueFormatter {
   const numberIntl = new Intl.NumberFormat('en-US', {
-    maximumSignificantDigits: 6,
+    maximumSignificantDigits: 4,
   })
 
   export function format(num: bigint | number | undefined, units = 18) {
