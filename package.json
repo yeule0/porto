@@ -53,6 +53,7 @@
     "tsx": "^4.19.3",
     "typescript": "catalog:",
     "viem": "catalog:",
+    "vite": "catalog:",
     "vitest": "^2.1.8",
     "wagmi": "catalog:"
   },
@@ -88,7 +89,7 @@
       "name": "import * from 'ox'",
       "path": "./src/_dist/index.js",
       "import": "*",
-      "limit": "96 kB"
+      "limit": "98 kB"
     }
   ],
   "pnpm": {

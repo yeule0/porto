@@ -1,11 +1,6 @@
 import { AbiFunction, Secp256k1, Value } from 'ox'
-import { http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import {
-  getBalance,
-  readContract,
-  waitForTransactionReceipt,
-} from 'viem/actions'
+import { getBalance, readContract } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
 import {
@@ -13,11 +8,17 @@ import {
   exp1Config,
 } from '../../../test/src/_generated/contracts.js'
 import { getAccount } from '../../../test/src/actions.js'
-import { getPorto } from '../../../test/src/porto.js'
-import * as Chains from '../Chains.js'
+import { getPorto as getPorto_ } from '../../../test/src/porto.js'
 import * as Call from './call.js'
 import * as Delegation from './delegation.js'
 import * as Key from './key.js'
+
+const getPorto = () =>
+  getPorto_({
+    transports: {
+      relay: false,
+    },
+  })
 
 describe('execute', () => {
   describe('behavior: authorize', () => {
@@ -813,72 +814,4 @@ describe('prepareExecute', () => {
       })
     })
   })
-})
-
-test.skip('e2e (https://relay.ithaca.xyz)', async () => {
-  const { client, delegation } = getPorto({
-    chain: Chains.odysseyTestnet,
-    transports: {
-      default: http(),
-      relay: http('https://relay.ithaca.xyz'),
-    },
-  })
-
-  const { account } = await getAccount(client, { setBalance: false })
-
-  // delegate
-  {
-    const hash = await Delegation.execute(client, {
-      account,
-      calls: [],
-      delegation,
-    })
-    await waitForTransactionReceipt(client, { hash })
-  }
-
-  const key = Key.createP256({
-    role: 'admin',
-  })
-
-  // authorize P256 key
-  {
-    const hash = await Delegation.execute(client, {
-      account,
-      calls: [
-        Call.authorize({
-          key,
-        }),
-      ],
-    })
-
-    await waitForTransactionReceipt(client, { hash })
-  }
-
-  const anotherKey = Key.createP256({
-    role: 'admin',
-  })
-
-  // authorize another P256 key with previously authorized key
-  {
-    const hash = await Delegation.execute(client, {
-      account,
-      calls: [
-        Call.authorize({
-          key: anotherKey,
-        }),
-      ],
-      key,
-    })
-
-    await waitForTransactionReceipt(client, { hash })
-  }
-
-  expect(
-    (
-      await Delegation.keyAt(client, {
-        account: account.address,
-        index: 1,
-      })
-    ).publicKey,
-  ).toEqual(anotherKey.publicKey)
 })
