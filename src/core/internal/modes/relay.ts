@@ -74,7 +74,7 @@ export function relay(config: relay.Parameters = {}) {
                   rpId: keystoreHost,
                   userId: Bytes.from(id),
                 })
-              : Key.test_createWebAuthnP256({
+              : Key.createHeadlessWebAuthnP256({
                   role: 'admin',
                 })
 
@@ -289,7 +289,7 @@ export function relay(config: relay.Parameters = {}) {
                   rpId: keystoreHost,
                   userId: Bytes.from(id),
                 })
-              : Key.test_createWebAuthnP256({
+              : Key.createHeadlessWebAuthnP256({
                   role: 'admin',
                 })
 

@@ -59,7 +59,7 @@ export function contract(parameters: contract.Parameters = {}) {
           rpId: keystoreHost,
           userId: Bytes.from(address),
         })
-      : Key.test_createWebAuthnP256({
+      : Key.createHeadlessWebAuthnP256({
           role: 'admin',
         })
 

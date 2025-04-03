@@ -319,6 +319,49 @@ export declare namespace createWebAuthnP256 {
 }
 
 /**
+ * Creates a random WebAuthn-wrapped P256 key.
+ *
+ * @example
+ * ```ts
+ * import * as Key from './key.js'
+ *
+ * // Admin Key
+ * const key = Key.createHeadlessWebAuthnP256({
+ *   role: 'admin',
+ * })
+ *
+ * // Session Key
+ * const key = Key.createHeadlessWebAuthnP256({
+ *   expiry: 1714857600,
+ *   role: 'session',
+ * })
+ * ```
+ *
+ * @param parameters - Key parameters.
+ * @returns P256 key.
+ */
+export function createHeadlessWebAuthnP256<const role extends Key['role']>(
+  parameters: createHeadlessWebAuthnP256.Parameters<role>,
+) {
+  const privateKey = P256.randomPrivateKey()
+  return fromHeadlessWebAuthnP256({
+    ...parameters,
+    privateKey,
+  })
+}
+
+export declare namespace createHeadlessWebAuthnP256 {
+  type Parameters<role extends Key['role']> = {
+    /** Expiry. */
+    expiry?: fromP256.Parameters['expiry']
+    /** Permissions. */
+    permissions?: Permissions | undefined
+    /** Role. */
+    role: fromP256.Parameters<role>['role']
+  }
+}
+
+/**
  * Creates a random WebCryptoP256 key.
  *
  * @example
@@ -694,6 +737,66 @@ export declare namespace fromWebAuthnP256 {
 }
 
 /**
+ * Instantiates a WebAuthn-wrapped P256 key from its parameters.
+ *
+ * @example
+ * ```ts
+ * import { P256 } from 'ox'
+ * import * as Key from './key.js'
+ *
+ * const privateKey = P256.randomPrivateKey()
+ *
+ * // Admin Key
+ * const key = Key.fromHeadlessWebAuthnP256({
+ *   privateKey,
+ *   role: 'admin',
+ * })
+ *
+ * // Session Key
+ * const key = Key.fromHeadlessWebAuthnP256({
+ *   expiry: 1714857600,
+ *   privateKey,
+ *   role: 'session',
+ * })
+ * ```
+ *
+ * @param parameters - Key parameters.
+ * @returns WebAuthn-wrapped P256 key.
+ */
+export function fromHeadlessWebAuthnP256<const role extends Key['role']>(
+  parameters: fromHeadlessWebAuthnP256.Parameters<role>,
+) {
+  const { privateKey } = parameters
+  const publicKey = PublicKey.toHex(P256.getPublicKey({ privateKey }), {
+    includePrefix: false,
+  })
+  return from({
+    canSign: true,
+    expiry: parameters.expiry ?? 0,
+    permissions: parameters.permissions,
+    privateKey() {
+      return privateKey
+    },
+    publicKey,
+    role: parameters.role as Key['role'],
+    type: 'webauthn-p256' as 'p256',
+  })
+}
+
+export declare namespace fromHeadlessWebAuthnP256 {
+  type Parameters<role extends Key['role']> = {
+    /** Expiry. */
+    expiry?: fromP256.Parameters['expiry']
+    /** Permissions. */
+    permissions?: Permissions | undefined
+    /** P256 private key. */
+    privateKey: Hex.Hex
+    /** Role. */
+    role: fromP256.Parameters<role>['role']
+  }
+}
+
+/**
  * Instantiates a WebCryptoP256 key from its parameters.
  *
  * @example
@@ -1026,60 +1129,6 @@ export function toRelay(
 ///////////////////////////////////////////////////////////////////////////
 // Internal
 ///////////////////////////////////////////////////////////////////////////
-
-export function test_createWebAuthnP256<const role extends Key['role']>(
-  parameters: test_createWebAuthnP256.Parameters<role>,
-) {
-  const privateKey = P256.randomPrivateKey()
-  return test_fromWebAuthnP256({
-    ...parameters,
-    privateKey,
-  })
-}
-
-export declare namespace test_createWebAuthnP256 {
-  type Parameters<role extends Key['role']> = {
-    /** Expiry. */
-    expiry?: fromP256.Parameters['expiry']
-    /** Permissions. */
-    permissions?: Permissions | undefined
-    /** Role. */
-    role: fromP256.Parameters<role>['role']
-  }
-}
-
-export function test_fromWebAuthnP256<const role extends Key['role']>(
-  parameters: test_fromWebAuthnP256.Parameters<role>,
-) {
-  const { privateKey } = parameters
-  const publicKey = PublicKey.toHex(P256.getPublicKey({ privateKey }), {
-    includePrefix: false,
-  })
-  return from({
-    canSign: true,
-    expiry: parameters.expiry ?? 0,
-    permissions: parameters.permissions,
-    privateKey() {
-      return privateKey
-    },
-    publicKey,
-    role: parameters.role as Key['role'],
-    type: 'webauthn-p256' as 'p256',
-  })
-}
-
-export declare namespace test_fromWebAuthnP256 {
-  type Parameters<role extends Key['role']> = {
-    /** Expiry. */
-    expiry?: fromP256.Parameters['expiry']
-    /** Permissions. */
-    permissions?: Permissions | undefined
-    /** P256 private key. */
-    privateKey: Hex.Hex
-    /** Role. */
-    role: fromP256.Parameters<role>['role']
-  }
-}
 
 export function wrapSignature(
   signature: Hex.Hex,

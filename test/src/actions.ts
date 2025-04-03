@@ -126,7 +126,7 @@ export async function setBalance(
       functionName: 'mint',
     })
   } else {
-    const key = Key.test_fromWebAuthnP256({
+    const key = Key.fromHeadlessWebAuthnP256({
       privateKey: process.env.VITE_ADMIN_PRIVATE_KEY! as `0x${string}`,
       role: 'admin',
     })

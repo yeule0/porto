@@ -77,7 +77,7 @@ describe('fromPrivateKey', () => {
 
 describe('sign', () => {
   test('default', async () => {
-    const key = Key.test_createWebAuthnP256({
+    const key = Key.createHeadlessWebAuthnP256({
       role: 'admin',
     })
     const account = await createAccount(client, {
@@ -100,7 +100,7 @@ describe('sign', () => {
   })
 
   test('args: key', async () => {
-    const key = Key.test_createWebAuthnP256({
+    const key = Key.createHeadlessWebAuthnP256({
       role: 'admin',
     })
 
@@ -143,7 +143,7 @@ describe('sign', () => {
   })
 
   test('behavior: with key', async () => {
-    const key = Key.test_createWebAuthnP256({
+    const key = Key.createHeadlessWebAuthnP256({
       role: 'admin',
     })
     const account = await createAccount(client, {
@@ -175,7 +175,7 @@ describe('sign', () => {
         },
       })
 
-      const key = Key.test_createWebAuthnP256({
+      const key = Key.createHeadlessWebAuthnP256({
         role: 'admin',
       })
 
@@ -216,7 +216,7 @@ describe('sign', () => {
         },
       })
 
-      const key = Key.test_createWebAuthnP256({
+      const key = Key.createHeadlessWebAuthnP256({
         role: 'admin',
       })
 
@@ -252,7 +252,7 @@ describe('sign', () => {
   )
 
   test('behavior: no keys', async () => {
-    const key = Key.test_createWebAuthnP256({
+    const key = Key.createHeadlessWebAuthnP256({
       role: 'admin',
     })
     const account = await createAccount(client, {

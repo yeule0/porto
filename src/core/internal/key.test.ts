@@ -151,7 +151,7 @@ describe('createWebAuthnP256', () => {
   })
 
   test('behavior: authorize + sign', async () => {
-    const key = Key.test_createWebAuthnP256({
+    const key = Key.createHeadlessWebAuthnP256({
       role: 'admin',
     })
     const account = await createAccount(client, {
