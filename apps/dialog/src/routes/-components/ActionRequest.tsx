@@ -2,7 +2,7 @@ import { Porto } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
 import { useQuery } from '@tanstack/react-query'
 import { cx } from 'cva'
-import { RpcSchema } from 'ox'
+import { Json, RpcSchema } from 'ox'
 import { Delegation, RpcSchema as RpcSchema_porto } from 'porto'
 import * as Rpc from 'porto/core/internal/typebox/request'
 import * as Schema from 'porto/core/internal/typebox/schema'
@@ -68,7 +68,12 @@ export function ActionRequest(props: ActionRequest.Props) {
 
       return Schema.Decode(Rpc.wallet_prepareCalls.Response, raw)
     },
-    queryKey: ['prepareCalls', account?.address, request, providerClient.uid],
+    queryKey: [
+      'prepareCalls',
+      account?.address,
+      Json.stringify(request),
+      providerClient.uid,
+    ],
     refetchInterval: 15_000,
     staleTime: 0,
   })
@@ -93,7 +98,7 @@ export function ActionRequest(props: ActionRequest.Props) {
       if (failure) throw failure.error
       return { balances, results }
     },
-    queryKey: ['simulate', client.uid, calls],
+    queryKey: ['simulate', client.uid, Json.stringify(calls)],
   })
   const balances =
     simulate.data?.balances.filter((x) => x.value.diff !== 0n) ?? []
