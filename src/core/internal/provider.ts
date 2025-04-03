@@ -117,9 +117,11 @@ export function from<
           if (chainId && chainId !== client.chain.id)
             throw new ox_Provider.ChainDisconnectedError()
 
-          const account = state.accounts.find((account) =>
-            Address.isEqual(account.address, from),
-          )
+          const account = from
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, from),
+              )
+            : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
           const hash = await getMode().actions.sendCalls({
@@ -318,6 +320,7 @@ export function from<
           return {
             address: account.address,
             capabilities: {
+              admins: getAdmins(account.keys ?? []),
               ...(permissions.length > 0 ? { permissions } : {}),
             },
           } satisfies Schema.Static<

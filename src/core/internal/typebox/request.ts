@@ -44,7 +44,7 @@ export namespace eth_sendTransaction {
       Type.Object({
         chainId: Schema.Optional(Primitive.Number),
         data: Schema.Optional(Primitive.Hex),
-        from: Primitive.Address,
+        from: Schema.Optional(Primitive.Address),
         to: Primitive.Address,
         value: Schema.Optional(Primitive.BigInt),
       }),
@@ -139,6 +139,7 @@ export namespace experimental_createAccount {
   export type Request = Schema.StaticDecode<typeof Request>
 
   export const ResponseCapabilities = Type.Object({
+    admins: Schema.Optional(experimental_getAdmins.Response.properties.keys),
     permissions: Schema.Optional(C.permissions.Response),
   })
   export type ResponseCapabilities = Schema.StaticDecode<
