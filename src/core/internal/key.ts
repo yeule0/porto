@@ -462,7 +462,9 @@ export function deserialize(serialized: Serialized): Key {
  * @param key - Key.
  * @returns Key.
  */
-export function from(key: from.Value): Key {
+export function from<type extends Key['type']>(
+  key: from.Value<type>,
+): Extract<Key, { type: type }> {
   if ('isSuperAdmin' in key) return deserialize(key) as never
   const { canSign = false, expiry = 0, role = 'session', type } = key
 
@@ -496,11 +498,10 @@ export function from(key: from.Value): Key {
 }
 
 export declare namespace from {
-  type Value =
-    | UnionRequiredBy<
-        ExactPartial<UnionOmit<Key, 'hash'>>,
-        'publicKey' | 'type'
-      >
+  type Value<type extends Key['type'] = Key['type']> =
+    | (UnionRequiredBy<ExactPartial<UnionOmit<Key, 'hash'>>, 'publicKey'> & {
+        type: type | Key['type']
+      })
     | Serialized
 }
 
