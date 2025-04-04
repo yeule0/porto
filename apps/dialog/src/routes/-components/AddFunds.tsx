@@ -1,8 +1,8 @@
-import { Porto } from '@porto/apps'
+import { Porto, Token } from '@porto/apps'
 import { useMutation } from '@tanstack/react-query'
 import { cx } from 'cva'
-import { Hex, type RpcSchema } from 'ox'
-import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { Address } from 'ox'
+import { Hex, Value } from 'ox'
 import { Hooks } from 'porto/remote'
 import * as React from 'react'
 import { useWaitForTransactionReceipt } from 'wagmi'
@@ -17,32 +17,39 @@ const porto = Porto.porto
 const predefinedAmounts = [25, 50, 100, 250]
 
 export declare namespace AddFunds {
-  type Props = RpcSchema.ExtractParams<
-    porto_RpcSchema.Schema,
-    'experimental_addFunds'
-  >['0'] & {
+  type Props = {
+    address?: Address.Address | undefined
     onApprove: (result: { id: Hex.Hex }) => void
     onReject?: () => void
+    tokenAddress: Address.Address
+    value?: bigint | undefined
   }
 }
 
 export function AddFunds(props: AddFunds.Props) {
-  const { value, token, onApprove, onReject: _ } = props
+  const { onApprove, onReject: _, tokenAddress, value = 0n } = props
 
   const account = Hooks.useAccount(porto)
+  const chain = Hooks.useChain(porto)
+
   const address = props.address ?? account?.address
 
   const [desiredAmount, setDesiredAmount] = React.useState<number>(
-    Hex.toNumber(value),
+    Number(value),
   )
 
   const deposit = useMutation({
     async mutationFn() {
-      if (!address || !token) throw new Error('Invalid account or token')
+      if (!address) throw new Error('address is required')
+      if (!chain) throw new Error('chain is required')
 
+      const token = Token.tokens[chain.id][tokenAddress.toLowerCase()]
+      if (!token) throw new Error('token is required')
+
+      const value = Value.from(desiredAmount.toString(), token.decimals)
       const searchParams = new URLSearchParams({
         address,
-        value: desiredAmount.toString(),
+        value: value.toString(),
       })
       const response = await fetch(
         `https://faucet.porto.workers.dev?${searchParams.toString()}`,

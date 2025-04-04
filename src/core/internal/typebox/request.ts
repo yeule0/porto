@@ -9,7 +9,7 @@ export namespace experimental_addFunds {
   export const Parameters = Type.Object({
     address: Schema.Optional(Primitive.Address),
     token: Primitive.Address,
-    value: Primitive.BigInt,
+    value: Schema.Optional(Primitive.BigInt),
   })
 
   export type Parameters = Schema.StaticDecode<typeof Parameters>

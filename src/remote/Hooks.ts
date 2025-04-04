@@ -64,7 +64,9 @@ export function useChain<
   const { chainId } = parameters
   return usePortoStore(porto, (x) => {
     if (!chainId) return x.chain
-    return porto._internal.config.chains.find((x) => x.id === chainId)
+    return porto._internal.config.chains.find((x) => x.id === chainId) as
+      | chains[number]
+      | undefined
   })
 }
 

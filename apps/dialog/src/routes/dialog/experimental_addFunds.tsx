@@ -18,13 +18,15 @@ export const Route = createFileRoute('/dialog/experimental_addFunds')({
 
 function RouteComponent() {
   const request = Route.useSearch()
-  const parameters = request.params?.[0]
+  const { address, token, value } = request._decoded.params[0]
 
   return (
     <AddFunds
-      {...parameters}
+      address={address}
       onApprove={(result) => Actions.respond(porto, request!, { result })}
       onReject={() => Actions.reject(porto, request)}
+      tokenAddress={token}
+      value={value}
     />
   )
 }
