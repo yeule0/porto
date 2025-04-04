@@ -138,7 +138,7 @@ export function iframe() {
         waitForReady: true,
       })
 
-      let bypassMethods: string[] | undefined
+      let bypassMethods: Messenger.ReadyOptions['bypassMethods'] | undefined
 
       messenger.on('ready', (options) => {
         if (!bypassMethods) bypassMethods = options?.bypassMethods
@@ -224,7 +224,10 @@ export function iframe() {
             fallback.syncRequests(requests)
           else {
             const requiresConfirm = requests.some((x) =>
-              requiresConfirmation(x.request, bypassMethods),
+              requiresConfirmation(x.request, {
+                bypassMethods,
+                targetOrigin: hostUrl.origin,
+              }),
             )
             if (!open && requiresConfirm) this.open()
             messenger.send('rpc-requests', requests)
@@ -435,10 +438,19 @@ export const styles = {
 
 export function requiresConfirmation(
   request: RpcRequest.RpcRequest,
-  bypassMethods?: string[] | undefined,
+  options: {
+    bypassMethods?: Messenger.ReadyOptions['bypassMethods'] | undefined
+    targetOrigin?: string | undefined
+  } = {},
 ) {
-  if (!bypassMethods) return true
-  return !bypassMethods.includes(request.method)
+  const { bypassMethods, targetOrigin } = options
+  if (bypassMethods?.anyOrigin?.includes(request.method)) return false
+  if (
+    targetOrigin === window.location.origin &&
+    bypassMethods?.sameOrigin?.includes(request.method)
+  )
+    return false
+  return true
 }
 
 export function getReferrer() {

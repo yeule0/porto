@@ -8,7 +8,7 @@ export type Messenger = {
   destroy: () => void
   on: <const topic extends Topic>(
     topic: topic | Topic,
-    listener: (payload: Payload<topic>) => void,
+    listener: (payload: Payload<topic>, event: MessageEvent) => void,
     id?: string | undefined,
   ) => () => void
   send: <const topic extends Topic>(
@@ -22,11 +22,18 @@ export type Messenger = {
   ) => Promise<Response<topic>>
 }
 
-type SetupOptions = { bypassMethods?: string[] | undefined }
+export type ReadyOptions = {
+  bypassMethods?:
+    | {
+        anyOrigin?: string[] | undefined
+        sameOrigin?: string[] | undefined
+      }
+    | undefined
+}
 
 /** Bridge messenger. */
 export type Bridge = Messenger & {
-  ready: (options?: SetupOptions | undefined) => void
+  ready: (options?: ReadyOptions | undefined) => void
 }
 
 /** Messenger schema. */
@@ -38,7 +45,7 @@ export type Schema = [
   },
   {
     topic: 'ready'
-    payload: SetupOptions | undefined
+    payload: ReadyOptions | undefined
     response: undefined
   },
   {
@@ -120,7 +127,7 @@ export function fromWindow(
         if (event.data.topic !== topic) return
         if (id && event.data.id !== id) return
         if (targetOrigin && event.origin !== targetOrigin) return
-        listener(event.data.payload)
+        listener(event.data.payload, event)
       }
       w.addEventListener('message', handler)
       listeners.set(topic, handler)

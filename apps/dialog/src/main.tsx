@@ -21,11 +21,14 @@ if (import.meta.env.PROD) {
 
 const porto = Porto.porto
 
-const bypassMethods = [
-  'experimental_upgradeAccount',
-  'wallet_prepareCalls',
-  'wallet_sendPreparedCalls',
-]
+const bypassMethods = {
+  anyOrigin: [
+    'experimental_upgradeAccount',
+    'wallet_prepareCalls',
+    'wallet_sendPreparedCalls',
+  ],
+  sameOrigin: ['eth_requestAccounts', 'wallet_createAccount', 'wallet_connect'],
+}
 
 const offInitialized = Events.onInitialized(porto, (payload) => {
   const { mode, referrer } = payload
@@ -38,12 +41,24 @@ const offInitialized = Events.onInitialized(porto, (payload) => {
   })
 })
 
-const offRequests = Events.onRequests(porto, (requests) => {
+const offRequests = Events.onRequests(porto, (requests, event) => {
   const request = requests[0]?.request
-  if (request && bypassMethods.includes(request.method)) {
-    Actions.respond(porto, request).catch(() => {})
+
+  const shouldBypass = (() => {
+    if (!request) return false
+    if (bypassMethods.anyOrigin.includes(request.method)) return true
+    if (
+      event.origin === window.location.origin &&
+      bypassMethods.sameOrigin.includes(request.method)
+    )
+      return true
+    return false
+  })()
+  if (shouldBypass) {
+    Actions.respond(porto, request!).catch(() => {})
     return
   }
+
   Router.router.navigate({
     search: request as never,
     to: '/dialog/' + (request?.method ?? ''),

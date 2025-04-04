@@ -29,12 +29,12 @@ export function onInitialized(
  */
 export function onRequests(
   porto: Pick<Remote.Porto<any>, '_internal' | 'messenger'>,
-  cb: (payload: Remote.RemoteState['requests']) => void,
+  cb: (payload: Remote.RemoteState['requests'], event: MessageEvent) => void,
 ) {
   const { messenger, _internal } = porto
-  return messenger.on('rpc-requests', (payload) => {
+  return messenger.on('rpc-requests', (payload, event) => {
     const requests = payload as Remote.RemoteState['requests']
     _internal.remoteStore.setState({ requests })
-    cb(requests)
+    cb(requests, event)
   })
 }
