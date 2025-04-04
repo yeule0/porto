@@ -23,7 +23,6 @@ const porto = Porto.porto
 
 const bypassMethods = [
   'experimental_upgradeAccount',
-  'wallet_connect',
   'wallet_prepareCalls',
   'wallet_sendPreparedCalls',
 ]
