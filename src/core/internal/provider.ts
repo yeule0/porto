@@ -87,7 +87,7 @@ export function from<
               store,
             },
             token,
-            value: Hex.toBigInt(value),
+            value: value ? Hex.toBigInt(value) : undefined,
           })
         }
 
