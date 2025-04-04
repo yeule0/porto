@@ -7,7 +7,7 @@ import { Type } from './schema.js'
 
 export namespace experimental_addFunds {
   export const Parameters = Type.Object({
-    address: Primitive.Address,
+    address: Schema.Optional(Primitive.Address),
     token: Primitive.Address,
     value: Primitive.BigInt,
   })

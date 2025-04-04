@@ -67,12 +67,13 @@ export function from<
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
 
-          const { value, token, address } = request.params[0] ?? {}
-          if (!address) throw new ox_Provider.IsUndefinedError()
+          const { address, value, token } = request.params[0] ?? {}
 
-          const account = state.accounts.find((account) =>
-            Address.isEqual(account.address, address),
-          )
+          const account = address
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, address),
+              )
+            : state.accounts[0]
           if (!account) throw new ox_Provider.UnauthorizedError()
 
           const client = getClient()

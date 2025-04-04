@@ -56,6 +56,7 @@ export function App() {
         <Connect />
         <Login />
         <Register />
+        <AddFunds />
         <Accounts />
         <Disconnect />
         <UpgradeAccount />
@@ -268,6 +269,34 @@ function Register() {
         type="button"
       >
         Register
+      </button>
+      {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
+    </div>
+  )
+}
+
+function AddFunds() {
+  const [result, setResult] = React.useState<unknown | null>(null)
+  return (
+    <div>
+      <h3>experimental_addFunds</h3>
+      <button
+        onClick={() =>
+          porto.provider
+            .request({
+              method: 'experimental_addFunds',
+              params: [
+                {
+                  token: exp1Address,
+                  value: Hex.fromNumber(100),
+                },
+              ],
+            })
+            .then(setResult)
+        }
+        type="button"
+      >
+        Add Funds
       </button>
       {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
     </div>

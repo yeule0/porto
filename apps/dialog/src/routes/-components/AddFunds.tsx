@@ -1,12 +1,17 @@
+import { Porto } from '@porto/apps'
 import { useMutation } from '@tanstack/react-query'
 import { cx } from 'cva'
 import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { Hooks } from 'porto/remote'
 import * as React from 'react'
+
 import { Layout } from '~/routes/-components/Layout'
 import ArrowRightIcon from '~icons/lucide/arrow-right'
 import ExternalLinkIcon from '~icons/lucide/external-link'
 import QrCodeIcon from '~icons/lucide/qr-code'
+
+const porto = Porto.porto
 
 const predefinedAmounts = [25, 50, 100, 250]
 
@@ -21,7 +26,10 @@ export declare namespace AddFunds {
 }
 
 export function AddFunds(props: AddFunds.Props) {
-  const { address, value, token, onApprove, onReject: _ } = props
+  const { value, token, onApprove, onReject: _ } = props
+
+  const account = Hooks.useAccount(porto)
+  const address = props.address ?? account?.address
 
   const [desiredAmount, setDesiredAmount] = React.useState<number>(
     Hex.toNumber(value),
