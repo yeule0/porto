@@ -159,7 +159,7 @@ export function AddFunds(props: AddFunds.Props) {
       </Layout.Content>
 
       <Layout.Footer>
-        <Layout.Footer.Account />
+        {address && <Layout.Footer.Account address={address} />}
       </Layout.Footer>
     </Layout>
   )

@@ -21,7 +21,7 @@ export const Route = createFileRoute('/dialog/personal_sign')({
 
 function RouteComponent() {
   const request = Route.useSearch()
-  const hex = request.params[0]
+  const [hex, address] = request.params
 
   const message = useMemo(() => Hex.toString(hex), [hex])
   const siwe = useMemo(() => Siwe.parseMessage(message), [message])
@@ -35,6 +35,7 @@ function RouteComponent() {
   if (Object.keys(siwe).length > 0)
     return (
       <SignMessage.Siwe
+        address={address}
         loading={respond.isPending}
         onApprove={() => respond.mutate()}
         onReject={() => Actions.reject(porto, request)}
@@ -42,6 +43,7 @@ function RouteComponent() {
     )
   return (
     <SignMessage
+      address={address}
       loading={respond.isPending}
       message={message}
       onApprove={() => respond.mutate()}

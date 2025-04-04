@@ -1,12 +1,17 @@
+import { Porto } from '@porto/apps'
 import { Button } from '@porto/apps/components'
+import { Hooks } from 'porto/remote'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
 import LucideLogIn from '~icons/lucide/log-in'
 
+const porto = Porto.porto
+
 export function SignIn(props: SignIn.Props) {
   const { loading, onApprove } = props
 
+  const account = Hooks.useAccount(porto)
   const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
   return (
@@ -41,6 +46,7 @@ export function SignIn(props: SignIn.Props) {
         </Layout.Footer.Actions>
 
         <Layout.Footer.Account
+          address={account!.address}
           onClick={() => onApprove({ selectAccount: true, signIn: true })}
         />
       </Layout.Footer>

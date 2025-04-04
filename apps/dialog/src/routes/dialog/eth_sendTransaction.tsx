@@ -19,7 +19,7 @@ export const Route = createFileRoute('/dialog/eth_sendTransaction')({
 
 function RouteComponent() {
   const request = Route.useSearch()
-  const { chainId, data, to, value } = request._decoded.params[0]
+  const { chainId, data, from, to, value } = request._decoded.params[0]
 
   const calls = [{ data, to: to!, value }] as const
 
@@ -32,6 +32,7 @@ function RouteComponent() {
 
   return (
     <ActionRequest
+      address={from}
       calls={calls}
       chainId={chainId}
       loading={respond.isPending}

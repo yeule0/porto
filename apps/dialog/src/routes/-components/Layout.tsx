@@ -1,7 +1,6 @@
-import { Porto } from '@porto/apps'
 import { IndeterminateLoader } from '@porto/apps/components'
 import { cva, cx, type VariantProps } from 'cva'
-import { Hooks } from 'porto/remote'
+import { Address } from 'ox'
 import type * as React from 'react'
 
 import { StringFormatter } from '~//utils'
@@ -144,10 +143,8 @@ export namespace Layout {
 
     // Account Footer
     export function Account(props: Account.Props) {
-      const { onClick } = props
+      const { address, onClick } = props
 
-      const address = props.address ?? Hooks.useAccount(Porto.porto)?.address
-      if (!address) return null
       return (
         <div className="flex justify-between border-primary border-t px-3 pt-3">
           <div className="text-[13px] text-secondary leading-[22px]">
@@ -171,7 +168,7 @@ export namespace Layout {
 
     export namespace Account {
       export type Props = {
-        address?: string | undefined
+        address: Address.Address
         onClick?: () => void
       }
     }

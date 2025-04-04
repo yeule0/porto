@@ -2,7 +2,7 @@ import { Porto } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
 import { useQuery } from '@tanstack/react-query'
 import { cx } from 'cva'
-import { Json, RpcSchema } from 'ox'
+import { Address, Json, RpcSchema } from 'ox'
 import { Delegation, RpcSchema as RpcSchema_porto } from 'porto'
 import * as Rpc from 'porto/core/internal/typebox/request'
 import * as Schema from 'porto/core/internal/typebox/schema'
@@ -10,7 +10,6 @@ import { Hooks } from 'porto/remote'
 import { Call } from 'viem'
 
 import * as Dialog from '~/lib/Dialog'
-import { useChain } from '~/lib/Hooks'
 import * as Quote from '~/lib/Quote'
 import { Layout } from '~/routes/-components/Layout'
 import { ValueFormatter } from '~/utils'
@@ -22,10 +21,11 @@ import Star from '~icons/ph/star-four-bold'
 const porto = Porto.porto
 
 export function ActionRequest(props: ActionRequest.Props) {
-  const { calls, chainId, loading, onApprove, onReject, request } = props
+  const { address, calls, chainId, loading, onApprove, onReject, request } =
+    props
 
-  const account = Hooks.useAccount(porto)
-  const chain = useChain(porto, { chainId })
+  const account = Hooks.useAccount(porto, { address })
+  const chain = Hooks.useChain(porto, { chainId })
   const client = Hooks.useClient(porto)
   const origin = Dialog.useStore((state) => state.referrer?.origin)
   const providerClient = Hooks.useProviderClient(porto)
@@ -299,7 +299,9 @@ export function ActionRequest(props: ActionRequest.Props) {
             </Button>
           </Layout.Footer.Actions>
         )}
-        <Layout.Footer.Account />
+        {account?.address && (
+          <Layout.Footer.Account address={account.address} />
+        )}
       </Layout.Footer>
     </Layout>
   )
@@ -307,6 +309,7 @@ export function ActionRequest(props: ActionRequest.Props) {
 
 export namespace ActionRequest {
   export type Props = {
+    address?: Address.Address | undefined
     calls: readonly Call[]
     chainId?: number | undefined
     loading?: boolean | undefined

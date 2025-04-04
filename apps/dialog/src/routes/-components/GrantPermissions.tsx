@@ -1,6 +1,8 @@
+import { Porto } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
 import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { Hooks } from 'porto/remote'
 import { useMemo, useState } from 'react'
 import { erc20Abi } from 'viem'
 import { useReadContract } from 'wagmi'
@@ -11,8 +13,12 @@ import { ValueFormatter } from '~/utils'
 import LucideKey from '~icons/lucide/key-round'
 import { NotFound } from './NotFound'
 
+const porto = Porto.porto
+
 export function GrantPermissions(props: GrantPermissions.Props) {
   const { address, permissions, loading, onApprove, onReject } = props
+
+  const account = Hooks.useAccount(porto, { address })
 
   const [index, setIndex] = useState(0)
 
@@ -47,7 +53,9 @@ export function GrantPermissions(props: GrantPermissions.Props) {
           </Button>
         </Layout.Footer.Actions>
 
-        <Layout.Footer.Account address={address} />
+        {account?.address && (
+          <Layout.Footer.Account address={account.address} />
+        )}
       </Layout.Footer>
     </Layout>
   )

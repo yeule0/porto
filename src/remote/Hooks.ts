@@ -1,3 +1,4 @@
+import { Address } from 'ox'
 import { useMemo } from 'react'
 import { useStore } from 'zustand'
 import { useShallow } from 'zustand/shallow'
@@ -8,27 +9,30 @@ import type * as Porto from '../core/Porto.js'
 import type * as Remote from './Porto.js'
 
 /**
- * Hook to access and subscribe to the current chain.
- *
- * @param porto - Porto instance.
- * @returns Chain.
- */
-export function useActiveChain<
-  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
->(porto: Pick<Remote.Porto<chains>, '_internal'>) {
-  return usePortoStore(porto, (x) => x.chain)
-}
-
-/**
  * Hook to access and subscribe to the current account.
+ * If an `address` is provided, it will return the account if exists.
  *
  * @param porto - Porto instance.
+ * @param parameters - Parameters.
  * @returns Account.
  */
 export function useAccount<
   chains extends readonly [Chains.Chain, ...Chains.Chain[]],
->(porto: Pick<Remote.Porto<chains>, '_internal'>) {
-  return usePortoStore(porto, (x) => x.accounts[0])
+>(
+  porto: Pick<Remote.Porto<chains>, '_internal'>,
+  parameters: useAccount.Parameters = {},
+) {
+  const { address } = parameters
+  return usePortoStore(porto, (x) => {
+    if (!address) return x.accounts[0]
+    return x.accounts.find((x) => x.address === address)
+  })
+}
+
+export namespace useAccount {
+  export type Parameters = {
+    address?: Address.Address | undefined
+  }
 }
 
 /**
@@ -44,6 +48,33 @@ export function useAccounts<
 }
 
 /**
+ * Hook to access and subscribe to the current chain.
+ * If a `chainId` is provided, it will return the chain if supported.
+ *
+ * @param porto - Porto instance.
+ * @param parameters - Parameters.
+ * @returns Chain.
+ */
+export function useChain<
+  chains extends readonly [Chains.Chain, ...Chains.Chain[]],
+>(
+  porto: Pick<Remote.Porto<chains>, '_internal'>,
+  parameters: useChain.Parameters = {},
+) {
+  const { chainId } = parameters
+  return usePortoStore(porto, (x) => {
+    if (!chainId) return x.chain
+    return porto._internal.config.chains.find((x) => x.id === chainId)
+  })
+}
+
+export namespace useChain {
+  export type Parameters = {
+    chainId?: number | undefined
+  }
+}
+
+/**
  * Hook to access and subscribe to the client of the Porto instance.
  *
  * @param porto - Porto instance.
@@ -55,7 +86,7 @@ export function useClient<
   porto: Pick<Remote.Porto<chains>, '_internal'>,
   parameters: useClient.Parameters = {},
 ) {
-  const defaultChainId = useActiveChain(porto)?.id
+  const defaultChainId = useChain(porto)?.id
   const chainId = parameters.chainId ?? defaultChainId
   return Porto_internal.getClient(porto, { chainId })
 }

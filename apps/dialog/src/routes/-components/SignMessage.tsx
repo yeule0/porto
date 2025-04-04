@@ -1,11 +1,18 @@
+import { Porto } from '@porto/apps'
 import { Button } from '@porto/apps/components'
+import { Address } from 'ox'
+import { Hooks } from 'porto/remote'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
 import LucideLogIn from '~icons/lucide/log-in'
 
+const porto = Porto.porto
+
 export function SignMessage(props: SignMessage.Props) {
-  const { message, loading, onApprove, onReject } = props
+  const { address, message, loading, onApprove, onReject } = props
+
+  const account = Hooks.useAccount(porto, { address })
 
   return (
     <Layout loading={loading} loadingTitle="Signing...">
@@ -51,7 +58,9 @@ export function SignMessage(props: SignMessage.Props) {
           </Button>
         </Layout.Footer.Actions>
 
-        <Layout.Footer.Account />
+        {account?.address && (
+          <Layout.Footer.Account address={account.address} />
+        )}
       </Layout.Footer>
     </Layout>
   )
@@ -59,6 +68,7 @@ export function SignMessage(props: SignMessage.Props) {
 
 export namespace SignMessage {
   export type Props = {
+    address?: Address.Address | undefined
     message: string
     loading?: boolean | undefined
     onApprove: () => void
@@ -66,8 +76,9 @@ export namespace SignMessage {
   }
 
   export function Siwe(props: Siwe.Props) {
-    const { loading, onApprove, onReject } = props
+    const { address, loading, onApprove, onReject } = props
 
+    const account = Hooks.useAccount(porto, { address })
     const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
 
     return (
@@ -101,7 +112,9 @@ export namespace SignMessage {
             </Button>
           </Layout.Footer.Actions>
 
-          <Layout.Footer.Account />
+          {account?.address && (
+            <Layout.Footer.Account address={account.address} />
+          )}
         </Layout.Footer>
       </Layout>
     )
@@ -109,6 +122,7 @@ export namespace SignMessage {
 
   export namespace Siwe {
     export type Props = {
+      address?: Address.Address | undefined
       loading?: boolean | undefined
       onApprove: () => void
       onReject: () => void

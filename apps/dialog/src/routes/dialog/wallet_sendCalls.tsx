@@ -17,7 +17,7 @@ export const Route = createFileRoute('/dialog/wallet_sendCalls')({
 
 function RouteComponent() {
   const request = Route.useSearch()
-  const { calls, chainId } = request._decoded.params[0] ?? {}
+  const { calls, chainId, from } = request._decoded.params[0] ?? {}
 
   const respond = useMutation({
     mutationFn() {
@@ -28,6 +28,7 @@ function RouteComponent() {
 
   return (
     <ActionRequest
+      address={from}
       calls={calls}
       chainId={chainId}
       loading={respond.isPending}
