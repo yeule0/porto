@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { Button, Spinner } from '@porto/apps/components'
+import { exp1Address } from '@porto/apps/contracts'
 import { Link } from '@tanstack/react-router'
 import { Cuer } from 'cuer'
 import { cx } from 'cva'
@@ -18,7 +19,7 @@ import { useAddressTransfers } from '~/hooks/useBlockscoutApi'
 import { useClickOutside } from '~/hooks/useClickOutside'
 import { useSwapAssets } from '~/hooks/useSwapAssets'
 import { useErc20Info } from '~/hooks/useTokenInfo'
-import { config } from '~/lib/Wagmi'
+import { config, porto } from '~/lib/Wagmi'
 import { DateFormatter, StringFormatter, sum, ValueFormatter } from '~/utils'
 import ClipboardCopyIcon from '~icons/lucide/clipboard-copy'
 import CopyIcon from '~icons/lucide/copy'
@@ -186,7 +187,32 @@ export function Dashboard() {
 
       <details className="group" open={assets && assets?.length > 0}>
         <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
-          Assets
+          <span>Assets</span>
+
+          <Button
+            className="ml-2"
+            onClick={async (event) => {
+              event.preventDefault()
+              if (!account.address) {
+                return toast.error('No account address found')
+              }
+              await porto.provider.request({
+                method: 'experimental_addFunds',
+                params: [
+                  {
+                    address: account.address,
+                    token: exp1Address,
+                    value: Hex.fromNumber(25n),
+                  },
+                ],
+              })
+            }}
+            size="small"
+            type="button"
+            variant="default"
+          >
+            Add funds
+          </Button>
         </summary>
 
         <PaginatedTable
@@ -194,6 +220,7 @@ export function Dashboard() {
             { header: 'Name', key: 'name', width: 'w-[40%]' },
             { align: 'right', header: '', key: 'balance', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'symbol', width: 'w-[20%]' },
+            { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
           ]}
           data={assets}
@@ -205,6 +232,7 @@ export function Dashboard() {
               key={asset.address}
               logo={asset.logo}
               name={asset.name}
+              price={asset.price}
               symbol={asset.symbol}
               value={asset.balance}
             />
@@ -433,7 +461,7 @@ export function Dashboard() {
                     <td className="w-[73%] text-right">
                       <div className="flex flex-row items-center gap-x-2">
                         <div className="flex size-7 items-center justify-center rounded-full bg-emerald-100">
-                          <WalletIcon className="m-auto size-5 text-teal-600" />
+                          <WalletIcon className="m-auto size-4.5 text-teal-600" />
                         </div>
                         <span className="font-medium text-gray12">
                           <TruncatedAddress address={key.publicKey} />
@@ -526,13 +554,13 @@ function PaginatedTable<T>({
       <table className="my-3 w-full table-auto">
         <thead>
           <tr className="text-gray10 *:font-normal *:text-sm">
-            {columns.map((col) => (
+            {columns.map((col, index) => (
               <th
                 className={cx(
                   col.width,
                   col.align === 'right' ? 'text-right' : 'text-left',
                 )}
-                key={col.key}
+                key={`${col.key}-${index}`}
               >
                 {col.header}
               </th>
@@ -574,6 +602,7 @@ function AssetRow({
   name,
   symbol,
   value,
+  price,
 }: {
   address: Address.Address
   decimals: number
@@ -581,6 +610,7 @@ function AssetRow({
   name: string
   symbol: string
   value: bigint
+  price: number
 }) {
   const [viewState, setViewState] = React.useState<'send' | 'default'>(
     'default',
@@ -702,11 +732,14 @@ function AssetRow({
         <>
           <td className="w-[80%]">
             <div className="flex items-center gap-x-2 py-2">
-              <img alt="asset icon" className="size-7" src={logo} />
+              <img alt="asset icon" className="size-6.5" src={logo} />
               <span className="font-medium text-md">{name}</span>
             </div>
           </td>
           <td className="w-[20%] text-right text-md">{formattedBalance}</td>
+          <td className="w-[20%] pl-3.5 text-right text-md">
+            ${ValueFormatter.formatToPrice(price)}
+          </td>
           <td className="w-[20%] pr-1.5 pl-3 text-left text-sm">
             <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
               {symbol}

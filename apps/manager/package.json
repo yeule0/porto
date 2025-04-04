@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5175",
+    "dev": "vite --port 5173",
     "prebuild": "tsc --build",
     "build": "vite build",
     "check": "biome check --write --unsafe",
@@ -30,7 +30,7 @@
     "porto": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "sonner": "^2.0.2",
+    "sonner": "^2.0.3",
     "wagmi": "catalog:"
   },
   "devDependencies": {

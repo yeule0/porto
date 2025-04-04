@@ -26,6 +26,17 @@ type PrepareCallsContext = {
 
 export type Mode = {
   actions: {
+    addFunds: (parameters: {
+      /* Address to add funds to. */
+      address: Address.Address
+      /** Amount to add. */
+      value: bigint
+      /** Token to add funds to. */
+      token: Address.Address
+      /** Internal properties. */
+      internal: ActionsInternal
+    }) => Promise<Hex.Hex>
+
     createAccount: (parameters: {
       /** Internal properties. */
       internal: ActionsInternal

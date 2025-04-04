@@ -18,6 +18,7 @@ import { Route as DialogWalletconnectImport } from './routes/dialog/wallet_conne
 import { Route as DialogPersonalsignImport } from './routes/dialog/personal_sign'
 import { Route as DialogExperimentalgrantPermissionsImport } from './routes/dialog/experimental_grantPermissions'
 import { Route as DialogExperimentalcreateAccountImport } from './routes/dialog/experimental_createAccount'
+import { Route as DialogExperimentaladdFundsImport } from './routes/dialog/experimental_addFunds'
 import { Route as DialogEthsendTransactionImport } from './routes/dialog/eth_sendTransaction'
 import { Route as DialogEthrequestAccountsImport } from './routes/dialog/eth_requestAccounts'
 import { Route as DialogSplatImport } from './routes/dialog/$'
@@ -68,6 +69,14 @@ const DialogExperimentalcreateAccountRoute =
     getParentRoute: () => rootRoute,
   } as any)
 
+const DialogExperimentaladdFundsRoute = DialogExperimentaladdFundsImport.update(
+  {
+    id: '/dialog/experimental_addFunds',
+    path: '/dialog/experimental_addFunds',
+    getParentRoute: () => rootRoute,
+  } as any,
+)
+
 const DialogEthsendTransactionRoute = DialogEthsendTransactionImport.update({
   id: '/dialog/eth_sendTransaction',
   path: '/dialog/eth_sendTransaction',
@@ -116,6 +125,13 @@ declare module '@tanstack/react-router' {
       path: '/dialog/eth_sendTransaction'
       fullPath: '/dialog/eth_sendTransaction'
       preLoaderRoute: typeof DialogEthsendTransactionImport
+      parentRoute: typeof rootRoute
+    }
+    '/dialog/experimental_addFunds': {
+      id: '/dialog/experimental_addFunds'
+      path: '/dialog/experimental_addFunds'
+      fullPath: '/dialog/experimental_addFunds'
+      preLoaderRoute: typeof DialogExperimentaladdFundsImport
       parentRoute: typeof rootRoute
     }
     '/dialog/experimental_createAccount': {
@@ -170,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/dialog/$': typeof DialogSplatRoute
   '/dialog/eth_requestAccounts': typeof DialogEthrequestAccountsRoute
   '/dialog/eth_sendTransaction': typeof DialogEthsendTransactionRoute
+  '/dialog/experimental_addFunds': typeof DialogExperimentaladdFundsRoute
   '/dialog/experimental_createAccount': typeof DialogExperimentalcreateAccountRoute
   '/dialog/experimental_grantPermissions': typeof DialogExperimentalgrantPermissionsRoute
   '/dialog/personal_sign': typeof DialogPersonalsignRoute
@@ -183,6 +200,7 @@ export interface FileRoutesByTo {
   '/dialog/$': typeof DialogSplatRoute
   '/dialog/eth_requestAccounts': typeof DialogEthrequestAccountsRoute
   '/dialog/eth_sendTransaction': typeof DialogEthsendTransactionRoute
+  '/dialog/experimental_addFunds': typeof DialogExperimentaladdFundsRoute
   '/dialog/experimental_createAccount': typeof DialogExperimentalcreateAccountRoute
   '/dialog/experimental_grantPermissions': typeof DialogExperimentalgrantPermissionsRoute
   '/dialog/personal_sign': typeof DialogPersonalsignRoute
@@ -197,6 +215,7 @@ export interface FileRoutesById {
   '/dialog/$': typeof DialogSplatRoute
   '/dialog/eth_requestAccounts': typeof DialogEthrequestAccountsRoute
   '/dialog/eth_sendTransaction': typeof DialogEthsendTransactionRoute
+  '/dialog/experimental_addFunds': typeof DialogExperimentaladdFundsRoute
   '/dialog/experimental_createAccount': typeof DialogExperimentalcreateAccountRoute
   '/dialog/experimental_grantPermissions': typeof DialogExperimentalgrantPermissionsRoute
   '/dialog/personal_sign': typeof DialogPersonalsignRoute
@@ -212,6 +231,7 @@ export interface FileRouteTypes {
     | '/dialog/$'
     | '/dialog/eth_requestAccounts'
     | '/dialog/eth_sendTransaction'
+    | '/dialog/experimental_addFunds'
     | '/dialog/experimental_createAccount'
     | '/dialog/experimental_grantPermissions'
     | '/dialog/personal_sign'
@@ -224,6 +244,7 @@ export interface FileRouteTypes {
     | '/dialog/$'
     | '/dialog/eth_requestAccounts'
     | '/dialog/eth_sendTransaction'
+    | '/dialog/experimental_addFunds'
     | '/dialog/experimental_createAccount'
     | '/dialog/experimental_grantPermissions'
     | '/dialog/personal_sign'
@@ -236,6 +257,7 @@ export interface FileRouteTypes {
     | '/dialog/$'
     | '/dialog/eth_requestAccounts'
     | '/dialog/eth_sendTransaction'
+    | '/dialog/experimental_addFunds'
     | '/dialog/experimental_createAccount'
     | '/dialog/experimental_grantPermissions'
     | '/dialog/personal_sign'
@@ -250,6 +272,7 @@ export interface RootRouteChildren {
   DialogSplatRoute: typeof DialogSplatRoute
   DialogEthrequestAccountsRoute: typeof DialogEthrequestAccountsRoute
   DialogEthsendTransactionRoute: typeof DialogEthsendTransactionRoute
+  DialogExperimentaladdFundsRoute: typeof DialogExperimentaladdFundsRoute
   DialogExperimentalcreateAccountRoute: typeof DialogExperimentalcreateAccountRoute
   DialogExperimentalgrantPermissionsRoute: typeof DialogExperimentalgrantPermissionsRoute
   DialogPersonalsignRoute: typeof DialogPersonalsignRoute
@@ -263,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   DialogSplatRoute: DialogSplatRoute,
   DialogEthrequestAccountsRoute: DialogEthrequestAccountsRoute,
   DialogEthsendTransactionRoute: DialogEthsendTransactionRoute,
+  DialogExperimentaladdFundsRoute: DialogExperimentaladdFundsRoute,
   DialogExperimentalcreateAccountRoute: DialogExperimentalcreateAccountRoute,
   DialogExperimentalgrantPermissionsRoute:
     DialogExperimentalgrantPermissionsRoute,
@@ -286,6 +310,7 @@ export const routeTree = rootRoute
         "/dialog/$",
         "/dialog/eth_requestAccounts",
         "/dialog/eth_sendTransaction",
+        "/dialog/experimental_addFunds",
         "/dialog/experimental_createAccount",
         "/dialog/experimental_grantPermissions",
         "/dialog/personal_sign",
@@ -305,6 +330,9 @@ export const routeTree = rootRoute
     },
     "/dialog/eth_sendTransaction": {
       "filePath": "dialog/eth_sendTransaction.tsx"
+    },
+    "/dialog/experimental_addFunds": {
+      "filePath": "dialog/experimental_addFunds.tsx"
     },
     "/dialog/experimental_createAccount": {
       "filePath": "dialog/experimental_createAccount.tsx"

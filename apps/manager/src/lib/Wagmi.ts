@@ -1,15 +1,34 @@
-import { Porto } from '@porto/apps'
+import { Env, Porto as PortoConfig } from '@porto/apps'
+import { Mode, Porto } from 'porto'
 import { createConfig, createStorage, http } from 'wagmi'
 import { base, baseSepolia, odysseyTestnet } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
-export const porto = Porto.porto
+const env = Env.get()
+
+const host = (() => {
+  const url = new URL(PortoConfig.dialogHosts[env] as string)
+  if (import.meta.env.DEV) url.port = window.location.port
+  return url.href
+})()
+
+export const porto = Porto.create({
+  ...PortoConfig.config[env],
+  mode: Mode.dialog({
+    host,
+  }),
+})
 
 export const chainIds = [base.id, odysseyTestnet.id, baseSepolia.id] as const
 export type ChainId = (typeof chainIds)[number]
 
 export const config = createConfig({
-  chains: [base, odysseyTestnet, baseSepolia],
+  chains: [
+    //
+    base,
+    odysseyTestnet,
+    baseSepolia,
+  ],
   connectors: [
     injected({
       target: () => ({
@@ -19,7 +38,6 @@ export const config = createConfig({
       }),
     }),
   ],
-  multiInjectedProviderDiscovery: false,
   storage: createStorage({ storage: localStorage }),
   transports: {
     [base.id]: http(),

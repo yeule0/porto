@@ -1,3 +1,4 @@
+import { Provider } from 'ox'
 import * as Address from 'ox/Address'
 import * as Bytes from 'ox/Bytes'
 import * as Json from 'ox/Json'
@@ -7,7 +8,6 @@ import * as Secp256k1 from 'ox/Secp256k1'
 import * as TypedData from 'ox/TypedData'
 import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import { readContract } from 'viem/actions'
-
 import * as DelegationContract from '../_generated/contracts/Delegation.js'
 import * as Account from '../account.js'
 import * as Call from '../call.js'
@@ -85,6 +85,10 @@ export function contract(parameters: contract.Parameters = {}) {
 
   return Mode.from({
     actions: {
+      async addFunds() {
+        throw new Provider.UnsupportedMethodError()
+      },
+
       async createAccount(parameters) {
         const { label, internal, permissions } = parameters
         const { client } = internal
