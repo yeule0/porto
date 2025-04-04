@@ -5,6 +5,7 @@ import { Hex, type RpcSchema } from 'ox'
 import type { RpcSchema as porto_RpcSchema } from 'porto'
 import { Hooks } from 'porto/remote'
 import * as React from 'react'
+import { useWaitForTransactionReceipt } from 'wagmi'
 
 import { Layout } from '~/routes/-components/Layout'
 import ArrowRightIcon from '~icons/lucide/arrow-right'
@@ -20,7 +21,7 @@ export declare namespace AddFunds {
     porto_RpcSchema.Schema,
     'experimental_addFunds'
   >['0'] & {
-    onApprove: (result: Hex.Hex) => void
+    onApprove: (result: { id: Hex.Hex }) => void
     onReject?: () => void
   }
 }
@@ -47,13 +48,27 @@ export function AddFunds(props: AddFunds.Props) {
         `https://faucet.porto.workers.dev?${searchParams.toString()}`,
       )
       if (!response.ok) throw new Error('Failed to fetch funds')
-      const data = (await response.json()) as Hex.Hex
-      onApprove(data)
+      const data = (await response.json()) as { id: Hex.Hex }
+      return data
     },
   })
 
+  const receipt = useWaitForTransactionReceipt({
+    hash: deposit.data?.id,
+    query: {
+      enabled: !!deposit.data?.id,
+    },
+    timeout: 10_000,
+  })
+
+  React.useEffect(() => {
+    if (receipt.isSuccess) onApprove(deposit.data!)
+  }, [receipt.isSuccess, deposit.data, onApprove])
+
+  const loading = deposit.isPending || receipt.isFetching
+
   return (
-    <Layout loading={deposit.isPending} loadingTitle="Adding funds...">
+    <Layout loading={loading} loadingTitle="Adding funds...">
       <Layout.Header>
         <Layout.Header.Default
           content="Select how much you will deposit."

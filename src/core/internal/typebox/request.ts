@@ -20,7 +20,9 @@ export namespace experimental_addFunds {
   })
   export type Request = Schema.StaticDecode<typeof Request>
 
-  export const Response = Primitive.Hex
+  export const Response = Type.Object({
+    id: Primitive.Hex,
+  })
   export type Response = Schema.StaticDecode<typeof Response>
 }
 

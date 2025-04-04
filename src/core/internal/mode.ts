@@ -35,7 +35,7 @@ export type Mode = {
       token: Address.Address
       /** Internal properties. */
       internal: ActionsInternal
-    }) => Promise<Hex.Hex>
+    }) => Promise<{ id: Hex.Hex }>
 
     createAccount: (parameters: {
       /** Internal properties. */
