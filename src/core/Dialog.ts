@@ -327,6 +327,7 @@ export function popup() {
             if (!popup || popup.closed) this.open()
             popup?.focus()
           }
+          messenger?.send('rpc-requests', requests)
         },
       }
     },
