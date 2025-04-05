@@ -537,8 +537,8 @@ export function from<
 
           const client = getClient()
 
-          const account_ = preparedAccounts_internal.find(
-            (account) => account.address === (context as any).account.address,
+          const account_ = preparedAccounts_internal.find((account) =>
+            Address.isEqual(account.address, (context as any).account.address),
           )
           if (!account_) throw new ox_Provider.UnauthorizedError()
 

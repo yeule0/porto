@@ -25,7 +25,7 @@ export function useAccount<
   const { address } = parameters
   return usePortoStore(porto, (x) => {
     if (!address) return x.accounts[0]
-    return x.accounts.find((x) => x.address === address)
+    return x.accounts.find((x) => Address.isEqual(x.address, address))
   })
 }
 
