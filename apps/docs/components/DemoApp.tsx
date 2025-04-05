@@ -352,7 +352,7 @@ export function MintDemo(props: MintDemo.Props) {
             <span>
               You have{' '}
               <span className="text-gray12">
-                {Value.formatEther(exp1Balance)}
+                {ValueFormatter.format(exp1Balance)}
               </span>{' '}
               EXP1
             </span>
@@ -673,14 +673,14 @@ export function SwapDemo(props: SwapDemo.Props) {
         <div className="flex items-center gap-2 text-gray10">
           <div>
             <span className={noFunds ? 'text-red10' : undefined}>
-              {Value.formatEther(exp1Balance ?? 0n)}
+              {ValueFormatter.format(exp1Balance ?? 0n)}
             </span>{' '}
             <span>EXP1</span>
           </div>
           <div className="h-[18.5px] w-px bg-gray6" />
           <div>
             <span className={noFunds ? 'text-red10' : undefined}>
-              {Value.formatEther(exp2Balance ?? 0n)}
+              {ValueFormatter.format(exp2Balance ?? 0n)}
             </span>{' '}
             <span>EXP2</span>
           </div>
@@ -919,7 +919,7 @@ export function PayDemo(props: PayDemo.Props) {
           <div className="text-gray9">Balance</div>
           <div className="text-gray10">
             <span className="text-black tabular-nums dark:text-white">
-              {Value.formatEther(balance)}
+              {ValueFormatter.format(balance)}
             </span>{' '}
             <span className="uppercase tabular-nums">{symbol}</span>
           </div>
@@ -2118,5 +2118,18 @@ function createUseSendCalls<variables>(
         })
       },
     })
+  }
+}
+
+export namespace ValueFormatter {
+  const numberIntl = new Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: 4,
+  })
+
+  export function format(num: bigint | number | undefined, units = 18) {
+    if (!num) return '0'
+    return numberIntl.format(
+      typeof num === 'bigint' ? Number(Value.format(num, units)) : num,
+    )
   }
 }
