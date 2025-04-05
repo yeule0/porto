@@ -181,6 +181,9 @@ importers:
 
   apps/dialog:
     dependencies:
+      '@ariakit/react':
+        specifier: ^0.4.15
+        version: 0.4.15(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@porto/apps':
         specifier: workspace:*
         version: link:../~internal

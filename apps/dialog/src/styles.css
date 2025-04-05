@@ -1,12 +1,14 @@
 @import "@porto/apps/styles.css";
 
+@custom-variant dark (&:is(.scheme-light-dark *));
+
 html,
 :host {
   background-color: var(--background-color-primary);
 }
 
 [data-dialog] {
-  --height-button: 36px;
+  --height-button: 40px;
   --radius-default: 8px;
 }
 

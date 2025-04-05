@@ -1,6 +1,7 @@
+import * as Ariakit from '@ariakit/react'
 import { Porto, Token } from '@porto/apps'
+import { Button } from '@porto/apps/components'
 import { useMutation } from '@tanstack/react-query'
-import { cx } from 'cva'
 import { Address } from 'ox'
 import { Hex, Value } from 'ox'
 import { Hooks } from 'porto/remote'
@@ -9,19 +10,18 @@ import { useWaitForTransactionReceipt } from 'wagmi'
 
 import { Layout } from '~/routes/-components/Layout'
 import ArrowRightIcon from '~icons/lucide/arrow-right'
-import ExternalLinkIcon from '~icons/lucide/external-link'
 import QrCodeIcon from '~icons/lucide/qr-code'
 
 const porto = Porto.porto
 
-const predefinedAmounts = [25, 50, 100, 250]
+const presetAmounts = ['25', '50', '100', '250']
 
 export function AddFunds(props: AddFunds.Props) {
   const {
     onApprove,
     onReject: _,
     tokenAddress,
-    value = BigInt(predefinedAmounts[0]!),
+    value = BigInt(presetAmounts[0]!),
   } = props
 
   const account = Hooks.useAccount(porto)
@@ -29,25 +29,26 @@ export function AddFunds(props: AddFunds.Props) {
 
   const address = props.address ?? account?.address
 
-  const [desiredAmount, setDesiredAmount] = React.useState<number>(
-    Number(value),
-  )
+  const [amount, setAmount] = React.useState<string>(value.toString())
 
   const deposit = useMutation({
-    async mutationFn() {
+    async mutationFn(e: React.FormEvent<HTMLFormElement>) {
+      e.preventDefault()
+      e.stopPropagation()
+
       if (!address) throw new Error('address is required')
       if (!chain) throw new Error('chain is required')
 
       const token = Token.tokens[chain.id][tokenAddress.toLowerCase()]
       if (!token) throw new Error('token is required')
 
-      const value = Value.from(desiredAmount.toString(), token.decimals)
-      const searchParams = new URLSearchParams({
+      const value = Value.from(amount, token.decimals)
+      const params = new URLSearchParams({
         address,
         value: value.toString(),
       })
       const response = await fetch(
-        `https://faucet.porto.workers.dev?${searchParams.toString()}`,
+        `https://faucet.porto.workers.dev?${params.toString()}`,
       )
       if (!response.ok) throw new Error('Failed to fetch funds')
       const data = (await response.json()) as { id: Hex.Hex }
@@ -74,90 +75,91 @@ export function AddFunds(props: AddFunds.Props) {
       <Layout.Header>
         <Layout.Header.Default
           content="Select how much you will deposit."
-          title="Deposit Funds"
+          title="Deposit funds"
         />
       </Layout.Header>
 
       <Layout.Content>
-        <div className="grid h-min grid-flow-row auto-rows-min grid-cols-1 space-y-3">
-          <div className="col-span-1 row-span-1 px-3">
+        <form
+          className="grid h-min grid-flow-row auto-rows-min grid-cols-1 space-y-3"
+          onSubmit={(e) => deposit.mutate(e)}
+        >
+          <div className="col-span-1 row-span-1">
             <div className="flex w-full max-w-full flex-row justify-center space-x-2">
-              {predefinedAmounts.map((predefinedAmount) => (
-                <button
-                  className={cx(
-                    desiredAmount === predefinedAmount
-                      ? 'border-blue9 bg-gray3 text-black dark:text-white'
-                      : 'border-gray6 text-gray11 dark:border-gray4',
-                    'min-w-1/4 rounded-[10px] border-[1.5px] py-2 text-center hover:bg-gray6',
-                  )}
-                  key={predefinedAmount}
-                  onClick={() => {
-                    setDesiredAmount(predefinedAmount)
-                  }}
-                  type="button"
-                >
-                  ${predefinedAmount}
-                </button>
-              ))}
+              <Ariakit.RadioProvider
+                setValue={(value) => setAmount(value as string)}
+                value={amount}
+              >
+                <Ariakit.RadioGroup className="flex w-full gap-1">
+                  {presetAmounts.map((predefinedAmount) => (
+                    // biome-ignore lint/a11y/noLabelWithoutControl:
+                    <label className="w-full rounded-[10px] border-[1.5px] border-gray4 py-2 text-center text-gray11 hover:bg-gray3 has-checked:border-[1.5px] has-checked:border-blue9 has-checked:bg-gray4 has-checked:text-primary">
+                      <Ariakit.VisuallyHidden>
+                        <Ariakit.Radio value={predefinedAmount} />
+                      </Ariakit.VisuallyHidden>
+                      ${predefinedAmount}
+                    </label>
+                  ))}
+                </Ariakit.RadioGroup>
+              </Ariakit.RadioProvider>
             </div>
           </div>
           <div className="col-span-1 row-span-1">
-            <div className="flex w-full flex-row items-center justify-between rounded-lg border-[1.75px] border-transparent bg-gray4 px-3 py-2.5 text-gray12 focus-within:border-gray6 focus-within:bg-gray4 has-aria-invalid:border-red8 dark:bg-gray3">
+            <div className="relative flex w-full flex-row items-center justify-between rounded-lg border-[1.5px] border-transparent bg-gray4 px-3 py-2.5 text-gray12 focus-within:border-blue9 focus-within:bg-gray4 has-invalid:border-red8 dark:bg-gray3">
+              <span className="-translate-y-1/2 absolute top-1/2 left-2 text-gray9">
+                $
+              </span>
               <input
-                aria-invalid={desiredAmount > 500}
                 autoCapitalize="off"
                 autoComplete="off"
                 autoCorrect="off"
-                className="h-full max-h-[96%] w-full max-w-[50%] bg-transparent font-semibold placeholder:text-gray8 focus:outline-none"
+                className="h-full max-h-[96%] w-full max-w-[50%] bg-transparent pl-3 placeholder:text-gray8 focus:outline-none"
                 inputMode="decimal"
                 max={500}
                 min={0}
                 onChange={(event) =>
-                  setDesiredAmount(Number(event.target.value))
+                  event.target.value.length > 0
+                    ? setAmount(event.target.value)
+                    : setAmount('')
                 }
                 placeholder="Enter amount"
+                required
                 spellCheck={false}
                 type="number"
-                value={desiredAmount}
+                value={amount}
                 // should add disabled` if testnet?
               />
               <span className="text-gray9 text-sm">Max. $500</span>
             </div>
           </div>
           <div className="col-span-1 row-span-1 my-1">
-            <button
-              className="flex h-9 w-full flex-row items-center justify-center rounded-lg bg-[#6E56CF] px-4 py-2 font-semibold text-base text-destructive-foreground hover:bg-[#6E56CF]/90"
-              onClick={async (event) => {
-                event.preventDefault()
-                deposit.mutate()
-              }}
-              type="button"
-            >
-              <span className="text-white/90">Buy & Deposit</span>
-              <ExternalLinkIcon className="ml-2 size-4 text-white/70" />
-            </button>
+            <Button className="w-full flex-1" type="submit" variant="violet">
+              Buy & deposit
+            </Button>
           </div>
           <div className="col-span-1 row-span-1">
-            <div className="-mb-2 my-auto flex w-full flex-row items-center gap-2 *:border-gray7">
+            <div className="h-1" />
+            <div className="my-auto flex w-full flex-row items-center gap-2 *:border-gray7">
               <hr className="flex-1" />
               <span className="px-3 text-gray9">or</span>
               <hr className="flex-1" />
             </div>
           </div>
           <div className="col-span-1 row-span-1">
-            <button
-              className="ml-auto flex h-9 w-full flex-row items-center justify-start gap-2 rounded-lg border border-transparent bg-gray4 px-4 py-2 hover:bg-gray5 dark:bg-gray3"
-              type="button"
-            >
-              <QrCodeIcon className="size-5" />
-              <span className="font-[500] text-base text-black dark:text-white/90">
-                Send Crypto
-              </span>
-              <span className="ml-auto text-gray10 text-sm">Instant</span>
-              <ArrowRightIcon className="size-4 text-gray10" />
-            </button>
+            <Button className="w-full" type="button">
+              <div className="flex w-full flex-row items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <QrCodeIcon className="size-5" />
+                  <span>Send crypto</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="ml-auto text-gray10 text-sm">Instant</span>
+                  <ArrowRightIcon className="size-4 text-gray10" />
+                </div>
+              </div>
+            </Button>
           </div>
-        </div>
+        </form>
       </Layout.Content>
 
       <Layout.Footer>

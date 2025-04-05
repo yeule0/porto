@@ -69,7 +69,10 @@ export function iframe() {
       iframe.setAttribute('hidden', 'until-found')
       iframe.setAttribute('role', 'dialog')
       iframe.setAttribute('tabindex', '0')
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin')
+      iframe.setAttribute(
+        'sandbox',
+        'allow-forms allow-scripts allow-same-origin',
+      )
       iframe.setAttribute('src', host)
       iframe.setAttribute('title', 'Porto')
       Object.assign(iframe.style, {

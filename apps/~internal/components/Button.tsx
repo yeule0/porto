@@ -50,6 +50,7 @@ export namespace Button {
           outline:
             'text-primary bg-transparent hover:not-active:bg-primaryHover border border-gray6',
           success: 'text-white bg-success hover:not-active:bg-successHover',
+          violet: 'text-white bg-violet hover:not-active:bg-violetHover',
           warning: 'text-white bg-warning hover:not-active:bg-warningHover',
         },
       },

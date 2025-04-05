@@ -65,7 +65,7 @@ export namespace Layout {
             <div className="font-medium text-[18px] text-primary">{title}</div>
           </div>
 
-          <div className="mt-1.5 text-[15px] text-primary leading-[22px]">
+          <div className="mt-1 text-[15px] text-primary leading-[22px]">
             {content}
           </div>
         </div>
@@ -75,9 +75,9 @@ export namespace Layout {
     // Default Header
     export namespace Default {
       export interface Props extends VariantProps<typeof className> {
+        content: React.ReactNode
         icon?: React.FC<React.SVGProps<SVGSVGElement>> | undefined
         title: string
-        content: React.ReactNode
       }
 
       export const className = cva(

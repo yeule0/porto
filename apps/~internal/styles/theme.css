@@ -133,6 +133,19 @@
   --color-red10: light-dark(#dc3e42, #ec5d5e);
   --color-red11: light-dark(#ce2c31, #ff9592);
   --color-red12: light-dark(#641723, #ffd1d9);
+
+  --color-violet1: light-dark(#fdfcfe, #14121f);
+  --color-violet2: light-dark(#faf8ff, #1b1525);
+  --color-violet3: light-dark(#f4f0fe, #291f43);
+  --color-violet4: light-dark(#ebe4ff, #33255b);
+  --color-violet5: light-dark(#e1d9ff, #3c2e69);
+  --color-violet6: light-dark(#d4cafe, #473876);
+  --color-violet7: light-dark(#c2b5f5, #56468b);
+  --color-violet8: light-dark(#aa99ec, #6958ad);
+  --color-violet9: light-dark(#6e56cf, #6e56cf);
+  --color-violet10: light-dark(#654dc4, #7d66d9);
+  --color-violet11: light-dark(#6550b9, #baa7ff);
+  --color-violet12: light-dark(#2f265f, #e2ddfe);
   
   --background-color-accent: var(--color-blue9);
   --background-color-accentHover: var(--color-blue10);
@@ -154,6 +167,9 @@
   --background-color-warning: var(--color-amber8);
   --background-color-warningHover: var(--color-amber7);
   --background-color-warningTint: var(--color-amberA2);
+  --background-color-violet: var(--color-violet9);
+  --background-color-violetHover: var(--color-violet10);
+  --background-color-violetTint: var(--color-violetA3);
 
   --border-color-primary: light-dark(var(--color-gray5), var(--color-gray4));
   --border-color-surface: light-dark(var(--color-gray4), var(--color-gray5));
