@@ -102,6 +102,16 @@ export function Dashboard() {
   const admins = Hooks.useAdmins()
   const revokeAdmin = Hooks.useRevokeAdmin({
     mutation: {
+      onError: (error) => {
+        toast.custom((t) => (
+          <CustomToast
+            className={t}
+            description={error.message}
+            kind="error"
+            title="Recovery Revoke Failed"
+          />
+        ))
+      },
       onSuccess: () => {
         toast.custom((t) => (
           <CustomToast
@@ -261,51 +271,53 @@ export function Dashboard() {
           ]}
           data={filteredTransfers}
           emptyMessage="No transactions yet"
-          renderRow={(transfer) => (
-            <tr
-              className="text-xs sm:text-sm "
-              key={`${transfer?.transaction_hash}-${transfer?.block_number}`}
-            >
-              <td className="py-1 text-left">
-                <a
-                  className="flex flex-row items-center"
-                  href={`https://explorer.ithaca.xyz/tx/${transfer?.transaction_hash}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <span className="min-w-[65px] text-gray11">
-                    {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))} ago
-                  </span>
-                  <ExternalLinkIcon className="size-4 text-gray10" />
-                </a>
-              </td>
-              <td className="flex min-w-full items-center py-1 text-left font-medium">
-                <div className="my-0.5 flex flex-row items-center gap-x-2 rounded-full bg-gray3 p-0.5">
-                  <AccountIcon className="size-4 rounded-full text-gray10" />
-                </div>
-                <TruncatedAddress
-                  address={transfer?.to.hash ?? ''}
-                  className="ml-2"
-                />
-              </td>
-              <td className="py-1 text-right text-gray12">
-                <span className="text-md">
-                  {Value.format(
-                    BigInt(transfer?.total.value ?? 0),
-                    Number(transfer?.token.decimals ?? 0),
-                  )}
-                </span>
-                <div className="inline-block w-[65px]">
-                  <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
-                    <TokenSymbol
-                      address={transfer?.token.address as Address.Address}
-                      display="symbol"
-                    />
-                  </span>
-                </div>
-              </td>
-            </tr>
-          )}
+          renderRow={(transfer) => {
+            const amount = ValueFormatter.format(
+              BigInt(transfer?.total.value ?? 0),
+              Number(transfer?.total.decimals ?? 0),
+            )
+            return (
+              <tr
+                className="text-xs sm:text-sm "
+                key={`${transfer?.transaction_hash}-${transfer?.block_number}`}
+              >
+                <td className="py-1 text-left">
+                  <a
+                    className="flex flex-row items-center"
+                    href={`https://explorer.ithaca.xyz/tx/${transfer?.transaction_hash}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <ExternalLinkIcon className="mr-1 size-4 text-gray10" />
+                    <span className="min-w-[50px] text-gray11 sm:min-w-[65px]">
+                      {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))}{' '}
+                      ago
+                    </span>
+                  </a>
+                </td>
+                <td className="flex min-w-full items-center py-1 text-left font-medium">
+                  <div className="my-0.5 flex flex-row items-center gap-x-2 rounded-full bg-gray3 p-0.5">
+                    <AccountIcon className="size-4 rounded-full text-gray10" />
+                  </div>
+                  <TruncatedAddress
+                    address={transfer?.to.hash ?? ''}
+                    className="ml-2"
+                  />
+                </td>
+                <td className="py-1 text-right text-gray12">
+                  <span className="text-md">{amount}</span>
+                  <div className="inline-block w-[65px]">
+                    <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
+                      <TokenSymbol
+                        address={transfer?.token.address as Address.Address}
+                        display="symbol"
+                      />
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            )
+          }}
           showMoreText="more transactions"
         />
       </details>
@@ -490,10 +502,8 @@ export function Dashboard() {
                       <Ariakit.Button
                         className="size-8 rounded-full p-1 hover:bg-red-100"
                         onClick={() => {
-                          console.info(id, address)
                           if (!id || !address) return
                           revokeAdmin.mutate({
-                            address: key.publicKey,
                             id: key?.id,
                           })
                         }}
@@ -732,8 +742,8 @@ function AssetRow({
         <>
           <td className="w-[80%]">
             <div className="flex items-center gap-x-2 py-2">
-              <img alt="asset icon" className="size-6.5" src={logo} />
-              <span className="font-medium text-md">{name}</span>
+              <img alt="asset icon" className="size-5 sm:size-6" src={logo} />
+              <span className="font-medium text-sm sm:text-md">{name}</span>
             </div>
           </td>
           <td className="w-[20%] text-right text-md">{formattedBalance}</td>
@@ -757,7 +767,7 @@ function AssetRow({
           </td>
         </>
       ) : viewState === 'send' ? (
-        <td className="w-full" colSpan={4} ref={ref}>
+        <td className="w-full" colSpan={5} ref={ref}>
           <Ariakit.Form
             className="relative my-2 flex h-16 w-full rounded-2xl border-1 border-gray6 bg-white p-2 dark:bg-gray1"
             store={sendForm}
@@ -790,7 +800,7 @@ function AssetRow({
                           autoFocus={true}
                           className={cx(
                             'peer',
-                            'w-full font-mono text-sm placeholder:text-gray10 focus:outline-none dark:text-gray12',
+                            'w-full font-mono text-xs placeholder:text-gray10 focus:outline-none sm:text-sm dark:text-gray12',
                             valid &&
                               'not-data-focus-visible:not-focus-visible:not-focus:not-aria-invalid:text-transparent',
                           )}
@@ -812,7 +822,7 @@ function AssetRow({
                         <TruncatedAddress
                           address={sendFormState.values.sendRecipient}
                           className={cx(
-                            '-top-0 absolute w-min cursor-pointer text-left peer-focus:hidden',
+                            '-top-0 absolute w-min cursor-pointer text-left text-xs peer-focus:hidden sm:text-sm',
                             !valid && 'hidden',
                           )}
                           end={5}
@@ -831,7 +841,17 @@ function AssetRow({
                   type="text"
                 />
               </div>
-              <Ariakit.Button className="my-auto ml-auto rounded-full bg-gray4 p-2">
+              <Ariakit.Button
+                className="my-auto ml-auto hidden rounded-full bg-gray4 p-2 sm:block"
+                onClick={() =>
+                  navigator.clipboard
+                    .readText()
+                    .then((text) => {
+                      sendForm.setValue(sendForm.names.sendRecipient, text)
+                    })
+                    .catch(() => toast.error('Failed to paste from clipboard'))
+                }
+              >
                 <ClipboardCopyIcon className="size-4 text-gray10" />
               </Ariakit.Button>
             </div>
