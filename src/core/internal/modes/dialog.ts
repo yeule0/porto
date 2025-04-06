@@ -180,31 +180,29 @@ export function dialog(parameters: dialog.Parameters = {}) {
         }
       },
 
-      async grantAdmin() {
-        // Note: we probably don't want to support this yet.
-        throw new Provider.UnsupportedMethodError()
+      async grantAdmin(parameters) {
+        // TODO: restrict to same origin.
+        const { internal } = parameters
+        const { request, store } = internal
 
-        // const { internal } = parameters
-        // const { request, store } = internal
+        if (request.method !== 'experimental_grantAdmin')
+          throw new Error(
+            'Cannot authorize admin for method: ' + request.method,
+          )
 
-        // if (request.method !== 'experimental_grantAdmin')
-        //   throw new Error(
-        //     'Cannot authorize admin for method: ' + request.method,
-        //   )
+        const [params] = request._decoded.params
 
-        // const [params] = request._decoded.params
+        const key = Key.from(params.key)
+        if (!key) throw new Error('no key found.')
 
-        // const key = Key.from({ ...params.key, role: 'admin' })
-        // if (!key) throw new Error('no key found.')
+        // Send a request off to the dialog to authorize the admin.
+        const provider = getProvider(store)
+        await provider.request({
+          method: 'experimental_grantAdmin',
+          params: request.params,
+        })
 
-        // // Send a request off to the dialog to authorize the admin.
-        // const provider = getProvider(store)
-        // await provider.request({
-        //   method: 'experimental_grantAdmin',
-        //   params: request.params,
-        // })
-
-        // return { key }
+        return { key }
       },
 
       async grantPermissions(parameters) {

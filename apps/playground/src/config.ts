@@ -2,7 +2,7 @@ import { Env, Porto as PortoConfig } from '@porto/apps'
 import { exp1Address, exp2Address } from '@porto/apps/contracts'
 import { createStore } from 'mipd'
 import { Hex, Value } from 'ox'
-import { Dialog, Mode, Porto } from 'porto'
+import { Chains, Dialog, Mode, Porto } from 'porto'
 
 export const env = Env.get()
 
@@ -44,7 +44,11 @@ export const modes = {
     host,
     renderer: Dialog.popup(),
   }),
-  relay: Mode.relay(),
+  relay: Mode.relay({
+    feeToken: {
+      [Chains.odysseyTestnet.id]: exp1Address,
+    },
+  }),
 }
 export type ModeType = keyof typeof modes
 
