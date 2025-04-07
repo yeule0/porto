@@ -181,7 +181,6 @@ export function dialog(parameters: dialog.Parameters = {}) {
       },
 
       async grantAdmin(parameters) {
-        // TODO: restrict to same origin.
         const { internal } = parameters
         const { request, store } = internal
 
