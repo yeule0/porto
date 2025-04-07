@@ -2,7 +2,7 @@ import * as Mipd from 'mipd'
 import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 import * as ox_Provider from 'ox/Provider'
-
+import * as RpcResponse from 'ox/RpcResponse'
 import type * as Chains from '../Chains.js'
 import type * as Porto from '../Porto.js'
 import type * as RpcSchema from '../RpcSchema.js'
@@ -218,6 +218,17 @@ export function from<
           if (!account) throw new ox_Provider.UnauthorizedError()
 
           const client = getClient(chainId)
+
+          if (
+            getAdmins([...(account.keys ?? [])])?.some(
+              (admin) =>
+                admin.id?.toLowerCase() ===
+                keyToAuthorize.publicKey.toLowerCase(),
+            )
+          )
+            throw new RpcResponse.InvalidParamsError({
+              message: 'Key already granted as admin.',
+            })
 
           const { key } = await getMode().actions.grantAdmin({
             account,
@@ -923,7 +934,7 @@ function announce(provider: Provider) {
 
 function getAdmins(
   keys: readonly Key.Key[],
-): Schema.Static<(typeof Rpc.experimental_getAdmins.Response)['keys']> {
+): Schema.Static<typeof Rpc.experimental_getAdmins.Response>['keys'] {
   return keys
     .map((key) => {
       if (key.role !== 'admin') return undefined
