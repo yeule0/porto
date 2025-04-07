@@ -3,8 +3,6 @@ import { humanId } from 'human-id'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { useAccount, useConnectors } from 'wagmi'
-
-import { config } from '~/lib/Wagmi'
 import SparkIcon from '~icons/lucide/sparkles'
 import { Layout } from './Layout'
 
@@ -13,7 +11,7 @@ const id = () => humanId({ capitalize: true, separator: ' ' })
 export function Landing() {
   const account = useAccount()
   const connect = Hooks.useConnect()
-  const [connector] = useConnectors({ config })
+  const [connector] = useConnectors()
 
   const [label, setLabel] = React.useState(id())
 
@@ -54,6 +52,7 @@ export function Landing() {
                     autoCorrect="off"
                     className="w-full font-[500] text-[19px] focus:outline-none focus:ring-0"
                     maxLength={32}
+                    name="label"
                     onChange={(e) => setLabel(e.target.value)}
                     placeholder="Enter a name…"
                     spellCheck={false}

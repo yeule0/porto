@@ -3,12 +3,12 @@ import * as Ariakit from '@ariakit/react'
 import { Button, Spinner } from '@porto/apps/components'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { cx } from 'cva'
-import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
-import { useConnect, useConnectors, useDisconnect } from 'wagmi'
+import type { EIP1193Provider } from 'viem'
+import { Connector, useConnectors } from 'wagmi'
 import { CustomToast } from '~/components/CustomToast'
-import { mipdConfig as config } from '~/lib/MipdWagmi'
+import { mipdConfig, porto } from '~/lib/Wagmi'
 import SecurityIcon from '~icons/ic/outline-security'
 import CheckMarkIcon from '~icons/lucide/check'
 import ChevronRightIcon from '~icons/lucide/chevron-right'
@@ -57,7 +57,7 @@ function ActionableFeedback({ feedback }: { feedback: 'success' | 'pending' }) {
               </p>
               <Button
                 className="mt-2 h-11! w-full text-lg!"
-                render={<Link to="..">Done</Link>}
+                render={<Link to="/">Done</Link>}
                 variant="accent"
               />
             </React.Fragment>
@@ -69,100 +69,57 @@ function ActionableFeedback({ feedback }: { feedback: 'success' | 'pending' }) {
 }
 
 function RouteComponent() {
-  const [view, setView] = React.useState<'DEFAULT' | 'success' | 'loading'>(
-    'DEFAULT',
+  const [view, setView] = React.useState<'default' | 'success' | 'loading'>(
+    'default',
   )
 
-  const disconnect = useDisconnect()
-  const _connectors = useConnectors({ config })
-
+  const _connectors = useConnectors({ config: mipdConfig })
   const connectors = React.useMemo(() => {
-    const uniqueConnectorsNames = new Set()
-    const uniqueConnectors = []
-    for (const connector of _connectors) {
-      if (uniqueConnectorsNames.has(connector.name)) {
-        continue
-      }
-      uniqueConnectorsNames.add(connector.name)
-      uniqueConnectors.push(connector)
-    }
-    return uniqueConnectors
+    return _connectors.filter((c) => !c.id.toLowerCase().includes('porto'))
   }, [_connectors])
 
-  const admins = Hooks.useAdmins()
-
-  const grantAdmin = Hooks.useGrantAdmin({
-    mutation: {
-      onError: (error, _, __) => {
-        console.info(error)
-        toast.custom((t) => (
-          <CustomToast
-            className={t}
-            description={error.message}
-            kind="error"
-            title="Error Granting Admin"
-          />
-        ))
-        setView('DEFAULT')
-      },
-      onMutate: (_) => [console.info('mutate'), setView('loading')],
-      onSuccess: (_) => {
-        toast.custom((t) => (
-          <CustomToast
-            className={t}
-            description="You are now an admin"
-            kind="success"
-            title="Admin Granted"
-          />
-        ))
-        setView('DEFAULT')
-      },
-    },
-  })
-
-  const connect = useConnect({
-    mutation: {
-      onError: (error, _, __) => {
-        toast.custom((t) => (
-          <CustomToast
-            className={t}
-            description={error.message}
-            kind="error"
-            title="Error Connecting"
-          />
-        ))
-        setView('DEFAULT')
-      },
-      onMutate: (_) => setView('loading'),
-      onSuccess: (data) => {
-        const [address] = data.accounts
-        const existingAdmins = admins.data?.keys
-        const isAdmin = existingAdmins?.some(
-          (admin) => admin.publicKey.toLowerCase() === address.toLowerCase(),
-        )
-        if (isAdmin) {
-          toast.custom((t) => (
-            <CustomToast
-              className={t}
-              description="You are already an admin"
-              kind="warn"
-              title="Already an admin"
-            />
-          ))
-          setView('DEFAULT')
-          return
-        }
-        grantAdmin.mutate({
-          key: {
-            publicKey: address,
-            type: 'address',
-          },
-        })
-      },
-    },
-  })
-
   if (!connectors.length) return null
+
+  const connectThenGrantAdmin = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+    connector: Connector,
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    try {
+      const provider = (await connector.getProvider()) as EIP1193Provider
+      const [address] = await provider.request({
+        method: 'eth_requestAccounts',
+      })
+
+      if (!address) return
+
+      await porto.provider.request({
+        method: 'experimental_grantAdmin',
+        params: [
+          {
+            key: { publicKey: address, type: 'address' },
+          },
+        ],
+      })
+
+      setView('success')
+    } catch (error) {
+      toast.custom((t) => (
+        <CustomToast
+          className={t}
+          description={
+            error instanceof Error
+              ? error.message
+              : 'Encountered an error while granting admin permissions.'
+          }
+          kind="error"
+          title="Error Connecting"
+        />
+      ))
+    }
+  }
 
   return (
     <React.Fragment>
@@ -206,52 +163,30 @@ function RouteComponent() {
             <div className="h-10" />
 
             <section className="w-full">
-              <ul className="">
-                {connectors.map((connector, _index) => (
-                  <React.Fragment key={connector.id}>
-                    <li
-                      className="w-full rounded-md border-none py-2"
-                      data-connector={connector.id}
+              <ul>
+                {connectors.map((connector) => (
+                  <li
+                    className="w-full rounded-md border-none py-2"
+                    data-connector={connector.id}
+                    key={connector.id}
+                  >
+                    <Ariakit.Button
+                      className="flex h-12 w-full max-w-full flex-row items-center justify-between space-x-4 rounded-md border-none p-1 hover:bg-gray3"
+                      onClick={(event) =>
+                        connectThenGrantAdmin(event, connector)
+                      }
                     >
-                      <Ariakit.Button
-                        className="flex h-12 w-full max-w-full flex-row items-center justify-between space-x-4 rounded-md border-none p-1 hover:bg-gray3"
-                        onClick={async (event) => {
-                          event.preventDefault()
-                          event.stopPropagation()
-
-                          disconnect
-                            .disconnectAsync()
-                            .catch((error) => console.info(error))
-                            .then(() => {
-                              connect
-                                .connectAsync({ connector })
-                                .catch((error) => console.info(error))
-                            })
-                            .catch((error) => {
-                              setView('DEFAULT')
-                              toast.custom((t) => (
-                                <CustomToast
-                                  className={t}
-                                  description={error.message}
-                                  kind="error"
-                                  title="Error Connecting"
-                                />
-                              ))
-                            })
-                        }}
-                      >
-                        <img
-                          alt={connector.name}
-                          className="ml-1 size-9"
-                          src={connector.icon}
-                        />
-                        <span className="select-none text-xl">
-                          {connector.name}
-                        </span>
-                        <ChevronRightIcon className="ml-auto size-6 text-gray9" />
-                      </Ariakit.Button>
-                    </li>
-                  </React.Fragment>
+                      <img
+                        alt={connector.name}
+                        className="ml-1 size-9"
+                        src={connector.icon}
+                      />
+                      <span className="select-none text-xl">
+                        {connector.name}
+                      </span>
+                      <ChevronRightIcon className="ml-auto size-6 text-gray9" />
+                    </Ariakit.Button>
+                  </li>
                 ))}
               </ul>
             </section>

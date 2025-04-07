@@ -99,7 +99,15 @@ export function Dashboard() {
     )
   }, [assets])
 
-  const admins = Hooks.useAdmins()
+  const admins = Hooks.useAdmins({
+    query: {
+      select: ({ address, keys }) => ({
+        address,
+        keys: keys.filter((key) => key.type === 'address'),
+      }),
+    },
+  })
+
   const revokeAdmin = Hooks.useRevokeAdmin({
     mutation: {
       onError: (error) => {
@@ -272,13 +280,16 @@ export function Dashboard() {
           data={filteredTransfers}
           emptyMessage="No transactions yet"
           renderRow={(transfer) => {
-            const amount = ValueFormatter.format(
-              BigInt(transfer?.total.value ?? 0),
-              Number(transfer?.total.decimals ?? 0),
-            )
+            const amount = Number.parseFloat(
+              ValueFormatter.format(
+                BigInt(transfer?.total.value ?? 0),
+                Number(transfer?.total.decimals ?? 0),
+              ),
+            ).toFixed(2)
+
             return (
               <tr
-                className="text-xs sm:text-sm "
+                className="text-xs sm:text-sm"
                 key={`${transfer?.transaction_hash}-${transfer?.block_number}`}
               >
                 <td className="py-1 text-left">
@@ -456,7 +467,8 @@ export function Dashboard() {
         <table className="my-3 w-full">
           <thead>
             <tr className="text-gray10 *:font-normal *:text-sm">
-              <th className="text-left">Name</th>
+              <th className="text-left">ID</th>
+              <th className="text-left">Public Key</th>
               <th className="invisible text-right">Action</th>
             </tr>
           </thead>
@@ -470,20 +482,32 @@ export function Dashboard() {
                     className="text-xs sm:text-sm"
                     key={`${key.publicKey}-${index}`}
                   >
-                    <td className="w-[73%] text-right">
+                    <td className="text-left">
                       <div className="flex flex-row items-center gap-x-2">
-                        <div className="flex size-7 items-center justify-center rounded-full bg-emerald-100">
-                          <WalletIcon className="m-auto size-4.5 text-teal-600" />
+                        <div className="hidden size-6.25 items-center justify-center rounded-full bg-emerald-100 sm:flex">
+                          <WalletIcon className="size-4 text-teal-600" />
                         </div>
                         <span className="font-medium text-gray12">
-                          <TruncatedAddress address={key.publicKey} />
+                          <TruncatedAddress
+                            address={key.id ?? key.publicKey}
+                            className="text-sm sm:text-md"
+                          />
                         </span>
+                      </div>
+                    </td>
+
+                    <td className="text-left">
+                      <div className="flex flex-row items-center gap-x-2 font-medium">
+                        <TruncatedAddress
+                          address={key.publicKey}
+                          className="text-sm sm:text-md"
+                        />
                       </div>
                     </td>
 
                     <td className="text-right">
                       <Ariakit.Button
-                        className="size-8 rounded-full p-1 hover:bg-gray4"
+                        className="size-7 rounded-full px-1 pt-1 hover:bg-gray4"
                         onClick={() => {
                           navigator.clipboard
                             .writeText(key.publicKey)
@@ -497,7 +521,7 @@ export function Dashboard() {
                             )
                         }}
                       >
-                        <CopyIcon className={cx('m-auto size-5 text-gray10')} />
+                        <CopyIcon className="m-auto size-4 text-gray10 sm:size-5" />
                       </Ariakit.Button>
                       <Ariakit.Button
                         className="size-8 rounded-full p-1 hover:bg-red-100"
@@ -524,6 +548,8 @@ export function Dashboard() {
           </tbody>
         </table>
       </details>
+
+      <div className="h-8" />
     </>
   )
 }
