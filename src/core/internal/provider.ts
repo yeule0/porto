@@ -219,13 +219,12 @@ export function from<
 
           const client = getClient(chainId)
 
-          if (
-            getAdmins([...(account.keys ?? [])])?.some(
-              (admin) =>
-                admin.id?.toLowerCase() ===
-                keyToAuthorize.publicKey.toLowerCase(),
-            )
+          const keyExists = getAdmins([...(account.keys ?? [])])?.some(
+            (key) =>
+              key.publicKey?.toLowerCase() ===
+              keyToAuthorize.publicKey.toLowerCase(),
           )
+          if (keyExists)
             throw new RpcResponse.InvalidParamsError({
               message: 'Key already granted as admin.',
             })
