@@ -42,7 +42,7 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/dialog/, ''),
         secure: false,
-        target: 'https://localhost:5174/dialog/',
+        target: 'https://localhost:5175/dialog/',
       },
     },
   },
