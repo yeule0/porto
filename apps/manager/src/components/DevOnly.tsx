@@ -1,5 +1,5 @@
 import * as AriaKit from '@ariakit/react'
-import { Query } from '@porto/apps'
+import { PortoConfig, Query } from '@porto/apps'
 import { Button } from '@porto/apps/components'
 import {
   exp1Abi,
@@ -16,7 +16,6 @@ import { useAccount, useChainId } from 'wagmi'
 import { useSendCalls } from 'wagmi/experimental'
 import { useClickOutside } from '~/hooks/useClickOutside'
 import { useSwapAssets } from '~/hooks/useSwapAssets'
-import type { ChainId } from '~/lib/Wagmi'
 
 const key = (chainId: keyof typeof exp1Address) =>
   ({
@@ -48,7 +47,7 @@ export function DevOnly() {
   const revokePermissions = Hooks.useRevokePermissions()
 
   const { refetch: refetchAssets } = useSwapAssets({
-    chainId: account.chainId as ChainId,
+    chainId: account.chainId as PortoConfig.ChainId,
   })
 
   const send = useSendCalls({

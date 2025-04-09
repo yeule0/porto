@@ -72,7 +72,7 @@ export function getPorto(
                 },
               )),
       },
-    },
+    } as Porto.Config['transports'],
   })
 
   const client = Porto_internal.getClient(porto).extend(() => ({

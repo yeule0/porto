@@ -17,10 +17,6 @@ export function define<const chain extends Chain>(chain: chain): chain {
   return chain
 }
 
-export const base = chains.base
-
-export const baseSepolia = chains.baseSepolia
-
 export const odysseyDevnet = /*#__PURE__*/ define({
   blockExplorers: {
     default: {

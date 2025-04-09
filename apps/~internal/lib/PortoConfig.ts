@@ -1,7 +1,7 @@
 import { Address } from 'ox'
 import { Chains, Mode } from 'porto'
 import { Porto } from 'porto/remote'
-import { http } from 'viem'
+import { http, ValueOf } from 'viem'
 
 import { exp1Address } from '../_generated/contracts'
 import * as Env from './Env'
@@ -63,3 +63,12 @@ export const dialogHosts = {
     ? 'https://stg.id.porto.sh/dialog/'
     : 'https://stg.localhost:5174/dialog/',
 } as const satisfies Record<Env.Env, string | undefined>
+
+export function getConfig(
+  env = Env.get(),
+): Porto.Config<readonly [Chain, ...Chain[]]> {
+  return config[env] as never
+}
+
+export type Chain = ValueOf<typeof config>['chains'][number]
+export type ChainId = Chain['id']

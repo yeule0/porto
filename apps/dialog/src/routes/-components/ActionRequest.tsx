@@ -1,4 +1,4 @@
-import { FeeToken, Porto } from '@porto/apps'
+import { FeeToken, PortoConfig } from '@porto/apps'
 import { Button, Spinner } from '@porto/apps/components'
 import { useQuery } from '@tanstack/react-query'
 import { cx } from 'cva'
@@ -43,7 +43,7 @@ export function ActionRequest(props: ActionRequest.Props) {
 
   const feeToken = React.useMemo(() => {
     if (!chain) return undefined
-    const address = props.feeToken ?? Porto.feeToken[chain.id]
+    const address = props.feeToken ?? PortoConfig.feeToken[chain.id]
     return FeeToken.feeTokens[chain.id][address.toLowerCase()]
   }, [chain, props.feeToken])
 
