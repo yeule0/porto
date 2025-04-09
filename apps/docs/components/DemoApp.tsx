@@ -1061,8 +1061,8 @@ export function LimitDemo(props: LimitDemo.Props) {
             ['minute', 'hour', 'day', 'week'].includes(y.period),
         ) &&
         deepEqual(x.permissions.calls, [
-          { to: exp1Config.address },
-          { to: exp2Config.address },
+          { to: exp1Config.address[chainId] },
+          { to: exp2Config.address[chainId] },
         ]),
     )
     const spend_ = permission?.permissions.spend?.[0]
