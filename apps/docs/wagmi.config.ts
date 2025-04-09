@@ -20,8 +20,7 @@ if (typeof window !== 'undefined') {
 }
 
 export const config = createConfig({
-  // TODO: remove env check
-  chains: env === 'stg' ? [Chains.odysseyDevnet] : [Chains.odysseyTestnet],
+  chains: [Chains.odysseyTestnet, Chains.odysseyDevnet],
   storage: createStorage({
     storage: typeof window !== 'undefined' ? localStorage : undefined,
   }),
