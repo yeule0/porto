@@ -52,6 +52,10 @@ export const permissions = () =>
         {
           to: exp2Address,
         },
+        {
+          signature: 'mint()',
+          to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        },
       ],
       spend: [
         {

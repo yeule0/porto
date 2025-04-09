@@ -3,12 +3,13 @@ import { useState } from 'react'
 
 import * as Dialog from '~/lib/Dialog'
 import { Layout } from '~/routes/-components/Layout'
+import { Permissions } from '~/routes/-components/Permissions'
 import ChevronRight from '~icons/lucide/chevron-right'
 import LucideLogIn from '~icons/lucide/log-in'
 import Question from '~icons/mingcute/question-line'
 
 export function SignUp(props: SignUp.Props) {
-  const { enableSignIn, loading, onApprove, onReject } = props
+  const { enableSignIn, loading, onApprove, onReject, permissions } = props
 
   const [showLearn, setShowLearn] = useState(false)
 
@@ -30,6 +31,8 @@ export function SignUp(props: SignUp.Props) {
         />
       </Layout.Header>
 
+      <Permissions {...permissions} />
+
       <Layout.Footer>
         <Layout.Footer.Actions>
           {enableSignIn ? (
@@ -47,7 +50,7 @@ export function SignUp(props: SignUp.Props) {
 
           <Button
             className="flex-grow"
-            onClick={() => onApprove({})}
+            onClick={() => onApprove({ signIn: false })}
             type="button"
             variant="accent"
           >
@@ -81,6 +84,7 @@ export namespace SignUp {
     loading?: boolean
     onApprove: (p: { signIn?: boolean; selectAccount?: boolean }) => void
     onReject: () => void
+    permissions?: Permissions.Props
   }
 
   export function Learn({ onDone }: { onDone: () => void }) {
