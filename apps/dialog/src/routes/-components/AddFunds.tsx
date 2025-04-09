@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { Token } from '@porto/apps'
+import { FeeToken } from '@porto/apps'
 import { Button } from '@porto/apps/components'
 import { useMutation } from '@tanstack/react-query'
 import { Address } from 'ox'
@@ -38,7 +38,7 @@ export function AddFunds(props: AddFunds.Props) {
       if (!address) throw new Error('address is required')
       if (!chain) throw new Error('chain is required')
 
-      const token = Token.tokens[chain.id][tokenAddress.toLowerCase()]
+      const token = FeeToken.feeTokens[chain.id][tokenAddress.toLowerCase()]
       if (!token) throw new Error('token is required')
 
       const value = Value.from(amount, token.decimals)
