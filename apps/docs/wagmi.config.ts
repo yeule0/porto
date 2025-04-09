@@ -1,25 +1,33 @@
 import { Env, PortoConfig } from '@porto/apps'
-import { Mode, Porto } from 'porto'
+import { Chains, Mode, Porto } from 'porto'
 import { createConfig, createStorage, http } from 'wagmi'
-import { odysseyTestnet } from 'wagmi/chains'
+
+const env = Env.get()
 
 if (typeof window !== 'undefined') {
-  const env = Env.get()
   const host = PortoConfig.dialogHosts[env]
   Porto.create({
+    // TODO: remove env check
+    chains: env === 'stg' ? [Chains.odysseyDevnet] : [Chains.odysseyTestnet],
     mode: Mode.dialog({
       host,
     }),
+    transports: {
+      [Chains.odysseyTestnet.id]: http(),
+      [Chains.odysseyDevnet.id]: http(),
+    },
   })
 }
 
 export const config = createConfig({
-  chains: [odysseyTestnet],
+  // TODO: remove env check
+  chains: env === 'stg' ? [Chains.odysseyDevnet] : [Chains.odysseyTestnet],
   storage: createStorage({
     storage: typeof window !== 'undefined' ? localStorage : undefined,
   }),
   transports: {
-    [odysseyTestnet.id]: http(),
+    [Chains.odysseyTestnet.id]: http(),
+    [Chains.odysseyDevnet.id]: http(),
   },
 })
 
