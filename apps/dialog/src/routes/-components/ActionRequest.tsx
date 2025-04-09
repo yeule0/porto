@@ -142,160 +142,162 @@ export function ActionRequest(props: ActionRequest.Props) {
       </Layout.Header>
 
       <Layout.Content>
-        <div className="space-y-3">
-          {(() => {
-            if (hasInsufficientBalance) {
-              return (
-                <div className="rounded-lg bg-warningTint px-3 py-2 text-warning">
-                  <div className="font-medium text-[14px]">
-                    Insufficient balance
+        {hasInsufficientBalance ? (
+          <div className="rounded-lg bg-warningTint px-3 py-2 text-warning">
+            <div className="font-medium text-[14px]">Insufficient balance</div>
+            <p className="text-[14px] text-primary">
+              You will need more {feeToken?.symbol} to continue.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {(() => {
+              if (prepareCalls.isPending)
+                return (
+                  <div className="space-y-2 rounded-lg bg-surface p-3">
+                    <div className="flex size-[24px] w-full items-center justify-center">
+                      <Spinner className="text-secondary" />
+                    </div>
                   </div>
-                  <p className="text-[14px] text-primary">
-                    You will need more {feeToken?.symbol} to continue.
-                  </p>
-                </div>
-              )
-            }
+                )
 
-            if (simulate.isPending || prepareCalls.isPending)
-              return (
-                <div className="space-y-2 rounded-lg bg-surface p-3">
-                  <div className="flex size-[24px] w-full items-center justify-center">
-                    <Spinner className="text-secondary" />
+              if (prepareCalls.isError)
+                return (
+                  <div className="rounded-lg bg-warningTint px-3 py-2 text-warning">
+                    <div className="font-medium text-[14px]">Error</div>
+                    <div className="space-y-2 text-[14px] text-primary">
+                      <p>
+                        An error occurred while simulating the action. Proceed
+                        with caution.
+                      </p>
+                      <p>
+                        Contact{' '}
+                        <span className="font-medium">{origin?.hostname}</span>{' '}
+                        for more information.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )
+                )
+            })()}
 
-            if (simulate.isError)
-              return (
-                <div className="rounded-lg bg-warningTint px-3 py-2 text-warning">
-                  <div className="font-medium text-[14px]">Error</div>
-                  <div className="space-y-2 text-[14px] text-primary">
-                    <p>
-                      An error occurred while simulating the action. Proceed
-                      with caution.
-                    </p>
-                    <p>
-                      Contact{' '}
-                      <span className="font-medium">{origin?.hostname}</span>{' '}
-                      for more information.
-                    </p>
-                  </div>
-                </div>
-              )
-          })()}
+            {prepareCalls.isFetched && (
+              <div className="space-y-3 rounded-lg bg-surface p-3">
+                {balances.length > 0 && !hasInsufficientBalance && (
+                  <>
+                    <div className="space-y-2">
+                      {balances.map((balance) => {
+                        const { token, value } = balance
+                        if (value.diff === BigInt(0)) return null
 
-          {simulate.isFetched && prepareCalls.isFetched && (
-            <div className="space-y-3 rounded-lg bg-surface p-3">
-              {balances.length > 0 && !hasInsufficientBalance && (
-                <>
-                  <div className="space-y-2">
-                    {balances.map((balance) => {
-                      const { token, value } = balance
-                      if (value.diff === BigInt(0)) return null
+                        const { decimals, symbol } = token
 
-                      const { decimals, symbol } = token
+                        const receiving = value.diff > BigInt(0)
+                        const formatted = ValueFormatter.format(
+                          value.diff,
+                          decimals,
+                        )
 
-                      const receiving = value.diff > BigInt(0)
-                      const formatted = ValueFormatter.format(
-                        value.diff,
-                        decimals,
-                      )
+                        const Icon = receiving ? ArrowDownLeft : ArrowUpRight
 
-                      const Icon = receiving ? ArrowDownLeft : ArrowUpRight
-
-                      return (
-                        <div
-                          className="flex gap-2 font-medium"
-                          key={token.address}
-                        >
+                        return (
                           <div
-                            className={cx(
-                              'flex size-[24px] items-center justify-center rounded-full',
-                              {
-                                'bg-destructiveTint': !receiving,
-                                'bg-successTint': receiving,
-                              },
-                            )}
+                            className="flex gap-2 font-medium"
+                            key={token.address}
                           >
-                            <Icon
-                              className={cx('size-4 text-current', {
-                                'text-destructive': !receiving,
-                                'text-success': receiving,
-                              })}
-                            />
-                          </div>
-                          <div>
-                            {receiving ? 'Receive' : 'Send'}{' '}
-                            <span
-                              className={
-                                receiving ? 'text-success' : 'text-destructive'
-                              }
+                            <div
+                              className={cx(
+                                'flex size-[24px] items-center justify-center rounded-full',
+                                {
+                                  'bg-destructiveTint': !receiving,
+                                  'bg-successTint': receiving,
+                                },
+                              )}
                             >
-                              {formatted}
-                            </span>{' '}
-                            {symbol}
+                              <Icon
+                                className={cx('size-4 text-current', {
+                                  'text-destructive': !receiving,
+                                  'text-success': receiving,
+                                })}
+                              />
+                            </div>
+                            <div>
+                              {receiving ? 'Receive' : 'Send'}{' '}
+                              <span
+                                className={
+                                  receiving
+                                    ? 'text-success'
+                                    : 'text-destructive'
+                                }
+                              >
+                                {formatted}
+                              </span>{' '}
+                              {symbol}
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  <div className="h-[1px] w-full bg-gray6" />
-                </>
-              )}
-
-              <div className="space-y-1">
-                <div
-                  className={cx(
-                    'flex h-[32px] justify-between text-[14px] leading-4',
-                    {
-                      'h-[inherit] leading-[inherit]':
-                        prepareCalls.isFetched && (fiatFee.isFetched || !quote),
-                    },
-                  )}
-                >
-                  <span className="text-[14px] text-secondary">
-                    Fees (est.)
-                  </span>
-                  <div className="text-right">
-                    {prepareCalls.isFetched && (fiatFee.isFetched || !quote) ? (
-                      <>
-                        <div className="font-medium leading-4">
-                          {fiatFee?.data?.display ?? 'Unknown'}
-                        </div>
-                        {tokenFee && (
-                          <div className="leading-4">
-                            <span className="text-secondary text-xs">
-                              {tokenFee.display}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <span className="font-medium text-secondary">
-                        Loading...
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex justify-between text-[14px]">
-                  <span className="text-[14px] text-secondary">
-                    Duration (est.)
-                  </span>
-                  <span className="font-medium">2 seconds</span>
-                </div>
-
-                {chain?.name && (
-                  <div className="flex justify-between text-[14px]">
-                    <span className="text-[14px] text-secondary">Network</span>
-                    <span className="font-medium">{chain?.name}</span>
-                  </div>
+                        )
+                      })}
+                    </div>
+                    <div className="h-[1px] w-full bg-gray6" />
+                  </>
                 )}
+
+                <div className="space-y-1">
+                  <div
+                    className={cx(
+                      'flex h-[32px] justify-between text-[14px] leading-4',
+                      {
+                        'h-[inherit] leading-[inherit]':
+                          prepareCalls.isFetched &&
+                          (fiatFee.isFetched || !quote),
+                      },
+                    )}
+                  >
+                    <span className="text-[14px] text-secondary">
+                      Fees (est.)
+                    </span>
+                    <div className="text-right">
+                      {prepareCalls.isFetched &&
+                      (fiatFee.isFetched || !quote) ? (
+                        <>
+                          <div className="font-medium leading-4">
+                            {fiatFee?.data?.display ?? 'Unknown'}
+                          </div>
+                          {tokenFee && (
+                            <div className="leading-4">
+                              <span className="text-secondary text-xs">
+                                {tokenFee.display}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="font-medium text-secondary">
+                          Loading...
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between text-[14px]">
+                    <span className="text-[14px] text-secondary">
+                      Duration (est.)
+                    </span>
+                    <span className="font-medium">2 seconds</span>
+                  </div>
+
+                  {chain?.name && (
+                    <div className="flex justify-between text-[14px]">
+                      <span className="text-[14px] text-secondary">
+                        Network
+                      </span>
+                      <span className="font-medium">{chain?.name}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </Layout.Content>
 
       <Layout.Footer>
@@ -307,9 +309,9 @@ export function ActionRequest(props: ActionRequest.Props) {
                   className="flex-grow"
                   onClick={onReject}
                   type="button"
-                  variant="destructive"
+                  variant="default"
                 >
-                  Deny
+                  Cancel
                 </Button>
 
                 <Button
