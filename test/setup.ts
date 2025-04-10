@@ -1,4 +1,3 @@
-import { setTimeout } from 'node:timers/promises'
 import { afterAll, beforeAll, vi } from 'vitest'
 
 import * as Chains from '../src/core/Chains.js'
