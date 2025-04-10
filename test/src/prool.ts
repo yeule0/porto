@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process'
+import { setTimeout } from 'node:timers/promises'
 import { defineInstance, toArgs } from 'prool'
 import { execa } from 'prool/processes'
 
@@ -88,6 +89,8 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
       return await process.start(($) => $`docker run ${args_}`, {
         ...options,
         resolver({ process, resolve, reject }) {
+          // TODO: remove once relay has feedback on startup.
+          setTimeout(3_000).then(resolve)
           process.stdout.on('data', (data) => {
             const message = data.toString()
             if (message.includes('Started relay service')) resolve()

@@ -23,12 +23,9 @@ beforeAll(async () => {
     }),
   )
   await Promise.all(
-    Object.values(Relay.instances).map(async (instance) => {
-      await fetch(`${instance.rpcUrl}/start`)
-      // wait for relay to sync token prices
-      // TODO: maybe relay should account for this before reporting as started?
-      await setTimeout(1_000)
-    }),
+    Object.values(Relay.instances).map((instance) =>
+      fetch(`${instance.rpcUrl}/start`),
+    ),
   )
 })
 
