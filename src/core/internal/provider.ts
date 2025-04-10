@@ -646,25 +646,25 @@ export function from<
               return { accounts: [account] }
             }
             const account = state.accounts[0]
-            const key = (() => {
-              if (selectAccount) return undefined
+            const { credentialId, keyId } = (() => {
+              if (capabilities?.keyId && capabilities.credentialId)
+                return {
+                  credentialId: capabilities.credentialId,
+                  keyId: capabilities.keyId,
+                }
+              if (selectAccount)
+                return { credentialId: undefined, keyId: undefined }
               for (const key of account?.keys ?? []) {
-                if (
-                  key.expiry > 0 &&
-                  key.expiry < BigInt(Math.floor(Date.now() / 1000))
-                )
-                  continue
-                if (!key.privateKey) continue
-                return key
+                if (key.type === 'webauthn-p256' && key.role === 'admin')
+                  return {
+                    credentialId:
+                      (key as any).credentialId ??
+                      key.privateKey?.credential?.id,
+                    keyId: key.id,
+                  }
               }
-              return undefined
+              return { credentialId: undefined, keyId: undefined }
             })()
-            const credentialId =
-              capabilities?.credentialId ??
-              (key?.type === 'webauthn-p256'
-                ? key?.privateKey?.credential?.id
-                : undefined)
-            const keyId = capabilities?.keyId ?? key?.id
             const loadAccountsParams = {
               internal,
               permissions,
