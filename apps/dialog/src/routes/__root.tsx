@@ -21,8 +21,11 @@ function RouteComponent() {
 
   const account = useAccount()
   const mode = Dialog.useStore((state) => state.mode)
-  const hostname = Dialog.useStore((state) => state.referrer?.origin.hostname)
-  const icon = Dialog.useStore((state) => state.referrer?.icon)
+  const { hostname, icon, url } = Dialog.useStore((state) => ({
+    hostname: state.referrer?.origin.hostname.split('.').slice(-3).join('.'),
+    icon: state.referrer?.icon,
+    url: state.referrer?.origin.toString(),
+  }))
   const request = Hooks.useRequest(porto)
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
@@ -104,7 +107,10 @@ function RouteComponent() {
                 <LucideGlobe className="size-3.5 text-primary" />
               )}
             </div>
-            <div className="font-normal text-[14px] text-secondary leading-[22px]">
+            <div
+              className="font-normal text-[14px] text-secondary leading-[22px]"
+              title={url}
+            >
               {hostname}
             </div>
           </div>
