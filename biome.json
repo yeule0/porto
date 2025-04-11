@@ -22,7 +22,7 @@
   "files": {
     "includes": [
       "**",
-      "!contracts/lib/**",
+      "!contracts/**",
       "!coverage/**",
       "!dist/**",
       "!extension/.output/**",
