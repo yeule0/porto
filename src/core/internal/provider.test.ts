@@ -600,6 +600,78 @@ describe.each([
     })
   })
 
+  describe('experimental_getAccountVersion', () => {
+    test('default', async () => {
+      const { porto } = getPorto()
+
+      await porto.provider.request({
+        method: 'experimental_createAccount',
+      })
+
+      const version = await porto.provider.request({
+        method: 'experimental_getAccountVersion',
+      })
+      expect(version).toMatchInlineSnapshot(`
+        {
+          "current": "0.0.2",
+          "latest": "0.0.2",
+        }
+      `)
+    })
+
+    test('behavior: provided address', async () => {
+      const { porto } = getPorto()
+
+      const { address } = await porto.provider.request({
+        method: 'experimental_createAccount',
+      })
+
+      const version = await porto.provider.request({
+        method: 'experimental_getAccountVersion',
+        params: [{ address }],
+      })
+      expect(version).toMatchInlineSnapshot(`
+        {
+          "current": "0.0.2",
+          "latest": "0.0.2",
+        }
+      `)
+    })
+
+    test('behavior: not connected', async () => {
+      const { porto } = getPorto()
+
+      await expect(
+        porto.provider.request({
+          method: 'experimental_getAccountVersion',
+        }),
+      ).rejects.toMatchInlineSnapshot(
+        `[Provider.DisconnectedError: The provider is disconnected from all chains.]`,
+      )
+    })
+
+    test('behavior: account not found', async () => {
+      const { porto } = getPorto()
+
+      await porto.provider.request({
+        method: 'experimental_createAccount',
+      })
+
+      await expect(
+        porto.provider.request({
+          method: 'experimental_getAccountVersion',
+          params: [{ address: '0x0000000000000000000000000000000000000000' }],
+        }),
+      ).rejects.toMatchInlineSnapshot(
+        `[Provider.UnauthorizedError: The requested method and/or account has not been authorized by the user.]`,
+      )
+    })
+
+    test.todo('behavior: outdated account')
+
+    test.todo('behavior: accounts on different versions')
+  })
+
   describe('personal_sign', () => {
     // TODO(relay): counterfactual signature verification
     test.skipIf(type === 'relay')('default', async () => {
