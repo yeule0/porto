@@ -1,6 +1,5 @@
 import { Button } from '@porto/apps/components'
-import { type RpcSchema } from 'ox'
-import type { RpcSchema as porto_RpcSchema } from 'porto'
+import { Hex } from 'ox'
 import { Hooks } from 'porto/remote'
 
 import { porto } from '~/lib/Porto'
@@ -9,9 +8,9 @@ import { StringFormatter } from '~/utils'
 import WalletIcon from '~icons/lucide/wallet-cards'
 
 export function GrantAdmin(props: GrantAdmin.Props) {
-  const { address, key, loading, onApprove, onReject } = props
+  const { authorizeKey, loading, onApprove, onReject } = props
 
-  const account = Hooks.useAccount(porto, { address })
+  const account = Hooks.useAccount(porto)
 
   return (
     <Layout loading={loading} loadingTitle="Authorizing...">
@@ -34,7 +33,7 @@ export function GrantAdmin(props: GrantAdmin.Props) {
                 <WalletIcon className="h-4 w-4 text-jade9" />
               </div>
               <span className="font-medium font-mono text-base">
-                {StringFormatter.truncate(key.publicKey)}
+                {StringFormatter.truncate(authorizeKey.publicKey)}
               </span>
             </div>
           )}
@@ -66,10 +65,10 @@ export function GrantAdmin(props: GrantAdmin.Props) {
 }
 
 export declare namespace GrantAdmin {
-  type Props = RpcSchema.ExtractParams<
-    porto_RpcSchema.Schema,
-    'experimental_grantAdmin'
-  >['0'] & {
+  type Props = {
+    authorizeKey: {
+      publicKey: Hex.Hex
+    }
     loading: boolean
     onApprove: () => void
     onReject: () => void

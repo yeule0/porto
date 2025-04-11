@@ -28,9 +28,7 @@ function RouteComponent() {
   return (
     <div>
       <GrantAdmin
-        {...parameters}
-        address={undefined}
-        key={parameters.key as never}
+        authorizeKey={parameters.key}
         loading={respond.isPending}
         onApprove={() => respond.mutate()}
         onReject={() => Actions.reject(porto, request)}
