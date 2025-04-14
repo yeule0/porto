@@ -122,7 +122,7 @@ export function relay(config: relay.Parameters = {}) {
             blockNumber: Hex.fromNumber(receipt.blockNumber),
             gasUsed: Hex.fromNumber(receipt.gasUsed),
             logs: receipt.logs,
-            status: receipt.status.status,
+            status: receipt.status,
             transactionHash: receipt.transactionHash,
           })),
           status: result.status,
