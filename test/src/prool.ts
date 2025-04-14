@@ -36,7 +36,7 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
 
   const host = 'localhost'
   const name = 'relay'
-  const process = execa({ name })
+  const process_ = execa({ name })
   let port = args.http?.port ?? 9119
 
   const containerName = crypto.randomUUID()
@@ -45,7 +45,7 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
     _internal: {
       args,
       get process() {
-        return process._internal.process
+        return process_._internal.process
       },
     },
     host,
@@ -55,6 +55,8 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
       port = port_
 
       const args_ = [
+        '-e',
+        `GECKO_API=${process.env.VITE_GECKO_API}`,
         '--name',
         containerName,
         '--network',
@@ -86,7 +88,7 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
         ...feeTokens.flatMap((feeToken) => ['--fee-token', feeToken]),
       ]
 
-      return await process.start(($) => $`docker run ${args_}`, {
+      return await process_.start(($) => $`docker run ${args_}`, {
         ...options,
         resolver({ process, resolve, reject }) {
           // TODO: remove once relay has feedback on startup.
