@@ -20,8 +20,8 @@ const config = {
     }),
     transports: {
       [Chains.odysseyTestnet.id]: {
-        default: http('http://127.0.0.1:8545/1'),
-        relay: http('http://127.0.0.1:9119/1'),
+        default: http('http://127.0.0.1:8545'),
+        relay: http('http://127.0.0.1:9119'),
       },
     },
   },

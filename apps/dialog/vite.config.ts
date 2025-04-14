@@ -16,12 +16,7 @@ export default defineConfig({
   },
   plugins: [
     Mkcert({
-      force: true,
-      hosts: [
-        'localhost',
-        'stg.localhost',
-        process.env.ANVIL === 'true' ? 'anvil.localhost' : '',
-      ],
+      hosts: ['localhost', 'stg.localhost', 'anvil.localhost'],
     }),
     Tailwindcss(),
     React(),
