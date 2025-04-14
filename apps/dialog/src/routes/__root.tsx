@@ -129,7 +129,7 @@ function RouteComponent() {
         <div
           ref={contentRef}
           {...{ [dataMode]: '' }} // for conditional styling based on dialog mode ("in-data-iframe:..." or "in-data-popup:...")
-          className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-primary bg-primary pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border"
+          className="flex not-data-popup-standalone:h-fit flex-col overflow-hidden border-primary bg-primary pt-titlebar data-popup-standalone:min-h-dvh data-iframe:rounded-[14px] data-iframe:border data-iframe:max-sm:rounded-b-none"
         >
           <div
             className="flex flex-grow *:w-full"
