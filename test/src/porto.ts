@@ -1,7 +1,6 @@
 import type { Address } from 'ox'
 import { Chains, Mode, Porto, Storage } from 'porto'
 import { custom, http, type Transport } from 'viem'
-
 import * as Porto_internal from '../../src/core/internal/porto.js'
 import * as Contracts from './_generated/contracts.js'
 import * as Anvil from './anvil.js'
@@ -63,12 +62,20 @@ export function getPorto(
                   ? Relay.instances.odyssey.rpcUrl
                   : 'https://relay-staging.ithaca.xyz',
                 {
-                  // async onFetchRequest(_, init) {
-                  //   console.log('request:', init.body)
-                  // },
-                  // async onFetchResponse(response) {
-                  //   console.log('response:', await response.clone().json())
-                  // },
+                  async onFetchRequest(_, init) {
+                    if (process.env.VITE_RELAY_LOGS !== 'true') return
+                    console.log(`curl \\
+  https://relay-staging.ithaca.xyz \\
+  -X POST \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify(JSON.parse(init.body as string))}'`)
+                  },
+                  async onFetchResponse(response) {
+                    if (process.env.VITE_RELAY_LOGS !== 'true') return
+                    console.log(
+                      '> ' + JSON.stringify(await response.clone().json()),
+                    )
+                  },
                 },
               )),
       },

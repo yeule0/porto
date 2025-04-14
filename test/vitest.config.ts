@@ -18,11 +18,11 @@ export default defineConfig(({ mode }) => {
       globalSetup: [join(__dirname, './globalSetup.ts')],
       include: [
         'src/**/*.test.ts',
-        ...(env.VITE_ANVIL === 'false' ? ['!src/**/*delegation.test.ts'] : []),
+        ...(env.VITE_LOCAL === 'false' ? ['!src/**/*delegation.test.ts'] : []),
       ],
       passWithNoTests: true,
       poolOptions:
-        env.VITE_ANVIL === 'false'
+        env.VITE_LOCAL === 'false'
           ? {
               forks: {
                 maxForks: 1,

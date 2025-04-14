@@ -23,7 +23,7 @@ import {
 import * as Porto_internal from './porto.js'
 
 describe.each([
-  ['contract', process.env.VITE_ANVIL !== 'false' ? Mode.contract : undefined],
+  ['contract', process.env.VITE_LOCAL !== 'false' ? Mode.contract : undefined],
   ['relay', Mode.relay],
 ] as const)('%s', (type, mode) => {
   if (!mode) return
