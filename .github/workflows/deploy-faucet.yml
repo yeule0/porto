@@ -1,9 +1,14 @@
 name: Deploy Faucet
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      DRIP_ADDRESS:
+        required: false
+      DRIP_PRIVATE_KEY:
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,7 +34,18 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
 
+      - name: 🔸 Cloudflare Workers - Deploy (with inputs)
+        if: ${{ inputs.DRIP_PRIVATE_KEY != '' }} && ${{ inputs.DRIP_ADDRESS != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          pnpm --filter faucet run deploy --var 'DRIP_ADDRESS:${{ inputs.DRIP_ADDRESS }}'
+
+          echo ${{ inputs.DRIP_PRIVATE_KEY }} | pnpm dlx wrangler@latest secret put DRIP_PRIVATE_KEY
+
       - name: 🔸 Cloudflare Workers - Deploy
+        if: ${{ inputs.DRIP_PRIVATE_KEY == '' }} || ${{ inputs.DRIP_ADDRESS == '' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
