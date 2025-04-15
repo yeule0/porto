@@ -3,8 +3,10 @@ import { Chains, Mode, Porto } from 'porto'
 import { createConfig, createStorage, http } from 'wagmi'
 
 if (typeof window !== 'undefined') {
+  const config = PortoConfig.getConfig()
   const host = PortoConfig.getDialogHost()
   Porto.create({
+    ...config,
     mode: Mode.dialog({
       host,
     }),
