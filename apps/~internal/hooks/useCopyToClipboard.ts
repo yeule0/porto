@@ -1,11 +1,11 @@
 import * as React from 'react'
 
-export function useCopyToClipboard(props: CopyToClipboard.Props) {
+export function useCopyToClipboard(props: useCopyToClipboard.Props) {
   const { timeout = 1_500 } = props
 
   const [isCopied, setIsCopied] = React.useState(false)
 
-  const copyToClipboard: CopyToClipboard.CopyFn = React.useCallback(
+  const copyToClipboard: useCopyToClipboard.CopyFn = React.useCallback(
     async (text) => {
       if (!navigator?.clipboard) {
         console.warn('Clipboard API not supported')
@@ -28,7 +28,7 @@ export function useCopyToClipboard(props: CopyToClipboard.Props) {
   return [isCopied, copyToClipboard] as const
 }
 
-export declare namespace CopyToClipboard {
+export declare namespace useCopyToClipboard {
   type CopyFn = (text: string) => Promise<boolean>
   type Props = {
     timeout?: number

@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ariakit/react": "0.4.17",
+    "@ariakit/react": "catalog:",
     "@porto/apps": "workspace:*",
     "@tanstack/query-sync-storage-persister": "catalog:",
     "@tanstack/react-query": "catalog:",

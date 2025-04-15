@@ -4,6 +4,8 @@ packages:
   - "src"
 
 catalog:
+  "@ariakit/react": "^0.4.17"
+  "@ariakit/tailwind": "^0.1.5"
   "@iconify/json": "^2.2.318"
   "@sentry/react": "^9"
   "@sentry/vite-plugin": "^3"
