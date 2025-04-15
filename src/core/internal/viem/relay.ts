@@ -587,13 +587,19 @@ export function parseExecutionError<const calls extends readonly unknown[]>(
       (e) =>
         'data' in (e as BaseError) ||
         Boolean((e as BaseError).details?.match(/(0x[0-9a-f]{8})/)),
-    )
+    ) as
+      | (BaseError & { code?: number; data?: Hex.Hex | Error | undefined })
+      | undefined
     if (!cause) return undefined
 
     let data: Hex.Hex | undefined
     if (cause instanceof BaseError) {
-      const [, match] = cause.details?.match(/(0x[0-9a-f]{8})/) || []
-      if (match) data = match as Hex.Hex
+      if (cause.code === 3 && typeof cause.data === 'string')
+        data = Hex.slice(cause.data, 0, 4)
+      else {
+        const [, match] = cause.details?.match(/(0x[0-9a-f]{8})/) || []
+        if (match) data = match as Hex.Hex
+      }
     }
 
     if (!data) {
