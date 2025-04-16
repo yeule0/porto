@@ -142,8 +142,10 @@ export async function setBalance(
       ],
       feeToken: exp1Address,
     })
-    await waitForCallsStatus(client, {
+    const { status } = await waitForCallsStatus(client, {
       id,
     })
+    if (status === 'failure')
+      throw new Error(`failed to fund account. bundle id: ${id}`)
   }
 }
