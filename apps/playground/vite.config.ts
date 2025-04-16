@@ -56,6 +56,7 @@ export default defineConfig({
         logger.info('Starting Relay...')
 
         await relay({
+          delegationProxy: chain.contracts.delegation.address,
           endpoint: anvilConfig.rpcUrl,
           entrypoint: chain.contracts.entryPoint.address,
           feeTokens: [
