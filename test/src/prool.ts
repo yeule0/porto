@@ -6,6 +6,7 @@ import { execa } from 'prool/processes'
 type RelayParameters = {
   endpoint: string
   entrypoint: string
+  delegationProxy: string
   feeTokens: string[]
   http?: {
     port?: number | undefined
