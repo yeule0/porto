@@ -12,6 +12,7 @@ import { waitForCallsStatus } from 'viem/experimental'
 import type * as Porto from '../../Porto.js'
 import type * as Storage from '../../Storage.js'
 import * as Account from '../account.js'
+import * as Delegation from '../delegation.js'
 import * as HumanId from '../humanId.js'
 import * as Key from '../key.js'
 import * as Mode from '../mode.js'
@@ -112,6 +113,24 @@ export function relay(parameters: relay.Parameters = {}) {
             keys: [...account.keys, ...(authorizeKey ? [authorizeKey] : [])],
           }),
         }
+      },
+
+      async getAccountVersion(parameters) {
+        const { address, internal } = parameters
+        const { client } = internal
+
+        const { delegationProxy } = await Relay.health(client)
+        const [{ version: current }, { version: latest }] = await Promise.all([
+          Delegation.getEip712Domain(client, {
+            account: address,
+          }),
+          Delegation.getEip712Domain(client, {
+            account: delegationProxy,
+          }),
+        ])
+        if (!current || !latest) throw new Error('version not found.')
+
+        return { current, latest }
       },
 
       async getCallsStatus(parameters) {
