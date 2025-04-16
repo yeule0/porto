@@ -265,7 +265,7 @@ export namespace ActionRequest {
 
                         return (
                           <div
-                            className="flex gap-2 font-medium"
+                            className="flex items-center gap-2 font-medium"
                             key={token.address}
                           >
                             <div
