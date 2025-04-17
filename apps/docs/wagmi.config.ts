@@ -14,13 +14,14 @@ if (typeof window !== 'undefined') {
 }
 
 export const config = createConfig({
-  chains: [Chains.odysseyTestnet, Chains.odysseyDevnet],
+  chains: [Chains.odysseyTestnet, Chains.odysseyDevnet, Chains.baseSepolia],
   storage: createStorage({
     storage: typeof window !== 'undefined' ? localStorage : undefined,
   }),
   transports: {
     [Chains.odysseyTestnet.id]: http(),
     [Chains.odysseyDevnet.id]: http(),
+    [Chains.baseSepolia.id]: http(),
   },
 })
 
