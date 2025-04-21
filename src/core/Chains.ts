@@ -27,6 +27,11 @@ export const baseSepolia = /*#__PURE__*/ define({
       address: '0xf2595965b86e647d9b666087d785d54094b0a0c1',
     },
   },
+  rpcUrls: {
+    default: {
+      http: ['https://base-sepolia.ithaca.xyz'],
+    },
+  },
 })
 
 export const odysseyDevnet = /*#__PURE__*/ define({
