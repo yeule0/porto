@@ -22,11 +22,17 @@ function RouteComponent() {
 
   const account = useAccount()
   const mode = Dialog.useStore((state) => state.mode)
-  const { hostname, icon, url } = Dialog.useStore((state) => ({
-    hostname: state.referrer?.origin.hostname.split('.').slice(-3).join('.'),
-    icon: state.referrer?.icon,
-    url: state.referrer?.origin.toString(),
-  }))
+  const { domain, subdomain, icon, url } = Dialog.useStore((state) => {
+    const hostnameParts = state.referrer?.origin.hostname.split('.').slice(-3)
+    const domain = hostnameParts?.slice(-2).join('.')
+    const subdomain = hostnameParts?.at(-3)
+    return {
+      domain,
+      icon: state.referrer?.icon,
+      subdomain,
+      url: state.referrer?.origin.toString(),
+    }
+  })
   const request = Hooks.useRequest(porto)
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
@@ -100,28 +106,33 @@ function RouteComponent() {
           data-element="dialog-header"
           ref={titlebarRef}
           {...{ [dataMode]: '' }}
-          className="fixed flex h-navbar w-full items-center justify-between in-data-iframe:rounded-t-[14px] border border-primary bg-secondary px-3 pt-2 pb-1.5"
+          className="fixed flex h-navbar w-full items-center justify-between gap-2 in-data-iframe:rounded-t-[14px] border border-primary bg-secondary px-3 pt-2 pb-1.5"
         >
-          <div className="flex items-center gap-2">
-            <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
-              {icon ? (
-                <div className="p-[3px]">
-                  <img
-                    alt={hostname}
-                    className="size-full text-transparent"
-                    src={icon}
-                  />
-                </div>
-              ) : (
-                <LucideGlobe className="size-3.5 text-primary" />
-              )}
-            </div>
-            <div
-              className="font-normal text-[14px] text-secondary leading-[22px]"
-              title={url}
-            >
-              {hostname}
-            </div>
+          <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
+            {icon ? (
+              <div className="p-[3px]">
+                <img
+                  alt={url}
+                  className="size-full text-transparent"
+                  src={icon}
+                />
+              </div>
+            ) : (
+              <LucideGlobe className="size-3.5 text-primary" />
+            )}
+          </div>
+
+          <div
+            className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary leading-[22px]"
+            title={url}
+          >
+            {subdomain && (
+              <>
+                <div className="truncate">{subdomain}</div>
+                <div>.</div>
+              </>
+            )}
+            <div>{domain}</div>
           </div>
 
           {mode !== 'inline-iframe' && (
