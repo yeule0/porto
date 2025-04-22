@@ -72,8 +72,8 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
         'localhost:host-gateway',
         '-p',
         `${port}:${port}`,
-        '--mount',
-        `type=bind,source=${resolve(import.meta.dirname, 'registry.toml')},target=/app/registry.toml`,
+        '-v',
+        `${resolve(import.meta.dirname, 'registry.toml')}:/app/registry.toml`,
         'ghcr.io/ithacaxyz/relay:latest',
         ...toArgs({
           ...rest,
