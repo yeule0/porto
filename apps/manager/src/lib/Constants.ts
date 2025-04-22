@@ -2,7 +2,6 @@ import { PortoConfig } from '@porto/apps'
 import { exp1Address, exp2Address } from '@porto/apps/contracts'
 import type { Address } from 'ox'
 import { Chains } from 'porto'
-import { baseSepolia, odysseyTestnet } from 'viem/chains'
 
 export const CORS_DESTROYER_URL = 'https://cors.porto.workers.dev'
 
@@ -29,6 +28,31 @@ export const defaultAssets: Record<
     price?: number
   }>
 > = {
+  [Chains.anvil.id]: [
+    {
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 18,
+      logo: '/icons/eth.svg',
+      name: 'Ethereum',
+      symbol: 'ETH',
+    },
+    {
+      address: exp1Address[Chains.anvil.id],
+      decimals: 18,
+      logo: '/icons/exp.svg',
+      name: 'Experiment',
+      price: 1,
+      symbol: 'EXP',
+    },
+    {
+      address: exp2Address[Chains.anvil.id],
+      decimals: 18,
+      logo: '/icons/exp2.svg',
+      name: 'Experiment 2',
+      price: 100,
+      symbol: 'EXP2',
+    },
+  ],
   [Chains.odysseyDevnet.id]: [
     {
       address: '0x0000000000000000000000000000000000000000',
@@ -54,7 +78,7 @@ export const defaultAssets: Record<
       symbol: 'EXP2',
     },
   ],
-  [odysseyTestnet.id]: [
+  [Chains.odysseyTestnet.id]: [
     {
       address: '0x0000000000000000000000000000000000000000',
       decimals: 18,
@@ -63,7 +87,7 @@ export const defaultAssets: Record<
       symbol: 'ETH',
     },
     {
-      address: exp1Address[odysseyTestnet.id],
+      address: exp1Address[Chains.odysseyTestnet.id],
       decimals: 18,
       logo: '/icons/exp.svg',
       name: 'Experiment',
@@ -71,7 +95,7 @@ export const defaultAssets: Record<
       symbol: 'EXP',
     },
     {
-      address: exp2Address[odysseyTestnet.id],
+      address: exp2Address[Chains.odysseyTestnet.id],
       decimals: 18,
       logo: '/icons/exp2.svg',
       name: 'Experiment 2',
@@ -79,7 +103,7 @@ export const defaultAssets: Record<
       symbol: 'EXP2',
     },
   ],
-  [baseSepolia.id]: [
+  [Chains.baseSepolia.id]: [
     {
       address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
       decimals: 6,
