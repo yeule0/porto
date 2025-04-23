@@ -86,7 +86,7 @@ export function create(
             } as unknown as State
           },
           storage: config.storage,
-          version: 1,
+          version: 2,
         },
       ),
     ),
