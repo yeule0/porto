@@ -17,12 +17,15 @@ const config = {
     },
   },
   prod: {
-    chains: [Chains.odysseyTestnet],
-    mode: Mode.contract(),
+    chains: [Chains.baseSepolia],
+    mode: Mode.relay(),
     transports: {
-      [Chains.odysseyTestnet.id]: {
+      [Chains.baseSepolia.id]: {
         default: http(),
-        relay: http('https://relay.ithaca.xyz', Sentry.httpTransportOptions()),
+        relay: http(
+          'https://relay-testnet.ithaca.xyz',
+          Sentry.httpTransportOptions(),
+        ),
       },
     },
   },
