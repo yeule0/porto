@@ -8,7 +8,6 @@ import * as Rpc from 'porto/core/internal/typebox/request'
 import { Hooks, Porto as Porto_ } from 'porto/remote'
 import * as React from 'react'
 import { Call } from 'viem'
-
 import { CheckBalance } from '~/components/CheckBalance'
 import * as Dialog from '~/lib/Dialog'
 import * as FeeToken from '~/lib/FeeToken'
@@ -19,6 +18,7 @@ import { Layout } from '~/routes/-components/Layout'
 import { ValueFormatter } from '~/utils'
 import ArrowDownLeft from '~icons/lucide/arrow-down-left'
 import ArrowUpRight from '~icons/lucide/arrow-up-right'
+import ChevronDown from '~icons/lucide/chevron-down'
 import TriangleAlert from '~icons/lucide/triangle-alert'
 import Star from '~icons/ph/star-four-bold'
 
@@ -38,6 +38,10 @@ export function ActionRequest(props: ActionRequest.Props) {
 
   const assetDiff = prepareCallsQuery.data?.capabilities.assetDiff
   const quote = prepareCallsQuery.data?.capabilities.quote
+  const [viewQuote, setViewQuote] = React.useState(
+    // default to `true` if no asset diff, otherwise false
+    Boolean(quote && !(assetDiff && address)),
+  )
 
   return (
     <CheckBalance
@@ -57,9 +61,16 @@ export function ActionRequest(props: ActionRequest.Props) {
         </Layout.Header>
 
         <Layout.Content>
-          <div className="space-y-3">
+          <div
+            className={cx('space-y-3 rounded-lg px-3 transition-colors', {
+              'bg-surface py-3':
+                prepareCallsQuery.isPending || prepareCallsQuery.isSuccess,
+              'bg-warningTint py-2 text-warning': prepareCallsQuery.isError,
+              'h-19.5': prepareCallsQuery.isPending,
+            })}
+          >
             {prepareCallsQuery.isPending && (
-              <div className="space-y-2 rounded-lg bg-surface p-3">
+              <div className="flex h-full w-full items-center justify-center">
                 <div className="flex size-[24px] w-full items-center justify-center">
                   <Spinner className="text-secondary" />
                 </div>
@@ -67,7 +78,7 @@ export function ActionRequest(props: ActionRequest.Props) {
             )}
 
             {prepareCallsQuery.isError && (
-              <div className="rounded-lg bg-warningTint px-3 py-2 text-warning">
+              <>
                 <div className="font-medium text-[14px]">Error</div>
                 <div className="space-y-2 text-[14px] text-primary">
                   <p>
@@ -80,20 +91,37 @@ export function ActionRequest(props: ActionRequest.Props) {
                     more information.
                   </p>
                 </div>
-              </div>
+              </>
             )}
 
             {prepareCallsQuery.isSuccess && (
-              <div className="space-y-3 rounded-lg bg-surface p-3">
+              <>
                 {assetDiff && address && (
                   <ActionRequest.AssetDiff
                     address={address}
                     assetDiff={assetDiff}
+                    viewQuote={viewQuote}
                   />
                 )}
 
-                {quote && <ActionRequest.Details quote={quote} />}
-              </div>
+                {quote && (
+                  <>
+                    <div className={viewQuote ? undefined : 'hidden'}>
+                      <ActionRequest.Details quote={quote} />
+                    </div>
+                    {!viewQuote && (
+                      <button
+                        className="flex w-full justify-between text-[13px] text-secondary"
+                        onClick={() => setViewQuote(true)}
+                        type="button"
+                      >
+                        <span>More details</span>
+                        <ChevronDown className="size-4 text-secondary" />
+                      </button>
+                    )}
+                  </>
+                )}
+              </>
             )}
           </div>
         </Layout.Content>
@@ -165,7 +193,7 @@ export namespace ActionRequest {
   }
 
   export function AssetDiff(props: AssetDiff.Props) {
-    const { address } = props
+    const { address, viewQuote } = props
 
     const account = Hooks.useAccount(porto, { address })
 
@@ -206,14 +234,14 @@ export namespace ActionRequest {
                   className={cx(
                     'flex size-[24px] items-center justify-center rounded-full',
                     {
-                      'bg-destructiveTint': !receiving,
+                      'bg-gray5': !receiving,
                       'bg-successTint': receiving,
                     },
                   )}
                 >
                   <Icon
                     className={cx('size-4 text-current', {
-                      'text-destructive': !receiving,
+                      'text-secondary': !receiving,
                       'text-success': receiving,
                     })}
                   />
@@ -221,7 +249,7 @@ export namespace ActionRequest {
                 <div>
                   {receiving ? 'Receive' : 'Send'}{' '}
                   <span
-                    className={receiving ? 'text-success' : 'text-destructive'}
+                    className={receiving ? 'text-success' : 'text-secondary'}
                   >
                     {formatted}
                   </span>{' '}
@@ -231,7 +259,10 @@ export namespace ActionRequest {
             )
           })}
         </div>
-        {balances.length > 0 && <div className="h-[1px] w-full bg-gray6" />}
+
+        {viewQuote && balances.length > 0 && (
+          <div className="h-[1px] w-full bg-gray6" />
+        )}
       </>
     )
   }
@@ -242,6 +273,7 @@ export namespace ActionRequest {
       assetDiff: NonNullable<
         Rpc.wallet_prepareCalls.Response['capabilities']
       >['assetDiff']
+      viewQuote: boolean
     }
   }
   export function Details(props: Details.Props) {
@@ -253,42 +285,40 @@ export namespace ActionRequest {
     const tokenFee = quote?.fee
 
     return (
-      <div className="space-y-1">
-        <div
-          className={cx('flex h-[32px] justify-between text-[14px] leading-4', {
-            'h-[inherit] leading-[inherit]': fiatFee.isFetched || !quote,
-          })}
-        >
+      <div className="space-y-1.5">
+        <div className="flex h-5.5 items-center justify-between text-[14px]">
           <span className="text-[14px] text-secondary leading-4">
             Fees (est.)
           </span>
           <div className="text-right">
             {fiatFee.isFetched || !quote ? (
-              <>
+              <div className="flex items-center gap-2">
+                {tokenFee &&
+                  fiatFee?.data &&
+                  Number.parseInt(fiatFee.data.display) >= 0.01 && (
+                    <div className="flex h-5.5 items-center rounded-full border border-gray6 px-1.75">
+                      <span className="text-[11.5px] text-secondary">
+                        {tokenFee.display}
+                      </span>
+                    </div>
+                  )}
                 <div className="font-medium leading-4">
                   {fiatFee?.data?.display ?? 'Unknown'}
                 </div>
-                {tokenFee && (
-                  <div className="leading-4">
-                    <span className="text-secondary text-xs">
-                      {tokenFee.display}
-                    </span>
-                  </div>
-                )}
-              </>
+              </div>
             ) : (
               <span className="font-medium text-secondary">Loading...</span>
             )}
           </div>
         </div>
 
-        <div className="flex justify-between text-[14px]">
+        <div className="flex h-5.5 items-center justify-between text-[14px]">
           <span className="text-[14px] text-secondary">Duration (est.)</span>
           <span className="font-medium">2 seconds</span>
         </div>
 
         {chain?.name && (
-          <div className="flex justify-between text-[14px]">
+          <div className="flex h-5.5 items-center justify-between text-[14px]">
             <span className="text-[14px] text-secondary">Network</span>
             <span className="font-medium">{chain?.name}</span>
           </div>

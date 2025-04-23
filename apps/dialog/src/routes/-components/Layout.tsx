@@ -162,7 +162,10 @@ export namespace Layout {
             onClick={onClick}
             type="button"
           >
-            <div className="font-medium text-[14px] text-primary">
+            <div
+              className="font-medium text-[14px] text-primary"
+              title={address}
+            >
               {StringFormatter.truncate(address, { end: 6, start: 8 })}
             </div>
             {onClick && <ChevronDown className="size-4 text-secondary" />}
