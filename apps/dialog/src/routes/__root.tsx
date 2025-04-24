@@ -3,11 +3,13 @@ import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
 import { useAccount } from 'wagmi'
+
 import * as Dialog from '~/lib/Dialog'
 import { porto } from '~/lib/Porto'
 import LucideGlobe from '~icons/lucide/globe'
 import LucideX from '~icons/lucide/x'
 import { Layout } from './-components/Layout'
+import { UpdateAccount } from './-components/UpdateAccount'
 
 export const Route = createRootRoute({
   component: RouteComponent,
@@ -34,6 +36,9 @@ function RouteComponent() {
     }
   })
   const request = Hooks.useRequest(porto)
+  const search = Route.useSearch() as {
+    requireUpdatedAccount?: boolean | undefined
+  }
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const titlebarRef = React.useRef<HTMLDivElement | null>(null)
@@ -158,6 +163,10 @@ function RouteComponent() {
               <Layout loading loadingTitle="Loading...">
                 <div />
               </Layout>
+            ) : search.requireUpdatedAccount ? (
+              <UpdateAccount.CheckUpdate>
+                <Outlet />
+              </UpdateAccount.CheckUpdate>
             ) : (
               <Outlet />
             )}

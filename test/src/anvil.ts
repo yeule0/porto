@@ -15,6 +15,7 @@ import { deployContract, getTransactionReceipt } from 'viem/actions'
 
 import * as AccountRegistry from '../../src/core/internal/_generated/contracts/AccountRegistry.js'
 import * as Delegation from '../../src/core/internal/_generated/contracts/Delegation.js'
+import * as DelegationOld from '../../src/core/internal/_generated/contracts/DelegationOld.js'
 import * as EIP7702Proxy from '../../src/core/internal/_generated/contracts/EIP7702Proxy.js'
 import * as EntryPoint from '../../src/core/internal/_generated/contracts/EntryPoint.js'
 import {
@@ -96,6 +97,8 @@ export const accounts = [
   },
 ] as const
 
+export const delegation001Address = '0xed1db453c3156ff3155a97ad217b3087d5dc5f6e'
+
 export async function loadState(parameters: { rpcUrl: string }) {
   const { rpcUrl } = parameters
 
@@ -175,6 +178,28 @@ export async function loadState(parameters: { rpcUrl: string }) {
       hash,
     })
   }
+
+  // Deploy DelegationOld contract.
+  const hash = await deployContract(client, {
+    abi: DelegationOld.abi,
+    args: [entryPointAddress!],
+    bytecode: DelegationOld.code,
+    chain: null,
+  })
+  const { contractAddress } = await getTransactionReceipt(client, {
+    hash,
+  })
+
+  // Deploy EIP7702Proxy contract.
+  const hash_2 = await deployContract(client, {
+    abi: EIP7702Proxy.abi,
+    args: [contractAddress!, account.address],
+    bytecode: EIP7702Proxy.code,
+    chain: null,
+  })
+  await getTransactionReceipt(client, {
+    hash: hash_2,
+  })
 }
 
 /////////////////////////////////////////////////////////////////

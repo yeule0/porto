@@ -29,6 +29,13 @@ export const defaultConfig = {
         },
       },
       requireConnection: false,
+      requireUpdatedAccount: false,
+    },
+    {
+      method: 'experimental_getAccountVersion',
+      modes: {
+        headless: true,
+      },
     },
     {
       method: 'experimental_grantAdmin',
@@ -53,6 +60,10 @@ export const defaultConfig = {
       },
     },
     {
+      method: 'experimental_updateAccount',
+      requireUpdatedAccount: false,
+    },
+    {
       method: 'wallet_connect',
       modes: {
         dialog: true,
@@ -63,6 +74,7 @@ export const defaultConfig = {
           : undefined,
       },
       requireConnection: false,
+      requireUpdatedAccount: false,
     },
     {
       method: 'wallet_createAccount',
@@ -75,6 +87,7 @@ export const defaultConfig = {
           : undefined,
       },
       requireConnection: false,
+      requireUpdatedAccount: false,
     },
     {
       method: 'wallet_getCallsStatus',
@@ -184,21 +197,24 @@ export type Config<
 
 export type MethodPolicy = {
   method: string
-  modes: {
-    headless?:
-      | true
-      | {
-          sameOrigin?: boolean | undefined
-        }
-      | undefined
-    dialog?:
-      | true
-      | {
-          sameOrigin?: boolean | undefined
-        }
-      | undefined
-  }
+  modes?:
+    | {
+        headless?:
+          | true
+          | {
+              sameOrigin?: boolean | undefined
+            }
+          | undefined
+        dialog?:
+          | true
+          | {
+              sameOrigin?: boolean | undefined
+            }
+          | undefined
+      }
+    | undefined
   requireConnection?: boolean | undefined
+  requireUpdatedAccount?: boolean | undefined
 }
 export type MethodPolicies = readonly MethodPolicy[]
 
