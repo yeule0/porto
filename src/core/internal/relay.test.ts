@@ -1,7 +1,6 @@
 import { Hex, Value } from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { readContract } from 'viem/actions'
-import { waitForCallsStatus } from 'viem/experimental'
+import { readContract, waitForCallsStatus } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 import * as TestActions from '../../../test/src/actions.js'
 import {

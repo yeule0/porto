@@ -19,8 +19,8 @@ import {
   useChainId,
   useConnectors,
   useReadContract,
+  useWaitForCallsStatus,
 } from 'wagmi'
-import { useWaitForCallsStatus } from 'wagmi/experimental'
 import LucideCheck from '~icons/lucide/check'
 import LucideInfo from '~icons/lucide/info'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'

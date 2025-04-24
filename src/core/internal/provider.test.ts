@@ -11,8 +11,12 @@ import {
 } from 'ox'
 import { Mode } from 'porto'
 import { encodeFunctionData } from 'viem'
-import { readContract, verifyMessage, verifyTypedData } from 'viem/actions'
-import { waitForCallsStatus } from 'viem/experimental'
+import {
+  readContract,
+  verifyMessage,
+  verifyTypedData,
+  waitForCallsStatus,
+} from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 import { setBalance } from '../../../test/src/actions.js'
 import {

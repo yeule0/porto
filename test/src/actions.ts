@@ -3,10 +3,10 @@ import { parseEther } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import {
   setBalance as setBalance_viem,
+  waitForCallsStatus,
   waitForTransactionReceipt,
   writeContract,
 } from 'viem/actions'
-import { waitForCallsStatus } from 'viem/experimental'
 
 import * as Account from '../../src/core/internal/account.js'
 import * as Key from '../../src/core/internal/key.js'

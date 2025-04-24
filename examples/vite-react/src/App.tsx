@@ -5,8 +5,9 @@ import {
   useAccount,
   useConnectors,
   useReadContract,
+  useSendCalls,
+  useWaitForCallsStatus,
 } from 'wagmi'
-import { useSendCalls, useWaitForCallsStatus } from 'wagmi/experimental'
 import { exp1Address, exp1Config } from './_generated/contracts'
 
 export function App() {
