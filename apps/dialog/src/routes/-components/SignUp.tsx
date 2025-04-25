@@ -63,15 +63,13 @@ export function SignUp(props: SignUp.Props) {
           onClick={() => setShowLearn(true)}
           type="button"
         >
-          <div className="flex items-center gap-1">
-            <Question />
+          <div className="flex items-center gap-1.5">
+            <Question className="mt-px size-5 text-gray9" />
             <span className="font-medium text-[14px]">
               Learn about passkeys
             </span>
           </div>
-          <div className="text-secondary">
-            <ChevronRight />
-          </div>
+          <ChevronRight className="size-5 text-gray12 opacity-50" />
         </button>
       </Layout.Footer>
     </Layout>

@@ -1,4 +1,4 @@
-import { UserAgent } from '@porto/apps'
+import { Env, UserAgent } from '@porto/apps'
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
@@ -10,6 +10,15 @@ import LucideGlobe from '~icons/lucide/globe'
 import LucideX from '~icons/lucide/x'
 import { Layout } from './-components/Layout'
 import { UpdateAccount } from './-components/UpdateAccount'
+
+const env = (
+  {
+    anvil: 'anvil',
+    dev: 'development',
+    prod: undefined,
+    stg: 'staging',
+  } satisfies Record<Env.Env, string | undefined>
+)[Env.get()]
 
 export const Route = createRootRoute({
   component: RouteComponent,
@@ -80,7 +89,7 @@ function RouteComponent() {
                 : UserAgent.isFirefox()
                   ? 63 // firefox: 27px title bar, 34px address bar, 2px in borders
                   : 63 // chrome: 27px title bar, 34px address bar, 2px in borders
-              : 2
+              : 4
           const totalHeight = height + titlebarHeight + modeHeight
 
           lastHeight = height
@@ -106,7 +115,6 @@ function RouteComponent() {
   }, [mode])
 
   const id = request?.id ? request.id.toString() : '-1'
-
   const dataMode = `data-${mode === 'inline-iframe' ? 'iframe' : mode}`
 
   return (
@@ -137,17 +145,24 @@ function RouteComponent() {
             )}
           </div>
 
-          <div
-            className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary leading-[22px]"
-            title={url}
-          >
-            {subdomain && (
-              <>
-                <div className="truncate">{subdomain}</div>
-                <div>.</div>
-              </>
+          <div className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary">
+            <div
+              className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary"
+              title={url}
+            >
+              {subdomain && (
+                <>
+                  <div className="truncate">{subdomain}</div>
+                  <div>.</div>
+                </>
+              )}
+              <div>{domain}</div>
+            </div>
+            {env && (
+              <div className="ms-2 flex h-5 items-center rounded-full bg-surfaceHover px-1.25 text-[11.5px] text-secondary capitalize">
+                {env}
+              </div>
             )}
-            <div>{domain}</div>
           </div>
 
           {mode !== 'inline-iframe' && (
