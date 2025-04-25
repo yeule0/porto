@@ -22,6 +22,9 @@ function RouteComponent() {
     porto.ready()
   }, [])
 
+  // Optimistically fetch account version (populate cache).
+  UpdateAccount.useAccountVersion()
+
   const account = useAccount()
   const mode = Dialog.useStore((state) => state.mode)
   const { domain, subdomain, icon, url } = Dialog.useStore((state) => {
