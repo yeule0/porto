@@ -9,7 +9,12 @@ import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { toast } from 'sonner'
 import { encodeFunctionData, erc20Abi, formatEther } from 'viem'
-import { useAccount, useBlockNumber, useChainId, useSendCalls } from 'wagmi'
+import {
+  useAccount,
+  useChainId,
+  useSendCalls,
+  useWatchBlockNumber,
+} from 'wagmi'
 import { CustomToast } from '~/components/CustomToast'
 import { DevOnly } from '~/components/DevOnly'
 import { ShowMore } from '~/components/ShowMore'
@@ -50,26 +55,29 @@ function TokenSymbol({
 }
 
 export function Dashboard() {
-  const account = useAccount()
   const chainId = useChainId()
+  const account = useAccount()
+
+  const blockExplorer = account.chain?.blockExplorers?.default.url ?? ''
+
   const disconnect = Hooks.useDisconnect()
   const permissions = Hooks.usePermissions()
 
-  const { data: transfers } = useAddressTransfers({
-    chainIds: [chainId],
-  })
-  const { data: assets, refetch: refetchSwapAssets } = useSwapAssets({
-    chainId: chainId,
-  })
+  const addressTransfers = useAddressTransfers({ chainIds: [chainId] })
 
-  const { data: blockNumber } = useBlockNumber({
-    watch: { enabled: account.status === 'connected', pollingInterval: 800 },
-  })
+  const swapAssets = useSwapAssets({ chainId })
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch balance every block
-  React.useEffect(() => {
-    refetchSwapAssets()
-  }, [blockNumber])
+  useWatchBlockNumber({
+    enabled: account.status === 'connected',
+    onBlockNumber: async (_blockNumber) => {
+      await Promise.all([
+        swapAssets.refetch().catch((error) => console.error(error)),
+        permissions.refetch().catch((error) => console.error(error)),
+        addressTransfers.refetch().catch((error) => console.error(error)),
+      ])
+    },
+    pollingInterval: 1_000,
+  })
 
   const revokePermissions = Hooks.useRevokePermissions()
 
@@ -78,7 +86,7 @@ export function Dashboard() {
   )
 
   const filteredTransfers = React.useMemo(() => {
-    return transfers
+    return addressTransfers.data
       ?.filter((c) =>
         selectedChains.some((cc) => cc === c?.chainId?.toString()),
       )
@@ -88,17 +96,18 @@ export function Dashboard() {
           ...item,
         })),
       )
-  }, [transfers, selectedChains])
+  }, [addressTransfers.data, selectedChains])
 
   const totalBalance = React.useMemo(() => {
-    if (!assets) return 0n
+    if (!swapAssets.data) return 0n
     return sum(
-      assets.map(
+      swapAssets.data.map(
         (asset) =>
-          Number(Value.format(asset.balance, asset.decimals)) * asset.price,
+          Number(Value.format(asset.balance, asset.decimals)) *
+          (asset.price ?? 0),
       ),
     )
-  }, [assets])
+  }, [swapAssets.data])
 
   const admins = Hooks.useAdmins({
     query: {
@@ -204,7 +213,10 @@ export function Dashboard() {
       <hr className="border-gray5" />
       <div className="h-4" />
 
-      <details className="group" open={assets && assets?.length > 0}>
+      <details
+        className="group"
+        open={swapAssets.data && swapAssets.data?.length > 0}
+      >
         <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
           <span>Assets</span>
 
@@ -242,7 +254,7 @@ export function Dashboard() {
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
           ]}
-          data={assets}
+          data={swapAssets.data}
           emptyMessage="No balances available for this account"
           renderRow={(asset) => (
             <AssetRow
@@ -296,7 +308,7 @@ export function Dashboard() {
                 <td className="py-1 text-left">
                   <a
                     className="flex flex-row items-center"
-                    href={`https://explorer.ithaca.xyz/tx/${transfer?.transaction_hash}`}
+                    href={`${blockExplorer}/tx/${transfer?.transaction_hash}`}
                     rel="noreferrer"
                     target="_blank"
                   >
@@ -369,6 +381,15 @@ export function Dashboard() {
 
             const time = DateFormatter.timeToDuration(permission.expiry * 1_000)
 
+            const periods = {
+              day: 'daily',
+              hour: 'hourly',
+              minute: 'minutely',
+              month: 'monthly',
+              week: 'weekly',
+              year: 'yearly',
+            } as const
+
             return (
               <tr
                 className="*:text-xs! *:sm:text-sm!"
@@ -377,7 +398,7 @@ export function Dashboard() {
                 <td className="max-w-[50px] py-3 text-left">
                   <a
                     className="flex flex-row items-center"
-                    href={`https://explorer.ithaca.xyz/address/${permission.address}`}
+                    href={`${blockExplorer}/address/${permission.address}`}
                     rel="noreferrer"
                     target="_blank"
                   >
@@ -415,7 +436,9 @@ export function Dashboard() {
                   </div>
                 </td>
                 <td className="w-[30px] pl-1">
-                  <span className="text-gray11">{spend?.period}ly</span>
+                  <span className="text-gray11">
+                    {periods[spend?.period as keyof typeof periods]}
+                  </span>
                 </td>
                 <td className="w-min max-w-[25px] text-right">
                   <Ariakit.Button
@@ -654,6 +677,10 @@ function AssetRow({
   )
 
   const chainId = useChainId()
+  const account = useAccount()
+
+  const blockExplorer = account.chain?.blockExplorers?.default.url ?? ''
+
   const { data: _swapAssets, refetch: refetchSwapAssets } = useSwapAssets({
     chainId,
   })
@@ -701,7 +728,7 @@ function AssetRow({
                   <br />
                   <a
                     className="text-gray12 underline"
-                    href={`https://explorer.ithaca.xyz/tx/${data.id}`}
+                    href={`${blockExplorer}/tx/${data.id}`}
                     rel="noreferrer"
                     target="_blank"
                   >
