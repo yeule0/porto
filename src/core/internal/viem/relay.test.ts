@@ -2,6 +2,7 @@ import { AbiFunction, Hex, P256, PublicKey, Value, WebCryptoP256 } from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { describe, expect, test } from 'vitest'
 import * as TestActions from '../../../../test/src/actions.js'
+import * as Anvil from '../../../../test/src/anvil.js'
 import { exp1Abi, exp1Address } from '../../../../test/src/porto.js'
 import { getPorto } from '../../../../test/src/porto.js'
 import * as Key from '../key.js'
@@ -19,6 +20,7 @@ import {
   prepareUpgradeAccount,
   sendPreparedCalls,
   upgradeAccount,
+  verifySignature,
 } from './relay.js'
 
 const { client } = getPorto()
@@ -628,5 +630,70 @@ describe('prepareUpgradeAccount + upgradeAccount', () => {
       context: request.context,
       signatures,
     })
+  })
+})
+
+describe.runIf(!Anvil.enabled)('verifySignature', () => {
+  test('default', async () => {
+    const key1 = Key.createHeadlessWebAuthnP256()
+    const key2 = Key.createSecp256k1()
+    const account = await TestActions.createAccount(client, {
+      keys: [key1, key2],
+    })
+
+    const digest = Hex.random(32)
+
+    {
+      const signature = await Key.sign(key1, {
+        payload: digest,
+        wrap: false,
+      })
+
+      const result = await verifySignature(client, {
+        address: account.address,
+        digest,
+        signature,
+      })
+
+      expect(result.valid).toBe(true)
+    }
+
+    {
+      const signature = await Key.sign(key2, {
+        payload: digest,
+        wrap: false,
+      })
+
+      const result = await verifySignature(client, {
+        address: account.address,
+        digest,
+        signature,
+      })
+
+      expect(result.valid).toBe(true)
+    }
+  })
+
+  test('behavior: invalid', async () => {
+    const key = Key.createHeadlessWebAuthnP256()
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    const digest = Hex.random(32)
+
+    const signature = await Key.sign(key, {
+      payload: digest,
+      wrap: false,
+    })
+
+    const result = await verifySignature(client, {
+      address: account.address,
+      digest:
+        '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+      signature,
+    })
+
+    expect(result.valid).toBe(false)
   })
 })
