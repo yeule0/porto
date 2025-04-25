@@ -480,7 +480,6 @@ export function getReferrer() {
     : (document.querySelector('link[rel="icon"]') as HTMLLinkElement)
   return {
     icon: icon?.href,
-    origin: location.origin,
     title: document.title,
   }
 }
