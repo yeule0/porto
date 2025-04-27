@@ -1,4 +1,5 @@
 import { Env, UserAgent } from '@porto/apps'
+import { Button } from '@porto/apps/components'
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router'
 import { Actions, Hooks } from 'porto/remote'
 import * as React from 'react'
@@ -6,6 +7,9 @@ import { useAccount } from 'wagmi'
 
 import * as Dialog from '~/lib/Dialog'
 import { porto } from '~/lib/Porto'
+import * as Referrer from '~/lib/Referrer'
+import LucideBadgeCheck from '~icons/lucide/badge-check'
+import LucideCircleAlert from '~icons/lucide/circle-alert'
 import LucideGlobe from '~icons/lucide/globe'
 import LucideX from '~icons/lucide/x'
 import { Layout } from './-components/Layout'
@@ -44,20 +48,21 @@ function RouteComponent() {
   const account = useAccount()
   const mode = Dialog.useStore((state) => state.mode)
   const { domain, subdomain, icon, url } = Dialog.useStore((state) => {
-    const hostnameParts = state.referrer?.origin.hostname.split('.').slice(-3)
+    const hostnameParts = state.referrer?.url.hostname.split('.').slice(-3)
     const domain = hostnameParts?.slice(-2).join('.')
     const subdomain = hostnameParts?.at(-3)
     return {
       domain,
       icon: state.referrer?.icon,
       subdomain,
-      url: state.referrer?.origin.toString(),
+      url: state.referrer?.url.toString(),
     }
   })
   const request = Hooks.useRequest(porto)
   const search = Route.useSearch() as {
     requireUpdatedAccount?: boolean | undefined
   }
+  const verifyStatus = Referrer.useVerify()
 
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const titlebarRef = React.useRef<HTMLDivElement | null>(null)
@@ -145,21 +150,24 @@ function RouteComponent() {
             )}
           </div>
 
-          <div className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary">
-            <div
-              className="mr-auto flex shrink overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary"
-              title={url}
-            >
-              {subdomain && (
-                <>
-                  <div className="truncate">{subdomain}</div>
-                  <div>.</div>
-                </>
-              )}
-              <div>{domain}</div>
-            </div>
+          <div
+            className="mr-auto flex shrink items-center gap-1 overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary leading-[22px]"
+            title={url}
+          >
+            {subdomain && (
+              <>
+                <div className="truncate">{subdomain}</div>
+                <div>.</div>
+              </>
+            )}
+            <div>{domain}</div>
+            {verifyStatus.data?.status === 'whitelisted' && (
+              <div className="flex items-center justify-center">
+                <LucideBadgeCheck className="size-4 text-accent" />
+              </div>
+            )}
             {env && (
-              <div className="ms-2 flex h-5 items-center rounded-full bg-surfaceHover px-1.25 text-[11.5px] text-secondary capitalize">
+              <div className="flex h-5 items-center rounded-full bg-surfaceHover px-1.25 text-[11.5px] text-secondary capitalize">
                 {env}
               </div>
             )}
@@ -184,17 +192,19 @@ function RouteComponent() {
             className="flex flex-grow *:w-full"
             key={id} // rehydrate on id changes
           >
-            {account.isConnecting || account.isReconnecting ? (
-              <Layout loading loadingTitle="Loading...">
-                <div />
-              </Layout>
-            ) : search.requireUpdatedAccount ? (
-              <UpdateAccount.CheckUpdate>
+            <CheckReferrer>
+              {account.isConnecting || account.isReconnecting ? (
+                <Layout loading loadingTitle="Loading...">
+                  <div />
+                </Layout>
+              ) : search.requireUpdatedAccount ? (
+                <UpdateAccount.CheckUpdate>
+                  <Outlet />
+                </UpdateAccount.CheckUpdate>
+              ) : (
                 <Outlet />
-              </UpdateAccount.CheckUpdate>
-            ) : (
-              <Outlet />
-            )}
+              )}
+            </CheckReferrer>
           </div>
         </div>
       </div>
@@ -209,6 +219,57 @@ function RouteComponent() {
       </React.Suspense>
     </>
   )
+}
+
+function CheckReferrer(props: CheckReferrer.Props) {
+  const { children } = props
+
+  const [proceed, setProceed] = React.useState(false)
+
+  const hostname = Dialog.useStore((state) => state.referrer?.url.hostname)
+  const verifyStatus = Referrer.useVerify()
+
+  if (proceed) return children
+  if (verifyStatus.data?.status !== 'blacklisted') return children
+  return (
+    <Layout>
+      <Layout.Header>
+        <Layout.Header.Default
+          content={
+            <>
+              <span className="font-medium">{hostname}</span> has been flagged
+              as potentially malicious, and may trick you into signing actions
+              that may take all your assets.
+            </>
+          }
+          icon={LucideCircleAlert}
+          title="Malicious website detected"
+          variant="destructive"
+        />
+      </Layout.Header>
+
+      <Layout.Footer>
+        <Layout.Footer.Actions>
+          <Button
+            className="flex-1"
+            onClick={() => setProceed(true)}
+            variant="destructive"
+          >
+            Proceed anyway
+          </Button>
+          <Button className="flex-1" onClick={() => Actions.rejectAll(porto)}>
+            Close
+          </Button>
+        </Layout.Footer.Actions>
+      </Layout.Footer>
+    </Layout>
+  )
+}
+
+declare namespace CheckReferrer {
+  type Props = {
+    children: React.ReactNode
+  }
 }
 
 const TanStackRouterDevtools =
