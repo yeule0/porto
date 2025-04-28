@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ERC721} from "solady/tokens/ERC721.sol";
 import {Ownable} from "solady/auth/Ownable.sol";
+import {Base64} from "solady/utils/Base64.sol";
 import {LibString} from "solady/utils/LibString.sol";
 
 contract ExperimentERC721 is ERC721, Ownable {
@@ -30,7 +31,7 @@ contract ExperimentERC721 is ERC721, Ownable {
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
-        return string(
+        string memory json = Base64.encode(
             abi.encodePacked(
                 '{"name": "',
                 _name,
@@ -43,6 +44,7 @@ contract ExperimentERC721 is ERC721, Ownable {
                 '"}'
             )
         );
+        return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     function mint() public {

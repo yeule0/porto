@@ -20,7 +20,7 @@ contract ExperimentERC721Test is Test {
         assertEq(nft.ownerOf(0), address(this));
         assertEq(
             nft.tokenURI(0),
-            '{"name": "Ithaca Genesis #0", "description": "This is a description.", "image": "https://example.com/image.png"}'
+            "data:application/json;base64,eyJuYW1lIjogIkl0aGFjYSBHZW5lc2lzICMwIiwgImRlc2NyaXB0aW9uIjogIlRoaXMgaXMgYSBkZXNjcmlwdGlvbi4iLCAiaW1hZ2UiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9pbWFnZS5wbmcifQ=="
         );
 
         nft.mint();
@@ -28,7 +28,7 @@ contract ExperimentERC721Test is Test {
         assertEq(nft.ownerOf(1), address(this));
         assertEq(
             nft.tokenURI(1),
-            '{"name": "Ithaca Genesis #1", "description": "This is a description.", "image": "https://example.com/image.png"}'
+            "data:application/json;base64,eyJuYW1lIjogIkl0aGFjYSBHZW5lc2lzICMxIiwgImRlc2NyaXB0aW9uIjogIlRoaXMgaXMgYSBkZXNjcmlwdGlvbi4iLCAiaW1hZ2UiOiAiaHR0cHM6Ly9leGFtcGxlLmNvbS9pbWFnZS5wbmcifQ=="
         );
 
         nft.mint(address(69));
