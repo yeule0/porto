@@ -45,12 +45,15 @@ async function buildContracts(outPath: string) {
 // Make a `DelegationOld.sol` and rewrite with old domain version.
 const delegationPath_tmp = Path.resolve(
   import.meta.dirname,
-  '../contracts/src/DelegationOld.sol',
+  '../contracts/account/src/DelegationOld.sol',
 )
 await Fs.writeFile(
   delegationPath_tmp,
   await Fs.readFile(
-    Path.resolve(import.meta.dirname, '../contracts/src/Delegation.sol'),
+    Path.resolve(
+      import.meta.dirname,
+      '../contracts/account/src/Delegation.sol',
+    ),
     'utf-8',
   ).then((content) =>
     content
@@ -59,18 +62,23 @@ await Fs.writeFile(
   ),
 )
 
-// Build all contracts in `accounts`.
+// Build all contracts in `account`.
 for await (const file of Fs.glob(
-  Path.resolve(import.meta.dirname, '../contracts/src/**/*.sol'),
+  Path.resolve(import.meta.dirname, '../contracts/*/src/**/*.sol'),
 )) {
   const name = Path.basename(file)
-  const outPath = Path.resolve(import.meta.dirname, '../contracts/out/' + name)
+  const srcDir = Path.dirname(file)
+  const dir = Path.resolve(srcDir, '..')
+  const outPath = Path.resolve(dir, 'out', name)
   await buildContracts(outPath)
 }
 
 // Build EIP7702Proxy contract
 await buildContracts(
-  Path.resolve(import.meta.dirname, '../contracts/out/EIP7702Proxy.sol'),
+  Path.resolve(
+    import.meta.dirname,
+    '../contracts/account/out/EIP7702Proxy.sol',
+  ),
 )
 
 // Remove tmp.

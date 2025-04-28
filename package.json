@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm clean && tsc --project ./tsconfig.build.json",
-    "build:contracts": "forge build --config-path ./contracts/foundry.toml && tsx scripts/build:contracts.ts",
+    "build:contracts": "forge build --config-path ./contracts/account/foundry.toml && forge build --config-path ./contracts/demo/foundry.toml && tsx scripts/build:contracts.ts",
     "changeset:prepublish": "pnpm build && tsx ./scripts/prepublish.ts",
     "changeset:publish": "pnpm changeset:prepublish && changeset publish",
     "changeset:version": "changeset version && pnpm format",
