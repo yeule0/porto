@@ -1,5 +1,5 @@
 import { defineConfig } from '@wagmi/cli'
-import { blockExplorer } from '@wagmi/cli/plugins'
+import { foundry } from '@wagmi/cli/plugins'
 import {
   anvil,
   baseSepolia,
@@ -23,44 +23,71 @@ const address = {
 } as const
 
 export default defineConfig([
-  ...['examples/next/src', 'examples/vite-react/src'].map((path) => ({
-    contracts: [],
-    out: `${path}/_generated/contracts.ts`,
-    plugins: [
-      blockExplorer({
-        baseUrl: odysseyTestnet.blockExplorers.default.apiUrl,
-        contracts: [
-          {
-            address: address.exp1[odysseyTestnet.id],
-            name: 'EXP1',
+  ...['apps/wagmi/src', 'examples/next/src', 'examples/vite-react/src'].map(
+    (path) => ({
+      contracts: [],
+      out: `${path}/_generated/contracts.ts`,
+      plugins: [
+        foundry({
+          deployments: {
+            ExperimentERC20: address.exp1[baseSepolia.id],
           },
-          {
-            address: address.exp2[odysseyTestnet.id],
-            name: 'EXP2',
+          forge: {
+            build: false,
           },
-        ],
-      }),
-    ],
-  })),
+          getName(name) {
+            if (name === 'ExperimentERC20') return 'EXP1'
+            return name
+          },
+          project: './contracts/demo',
+        }),
+        foundry({
+          deployments: {
+            ExperimentERC20: address.exp2[baseSepolia.id],
+          },
+          forge: {
+            build: false,
+          },
+          getName(name) {
+            if (name === 'ExperimentERC20') return 'EXP2'
+            return name
+          },
+          include: ['ExperimentERC20.json'],
+          project: './contracts/demo',
+        }),
+      ],
+    }),
+  ),
   ...['apps/~internal', 'test/src'].map((path) => ({
     contracts: [],
     out: `${path}/_generated/contracts.ts`,
     plugins: [
-      blockExplorer({
-        baseUrl: odysseyTestnet.blockExplorers.default.apiUrl,
-        chainId: odysseyTestnet.id,
-        contracts: [
-          {
-            address: address.exp1,
-            name: 'EXP1',
-          },
-          {
-            address: address.exp2,
-            name: 'EXP2',
-          },
-        ],
-        getAddress: (config) =>
-          config.address[odysseyTestnet.id] as `0x${string}`,
+      foundry({
+        deployments: {
+          ExperimentERC20: address.exp1,
+        },
+        forge: {
+          build: false,
+        },
+        getName(name) {
+          if (name === 'ExperimentERC20') return 'EXP1'
+          return name
+        },
+        project: './contracts/demo',
+      }),
+      foundry({
+        deployments: {
+          ExperimentERC20: address.exp2,
+        },
+        forge: {
+          build: false,
+        },
+        getName(name) {
+          if (name === 'ExperimentERC20') return 'EXP2'
+          return name
+        },
+        include: ['ExperimentERC20.json'],
+        project: './contracts/demo',
       }),
     ],
   })),
