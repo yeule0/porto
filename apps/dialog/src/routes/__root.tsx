@@ -136,7 +136,7 @@ function RouteComponent() {
           {...{ [dataMode]: '' }}
           className="fixed flex h-navbar w-full items-center justify-between gap-2 in-data-iframe:rounded-t-[14px] border border-primary bg-secondary px-3 pt-2 pb-1.5"
         >
-          <div className="flex size-5 items-center justify-center rounded-[5px] bg-gray6">
+          <div className="flex size-5 min-w-5 items-center justify-center rounded-[5px] bg-gray6">
             {icon ? (
               <div className="p-[3px]">
                 <img
@@ -150,17 +150,16 @@ function RouteComponent() {
             )}
           </div>
 
-          <div
-            className="mr-auto flex shrink items-center gap-1 overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary leading-[22px]"
-            title={url}
-          >
-            {subdomain && (
-              <>
-                <div className="truncate">{subdomain}</div>
-                <div>.</div>
-              </>
-            )}
-            <div>{domain}</div>
+          <div className="mr-auto flex shrink items-center gap-1 overflow-hidden whitespace-nowrap font-normal text-[14px] text-secondary leading-[22px]">
+            <div className="flex overflow-hidden" title={url}>
+              {subdomain && (
+                <>
+                  <div className="truncate">{subdomain}</div>
+                  <div>.</div>
+                </>
+              )}
+              <div>{domain}</div>
+            </div>
             {verifyStatus.data?.status === 'whitelisted' && (
               <div className="flex items-center justify-center">
                 <LucideBadgeCheck className="size-4 text-accent" />
