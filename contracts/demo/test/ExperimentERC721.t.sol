@@ -11,12 +11,7 @@ contract ExperimentERC721Test is Test {
     ExperimentERC721 public nft;
 
     function setUp() public {
-        nft = new ExperimentERC721(
-            "GEN",
-            "Ithaca Genesis",
-            "This is a description.",
-            "https://example.com/image.png"
-        );
+        nft = new ExperimentERC721("GEN", "Ithaca Genesis", "This is a description.", "https://example.com/image.png");
     }
 
     function test_mint() public {

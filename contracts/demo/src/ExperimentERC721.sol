@@ -12,12 +12,7 @@ contract ExperimentERC721 is ERC721, Ownable {
     string internal _symbol;
     string internal _image;
 
-    constructor(
-        string memory symbol_,
-        string memory name_,
-        string memory description,
-        string memory image
-    ) {
+    constructor(string memory symbol_, string memory name_, string memory description, string memory image) {
         _description = description;
         _image = image;
         _name = name_;
@@ -34,23 +29,20 @@ contract ExperimentERC721 is ERC721, Ownable {
         return _symbol;
     }
 
-    function tokenURI(
-        uint256 id
-    ) public view virtual override returns (string memory) {
-        return
-            string(
-                abi.encodePacked(
-                    '{"name": "',
-                    _name,
-                    " #",
-                    LibString.toString(id),
-                    '", "description": "',
-                    _description,
-                    '", "image": "',
-                    _image,
-                    '"}'
-                )
-            );
+    function tokenURI(uint256 id) public view virtual override returns (string memory) {
+        return string(
+            abi.encodePacked(
+                '{"name": "',
+                _name,
+                " #",
+                LibString.toString(id),
+                '", "description": "',
+                _description,
+                '", "image": "',
+                _image,
+                '"}'
+            )
+        );
     }
 
     function mint() public {
