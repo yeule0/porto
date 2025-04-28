@@ -20,6 +20,10 @@ const address = {
     [odysseyDevnet.id]: '0x0Ee2d43FcaAF97e22E6Bfade9C7a9Cfcca309f25',
     [odysseyTestnet.id]: '0x390dd40042a844f92b499069cfe983236d9fe204',
   },
+  expNft: {
+    [anvil.id]: '0x4d8e02bbfcf205828a8352af4376b165e123d7b0',
+    [baseSepolia.id]: '0xbA64b860Cb5156b1845bdF9194DaB253FAc685d5',
+  },
 } as const
 
 export default defineConfig([
@@ -31,12 +35,14 @@ export default defineConfig([
         foundry({
           deployments: {
             ExperimentERC20: address.exp1[baseSepolia.id],
+            ExperimentERC721: address.expNft[baseSepolia.id],
           },
           forge: {
             build: false,
           },
           getName(name) {
-            if (name === 'ExperimentERC20') return 'EXP1'
+            if (name === 'ExperimentERC20') return 'exp1'
+            if (name === 'ExperimentERC721') return 'expNft'
             return name
           },
           project: './contracts/demo',
@@ -49,7 +55,7 @@ export default defineConfig([
             build: false,
           },
           getName(name) {
-            if (name === 'ExperimentERC20') return 'EXP2'
+            if (name === 'ExperimentERC20') return 'exp2'
             return name
           },
           include: ['ExperimentERC20.json'],
@@ -65,12 +71,14 @@ export default defineConfig([
       foundry({
         deployments: {
           ExperimentERC20: address.exp1,
+          ExperimentERC721: address.expNft,
         },
         forge: {
           build: false,
         },
         getName(name) {
-          if (name === 'ExperimentERC20') return 'EXP1'
+          if (name === 'ExperimentERC20') return 'exp1'
+          if (name === 'ExperimentERC721') return 'expNft'
           return name
         },
         project: './contracts/demo',
@@ -83,7 +91,7 @@ export default defineConfig([
           build: false,
         },
         getName(name) {
-          if (name === 'ExperimentERC20') return 'EXP2'
+          if (name === 'ExperimentERC20') return 'exp2'
           return name
         },
         include: ['ExperimentERC20.json'],
