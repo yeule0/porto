@@ -580,11 +580,13 @@ export function relay(parameters: relay.Parameters = {}) {
       const { store } = internal
       const { feeToken = 'ETH', permissionFeeSpendLimit } = config
 
-      store.setState((x) => ({
-        ...x,
-        feeToken,
-        permissionFeeSpendLimit,
-      }))
+      store.persist.onFinishHydration(() => {
+        store.setState((x) => ({
+          ...x,
+          feeToken,
+          permissionFeeSpendLimit,
+        }))
+      })
 
       return () => {}
     },
