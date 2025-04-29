@@ -1,4 +1,4 @@
-name: Promote Apps to Production
+name: Promote Dialog to Production
 on:
   workflow_dispatch:
 
@@ -8,15 +8,12 @@ env:
 jobs:
   promote:
     runs-on: ubuntu-latest
-    strategy:
-        matrix:
-          app: [dialog, docs, manage, playground, wagmi]
     steps:
       - uses: actions/checkout@v2
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Promote App (${{ matrix.app }}) to Production
+      - name: Promote Dialog to Production
         continue-on-error: true
-        run: vercel promote ${{ matrix.app }}porto-ithacaxyz.vercel.app --token=${{ secrets.VERCEL_TOKEN }} --scope=ithacaxyz
+        run: vercel promote dialogporto-ithacaxyz.vercel.app --token=${{ secrets.VERCEL_TOKEN }} --scope=ithacaxyz
