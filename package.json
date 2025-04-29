@@ -22,7 +22,7 @@
     "docs:build": "pnpm --filter docs build",
     "docs:dev": "pnpm --filter docs --filter dialog --filter manager dev",
     "format": "biome format --write",
-    "postinstall": "git submodule update --init --recursive && pnpm preconstruct && pnpm build:contracts",
+    "postinstall": "git submodule update --init --recursive && pnpm preconstruct",
     "preconstruct": "tsx ./scripts/preconstruct.ts",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
