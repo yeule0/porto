@@ -1453,7 +1453,7 @@ export const expNftAbi = [
  */
 export const expNftAddress = {
   28404: '0xef11D1c2aA48826D4c41e54ab82D1Ff5Ad8A64Ca',
-  31337: '0xf7Cd8fa9b94DB2Aa972023b379c7f72c65E4De9D',
+  31337: '0x82Dc47734901ee7d4f4232f398752cB9Dd5dACcC',
   84532: '0xD37861F91a23aF5929F1617D9c94586e822b0a47',
 } as const
 
