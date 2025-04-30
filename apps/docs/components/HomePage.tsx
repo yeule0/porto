@@ -1,6 +1,10 @@
 import * as Ariakit from '@ariakit/react'
+import { PortoConfig } from '@porto/apps'
 import { LogoLockup } from '@porto/apps/components'
-import { exp1Config, exp2Config } from '@porto/apps/contracts'
+import { exp1Config } from '@porto/apps/contracts'
+import { cx } from 'cva'
+import { Value } from 'ox'
+import { Mode } from 'porto'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { Link } from 'react-router'
@@ -10,19 +14,20 @@ import {
   useAccountEffect,
   useChainId,
   useConnectors,
-  useReadContract,
 } from 'wagmi'
-
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 import LucideChevronRight from '~icons/lucide/chevron-right'
-import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
+import LucidePlay from '~icons/lucide/play'
+import LucideX from '~icons/lucide/x'
+import { porto, store } from '../wagmi.config'
 import { Button } from './Button'
-import { LimitDemo, MintDemo, PayDemo, SwapDemo } from './DemoApp'
 
 export function HomePage() {
+  const dialog = Ariakit.useDialogStore()
+
   return (
     <div className="flex justify-center gap-[32px]">
-      <div className="flex flex-1 flex-col items-start max-[1024px]:max-w-[452px]">
+      <div className="flex flex-1 flex-col items-start max-lg:max-w-[452px]">
         <p className="font-[300] text-[13px] text-gray10 tracking-[-0.25px] dark:text-gray11">
           Introducing
         </p>
@@ -58,6 +63,25 @@ export function HomePage() {
         </div>
 
         <div className="h-4" />
+
+        <div className="w-full min-lg:hidden">
+          <Ariakit.Button
+            className="relative inline-flex h-[42px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-accent px-[18px] font-medium text-white transition-colors hover:not-active:bg-accentHover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            onClick={dialog.show}
+          >
+            <LucidePlay className="mt-0.5 size-3.5" />
+            Try it out
+          </Ariakit.Button>
+
+          <div className="h-6" />
+
+          <div className="flex w-full items-center gap-4 font-[400] text-[14px] text-gray9 leading-[18px] tracking-[-0.25px]">
+            <div>Learn more</div>
+            <div className="h-[1px] w-full flex-1 bg-gray6" />
+          </div>
+
+          <div className="h-4" />
+        </div>
 
         <div className="grid w-full grid-cols-2 gap-2 max-[486px]:grid-cols-1">
           <div className="rounded-[13px] border border-gray4 p-[16px]">
@@ -135,12 +159,12 @@ export function HomePage() {
           </Ariakit.Button>
           <Ariakit.Button
             className="flex h-[40px] items-center justify-center gap-2 rounded-full border border-gray7 px-4 font-[400] hover:bg-gray3"
-            render={<Link to="/demo" />}
+            render={<Link to="/" />}
           >
             <div className="size-[1em]">
               <DemoIcon />
             </div>
-            Demo
+            Playground
           </Ariakit.Button>
           <Ariakit.Button
             className="flex h-[40px] items-center justify-center gap-[6px] rounded-full border border-gray7 px-4 font-[400] hover:bg-gray3"
@@ -156,14 +180,33 @@ export function HomePage() {
             <div className="size-[1.2em]">
               <GitHubIcon />
             </div>
-            GitHub
+            View Source
           </Ariakit.Button>
         </div>
       </div>
 
-      <div className="flex-1 max-[1024px]:hidden">
+      <div className="flex-1 max-lg:hidden">
         <Demo />
       </div>
+
+      <Ariakit.Dialog
+        backdrop={<div className="backdrop" />}
+        className="fixed inset-0 z-50 h-full bg-white px-5 py-6.5 lg:hidden dark:bg-black"
+        store={dialog}
+      >
+        <div className="flex h-full flex-col">
+          <header className="mb-5 flex items-center justify-between">
+            <h1 className="-tracking-[0.504px] font-medium text-[18px] leading-normal">
+              Try it out
+            </h1>
+            <Ariakit.DialogDismiss
+              render={<LucideX className="size-6 text-gray11" />}
+            />
+          </header>
+
+          <Demo />
+        </div>
+      </Ariakit.Dialog>
     </div>
   )
 }
@@ -209,191 +252,167 @@ namespace Install {
   }
 }
 
-const steps = ['sign-in', 'mint', 'swap', 'send', 'spend']
+const steps = ['sign-in', 'add-funds', 'send', 'mint', 'swap'] as const
 
 function Demo() {
   const account = useAccount()
-  const chainId = useChainId()
   const [step, setStep] = React.useState<(typeof steps)[number]>('sign-in')
 
   const [isMounted, setIsMounted] = React.useState(false)
-
   React.useEffect(() => {
     setIsMounted(true)
   }, [])
 
   useAccountEffect({
     onConnect() {
-      setStep('mint')
+      setStep('add-funds')
     },
     onDisconnect() {
       setStep('sign-in')
     },
   })
 
-  const shared = {
-    args: [account.address!],
-    functionName: 'balanceOf',
-    query: { enabled: Boolean(account.address) },
-  } as const
-  const { data: exp1Balance } = useReadContract({
-    abi: exp1Config.abi,
-    address: exp1Config.address[chainId],
-    ...shared,
-    query: {
-      refetchInterval: 1000,
-    },
-  })
-  const { data: exp2Balance } = useReadContract({
-    abi: exp2Config.abi,
-    address: exp2Config.address[chainId],
-    ...shared,
-    query: {
-      refetchInterval: 1000,
-    },
-  })
-
   return (
     <div className="flex h-full flex-col rounded-[20px] bg-gray3/50 p-4">
-      <div className="flex w-full justify-end">
+      <div className="hidden w-full justify-between p-1 lg:flex">
+        <div className="font-[400] text-[14px] text-gray9 leading-none tracking-[-2.8%]">
+          Demo
+        </div>
         <Link
-          className="flex items-center gap-1 font-[400] text-[14px] text-blue9 tracking-[-2.8%]"
-          to="/demo"
+          className="flex items-center gap-1 font-[400] text-[14px] text-blue9 leading-none tracking-[-2.8%]"
+          to="/"
         >
-          Discover →
+          Playground →
         </Link>
       </div>
+
       <div className="flex-1">
         {isMounted && (
           <div className="relative flex h-full w-full items-center justify-center">
             <div className="w-full max-w-[277px]">
-              {step === 'sign-in' && <SignIn next={() => setStep('mint')} />}
-              {step === 'mint' && (
-                <MintDemo
-                  address={account.address}
-                  exp1Balance={exp1Balance}
-                  next={() => setStep('swap')}
-                />
+              {step === 'sign-in' && (
+                <SignIn next={() => setStep('add-funds')} />
               )}
-              {step === 'swap' && (
-                <SwapDemo
-                  address={account.address}
-                  exp1Balance={exp1Balance}
-                  exp2Balance={exp2Balance}
-                  next={() => setStep('send')}
-                />
-              )}
-              {step === 'send' && (
-                <PayDemo
-                  address={account.address}
-                  exp1Balance={exp1Balance}
-                  exp2Balance={exp2Balance}
-                  next={() => setStep('spend')}
-                />
-              )}
-              {step === 'spend' && <LimitDemo address={account.address} />}
+              {step === 'add-funds' && <div />}
+              {step === 'send' && <div />}
+              {step === 'mint' && <div />}
+              {step === 'swap' && <div />}
             </div>
           </div>
         )}
       </div>
+
       <div className="flex w-full flex-col items-center justify-center space-y-1">
         {isMounted && (
           <div className="w-full space-y-1">
-            <div className="flex w-full items-center justify-between">
-              <div>
+            <div className="flex w-full items-end justify-between lg:items-center lg:justify-around">
+              <div className="lg:pb-6">
                 {account.isConnected && (
                   <button
-                    className="flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray8"
+                    className={cx(
+                      'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-transparent text-gray8 hover:bg-gray2 disabled:cursor-not-allowed',
+                      step === steps[0] && 'invisible',
+                    )}
                     disabled={step === steps[0]}
                     onClick={() => setStep(steps[steps.indexOf(step) - 1]!)}
                     type="button"
                   >
-                    <LucideChevronLeft className="-ml-0.5 size-5" />
+                    <LucideChevronLeft className="-ms-0.5 size-5" />
                   </button>
                 )}
               </div>
-              <div className="max-w-[24ch] space-y-1">
-                {step === 'sign-in' && (
-                  <>
-                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                      Sign in or sign up
-                    </p>
-                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                      With Ithaca, you can create a wallet within seconds.
-                    </p>
-                  </>
-                )}
-                {step === 'mint' && (
-                  <>
-                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                      Transact with ease
-                    </p>
-                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                      Simple, friendly transaction previews that get out of the
-                      way.
-                    </p>
-                  </>
-                )}
-                {step === 'swap' && (
-                  <>
-                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                      Swap spontaneously
-                    </p>
-                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                      Transactions like swaps are simple, easy, and fast.
-                    </p>
-                  </>
-                )}
-                {step === 'send' && (
-                  <>
-                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                      Flexibility with fees
-                    </p>
-                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                      Pay network or transaction fees in the token of your
-                      choice.
-                    </p>
-                  </>
-                )}
-                {step === 'spend' && (
-                  <>
-                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                      Get rid of clicks
-                    </p>
-                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                      Allow applications to spend on your behalf with custom
-                      rules.
-                    </p>
-                  </>
-                )}
+
+              <div className="flex flex-col pb-3 lg:pb-0">
+                <div className="max-w-[25.5ch] space-y-1">
+                  {step === 'sign-in' && (
+                    <>
+                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                        Seamless sign in
+                      </p>
+                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                        Grant permissions with your Porto wallet for security &
+                        ease of use.
+                      </p>
+                    </>
+                  )}
+                  {step === 'add-funds' && (
+                    <>
+                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                        Deposit in seconds
+                      </p>
+                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                        Fund your account, with no KYC for deposits below $500.
+                      </p>
+                    </>
+                  )}
+                  {step === 'send' && (
+                    <>
+                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                        Instant sends & swaps
+                      </p>
+                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                        With permissions, complete common actions without extra
+                        clicks.
+                      </p>
+                    </>
+                  )}
+                  {step === 'mint' && (
+                    <>
+                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                        Rich feature set
+                      </p>
+                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                        View rich transaction previews, pay fees in other
+                        tokens, and much more.
+                      </p>
+                    </>
+                  )}
+                  {step === 'swap' && (
+                    <>
+                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                        Free from fees
+                      </p>
+                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                        Apps can cover your fees based on an asset you hold,
+                        like the NFT you minted.
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="h-10 lg:h-8" />
+
+                <div className="flex items-center justify-center gap-1">
+                  {steps.map((s) => (
+                    <button
+                      className="size-[7px] rounded-full bg-gray6 transition-all duration-150 hover:not-data-[active=true]:not-data-[disabled=true]:scale-150 hover:not-data-[disabled=true]:bg-gray9 data-[active=true]:w-6 data-[active=true]:bg-gray9"
+                      data-active={s === step}
+                      data-disabled={!account.isConnected}
+                      key={s}
+                      onClick={() => {
+                        if (account.isConnected) setStep(s)
+                      }}
+                      type="button"
+                    />
+                  ))}
+                </div>
               </div>
-              <div>
+
+              <div className="lg:pb-6">
                 {account.isConnected && (
                   <button
-                    className="flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray8"
+                    className={cx(
+                      'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed',
+                      step === steps[steps.length - 1] && 'invisible',
+                    )}
                     disabled={step === steps[steps.length - 1]}
                     onClick={() => setStep(steps[steps.indexOf(step) + 1]!)}
                     type="button"
                   >
-                    <LucideChevronRight className="-mr-0.5 size-5" />
+                    <LucideChevronRight className="-me-0.5 size-5" />
                   </button>
                 )}
               </div>
-            </div>
-            <div className="h-4" />
-            <div className="flex items-center justify-center gap-1">
-              {steps.map((s) => (
-                <button
-                  className="size-[7px] rounded-full bg-gray6 transition-all duration-150 hover:not-data-[active=true]:not-data-[disabled=true]:scale-150 hover:not-data-[disabled=true]:bg-gray9 data-[active=true]:w-6 data-[active=true]:bg-gray9"
-                  data-active={s === step}
-                  data-disabled={!account.isConnected}
-                  key={s}
-                  onClick={() => {
-                    if (account.isConnected) setStep(s)
-                  }}
-                  type="button"
-                />
-              ))}
             </div>
           </div>
         )}
@@ -403,49 +422,93 @@ function Demo() {
 }
 
 function SignIn({ next }: { next: () => void }) {
+  const chainId = useChainId()
+  const { address, status } = useAccount()
   const connect = Hooks.useConnect({
     mutation: {
       onError(error) {
         if (error instanceof ConnectorAlreadyConnectedError) next()
       },
+      onSettled(data, error) {
+        console.log('onSettled', { data, error })
+      },
+      onSuccess() {
+        next()
+      },
     },
   })
+  const disconnect = Hooks.useDisconnect()
   const connector = usePortoConnector()
 
-  if (connect.isPending)
-    return (
-      <Button className="flex flex-grow gap-2" disabled>
-        <LucidePictureInPicture2 className="size-5" />
-        Check passkey prompt
-      </Button>
-    )
+  React.useEffect(() => {
+    if (status === 'connected') return
+    if (!connector) return
+    if (!porto) return
+
+    switchRenderer('inline')
+    function switchRenderer(to: 'iframe' | 'inline') {
+      if (!porto) throw new Error('porto instance not defined')
+
+      const state = store.getState()
+      const fromRenderer = state.renderer
+      const toRenderer = state.renderers.find((x) => x.name === to)
+
+      if (
+        fromRenderer &&
+        toRenderer &&
+        fromRenderer?.name !== toRenderer.name
+      ) {
+        porto._internal.setMode(
+          Mode.dialog({
+            host: PortoConfig.getDialogHost(),
+            renderer: toRenderer,
+          }),
+        )
+        store.setState((x) => ({ ...x, renderer: toRenderer }))
+      }
+    }
+
+    connect.mutate({
+      connector,
+      grantPermissions: {
+        expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+        permissions: {
+          calls: [{ to: exp1Config.address[chainId] }],
+          spend: [
+            {
+              limit: Value.fromEther('100'),
+              period: 'hour',
+              token: exp1Config.address[chainId],
+            },
+          ],
+        },
+      },
+    })
+
+    return () => {
+      switchRenderer('iframe')
+    }
+  }, [status, chainId, connect.mutate, connector])
 
   return (
-    <div className="flex w-full gap-2">
-      <Button
-        className="flex-grow"
-        onClick={() =>
-          connect.mutateAsync({
-            connector,
-            createAccount: true,
-          })
-        }
-        variant="accent"
-      >
-        Sign up
-      </Button>
+    <div className="flex w-full justify-center">
+      <div id="porto" />
 
-      <Button
-        className="flex-grow"
-        onClick={() =>
-          connect.mutate({
-            connector,
-          })
-        }
-        variant="invert"
-      >
-        Sign in
-      </Button>
+      {status === 'connected' && (
+        <div className="flex flex-col gap-2">
+          <div title={address}>
+            {address.slice(0, 6)}...{address.slice(-4)}
+          </div>
+
+          <Button
+            className="flex-grow"
+            onClick={() => disconnect.mutate({ connector })}
+            variant="accent"
+          >
+            Sign out
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
