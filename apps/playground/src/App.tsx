@@ -734,6 +734,12 @@ function SendCalls() {
                 ),
                 to: exp1Address,
               },
+              {
+                data: AbiFunction.encodeData(
+                  AbiFunction.fromAbi(expNftAbi, 'mint'),
+                ),
+                to: expNftAddress,
+              },
             ] as const
 
           if (action === 'revert')
@@ -788,7 +794,9 @@ function SendCalls() {
         <select name="action">
           <option value="mint">Mint 100 EXP</option>
           <option value="transfer">Transfer 50 EXP</option>
-          <option value="mint-transfer">Mint 100 EXP2 + Transfer 50 EXP</option>
+          <option value="mint-transfer">
+            Mint 100 EXP2 + Transfer 50 EXP + Mint NFT
+          </option>
           <option value="mint-nft">Mint NFT</option>
           <option value="revert">Revert</option>
           <option value="noop">Noop Calls</option>

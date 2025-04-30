@@ -29,6 +29,7 @@ export function usePrepareCalls<const calls extends readonly unknown[]>(
 
   return useQuery({
     enabled: enabled && !!account,
+    gcTime: 0,
     async queryFn() {
       if (!account) throw new Error('account is required.')
 

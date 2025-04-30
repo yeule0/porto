@@ -171,6 +171,7 @@ export namespace ActionRequest {
           })
         }
       }
+      balances = balances.toSorted((a, b) => (a.value > b.value ? -1 : 1))
       return balances
     }, [props.assetDiff, account?.address])
 
@@ -301,11 +302,15 @@ export namespace ActionRequest {
 
     return (
       <div
-        className={cx('space-y-3 rounded-lg px-3 transition-colors', {
-          'bg-surface py-3': variant === 'default',
-          'bg-warningTint py-2 text-warning': variant === 'warning',
-          'h-[90px]': loading,
-        })}
+        className={cx(
+          'space-y-3 overflow-hidden rounded-lg px-3 transition-all duration-300 ease-in-out',
+          {
+            'bg-surface py-3': variant === 'default',
+            'bg-warningTint py-2 text-warning': variant === 'warning',
+            'h-[90px] max-h-[90px]': loading,
+            'max-h-[500px]': !loading,
+          },
+        )}
       >
         {loading ? (
           <div className="flex h-full w-full items-center justify-center">
@@ -314,7 +319,7 @@ export namespace ActionRequest {
             </div>
           </div>
         ) : (
-          <>
+          <div className="fade-in animate-in space-y-3 duration-150">
             {children}
 
             {quote && (
@@ -335,7 +340,7 @@ export namespace ActionRequest {
                 )}
               </>
             )}
-          </>
+          </div>
         )}
       </div>
     )
