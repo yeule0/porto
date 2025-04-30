@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { PortoConfig } from '@porto/apps'
+import { PortoConfig, UserAgent } from '@porto/apps'
 import { LogoLockup } from '@porto/apps/components'
 import { exp1Config } from '@porto/apps/contracts'
 import { cx } from 'cva'
@@ -17,6 +17,7 @@ import {
 } from 'wagmi'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 import LucideChevronRight from '~icons/lucide/chevron-right'
+import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
 import LucidePlay from '~icons/lucide/play'
 import LucideX from '~icons/lucide/x'
 import { porto, store } from '../wagmi.config'
@@ -158,15 +159,6 @@ export function HomePage() {
             Documentation
           </Ariakit.Button>
           <Ariakit.Button
-            className="flex h-[40px] items-center justify-center gap-2 rounded-full border border-gray7 px-4 font-[400] hover:bg-gray3"
-            render={<Link to="/" />}
-          >
-            <div className="size-[1em]">
-              <DemoIcon />
-            </div>
-            Why Porto
-          </Ariakit.Button>
-          <Ariakit.Button
             className="flex h-[40px] items-center justify-center gap-[6px] rounded-full border border-gray7 px-4 font-[400] hover:bg-gray3"
             render={
               // biome-ignore lint/a11y/useAnchorContent: <explanation>
@@ -278,18 +270,12 @@ function Demo() {
         <div className="font-[400] text-[14px] text-gray9 leading-none tracking-[-2.8%]">
           Demo
         </div>
-        <Link
-          className="flex items-center gap-1 font-[400] text-[14px] text-blue9 leading-none tracking-[-2.8%]"
-          to="/"
-        >
-          Playground →
-        </Link>
       </div>
 
       <div className="flex-1">
         {isMounted && (
-          <div className="relative flex h-full w-full items-start justify-center pt-20">
-            <div className="w-full max-w-[277px]">
+          <div className="relative flex h-full w-full justify-center">
+            <div className="w-full max-w-[277px] h-full">
               {step === 'sign-in' && (
                 <SignIn next={() => setStep('add-funds')} />
               )}
@@ -436,11 +422,13 @@ function SignIn({ next }: { next: () => void }) {
   })
   const disconnect = Hooks.useDisconnect()
   const connector = usePortoConnector()
+  const isSafari = React.useMemo(() => UserAgent.isSafari(), [])
 
   React.useEffect(() => {
     if (status === 'connected') return
     if (!connector) return
     if (!porto) return
+    if (isSafari) return
 
     switchRenderer('inline')
     function switchRenderer(to: 'iframe' | 'inline') {
@@ -485,25 +473,65 @@ function SignIn({ next }: { next: () => void }) {
     return () => {
       switchRenderer('iframe')
     }
-  }, [status, chainId, connect.mutate, connector])
+  }, [status, chainId, isSafari, connect.mutate, connector])
 
   return (
-    <div className="flex w-full justify-center">
-      <div id="porto" />
+    <div className="flex w-full justify-center h-full">
+      {isSafari ? (
+        <div className="flex w-full gap-2 h-full items-center">
+          {connect.isPending ? (
+            <Button className="flex flex-grow gap-2" disabled>
+              <LucidePictureInPicture2 className="size-5" />
+              Check passkey prompt
+            </Button>
+          ) : (
+            <>
+              <Button
+                className="flex-grow"
+                onClick={() =>
+                  connect.mutate({
+                    connector,
+                    createAccount: true,
+                  })
+                }
+                variant="accent"
+              >
+                Sign up
+              </Button>
+
+              <Button
+                className="flex-grow"
+                onClick={() =>
+                  connect.mutate({
+                    connector,
+                  })
+                }
+                variant="invert"
+              >
+                Sign in
+              </Button>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="pt-20" id="porto" />
+      )}
 
       {status === 'connected' && (
-        <div className="flex flex-col gap-2">
-          <div title={address}>
-            {address.slice(0, 6)}...{address.slice(-4)}
-          </div>
+        <div className="flex w-full gap-2 h-full items-center justify-center">
+          <div className="flex flex-col gap-2">
+            <div title={address}>
+              {address.slice(0, 6)}...{address.slice(-4)}
+            </div>
 
-          <Button
-            className="flex-grow"
-            onClick={() => disconnect.mutate({ connector })}
-            variant="accent"
-          >
-            Sign out
-          </Button>
+            <Button
+              className="flex-grow"
+              onClick={() => disconnect.mutate({ connector })}
+              variant="accent"
+            >
+              Sign out
+            </Button>
+          </div>
         </div>
       )}
     </div>
