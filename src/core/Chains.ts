@@ -3,9 +3,7 @@ import * as chains from 'viem/chains'
 
 export type Chain = Chain_viem & {
   contracts: Chain_viem['contracts'] & {
-    accountRegistry?: ChainContract | undefined
     delegation?: ChainContract | undefined
-    entryPoint?: ChainContract | undefined
   }
 }
 
@@ -17,9 +15,6 @@ export const anvil = /*#__PURE__*/ define({
   ...chains.anvil,
   contracts: {
     ...chains.anvil.contracts,
-    accountRegistry: {
-      address: '0x700b6a60ce7eaaea56f065753d8dcb9653dbad35',
-    },
     delegation: {
       address: '0x8ce361602b935680e8dec218b820ff5056beb7af',
     },
@@ -36,14 +31,8 @@ export const baseSepolia = /*#__PURE__*/ define({
   ...chains.baseSepolia,
   contracts: {
     ...chains.baseSepolia.contracts,
-    accountRegistry: {
-      address: '0xf742e7cfc857611be27859bf910bc1ea59f52b24',
-    },
     delegation: {
       address: '0x79d7f2ab558ac7a4601f65d02f0fc695a644698a',
-    },
-    entryPoint: {
-      address: '0xf2595965b86e647d9b666087d785d54094b0a0c1',
     },
   },
   rpcUrls: {
