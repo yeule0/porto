@@ -16,6 +16,7 @@ const address = {
   expNft: {
     [anvil.id]: '0x4d8e02bbfcf205828a8352af4376b165e123d7b0',
     [baseSepolia.id]: '0xD37861F91a23aF5929F1617D9c94586e822b0a47',
+    [portoDev.id]: '0xef11D1c2aA48826D4c41e54ab82D1Ff5Ad8A64Ca',
   },
 } as const
 

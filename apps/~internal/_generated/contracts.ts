@@ -1452,6 +1452,7 @@ export const expNftAbi = [
  * - [__View Contract on Base Sepolia Basescan__](https://sepolia.basescan.org/address/0xD37861F91a23aF5929F1617D9c94586e822b0a47)
  */
 export const expNftAddress = {
+  28404: '0xef11D1c2aA48826D4c41e54ab82D1Ff5Ad8A64Ca',
   31337: '0x4d8E02BBfCf205828A8352Af4376b165E123D7b0',
   84532: '0xD37861F91a23aF5929F1617D9c94586e822b0a47',
 } as const
