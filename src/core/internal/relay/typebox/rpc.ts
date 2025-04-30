@@ -290,7 +290,9 @@ export namespace wallet_prepareCalls {
               address: Schema.Optional(
                 Type.Union([Primitive.Address, Type.Null()]),
               ),
-              decimals: Type.Number(),
+              decimals: Schema.Optional(
+                Type.Union([Type.Number(), Type.Null()]),
+              ),
               name: Schema.Optional(Type.Union([Type.String(), Type.Null()])),
               symbol: Type.String(),
               value: Type.Transform(Type.String())

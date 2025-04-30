@@ -180,7 +180,7 @@ export namespace ActionRequest {
             if (value === BigInt(0)) return null
 
             const receiving = value > BigInt(0)
-            const formatted = ValueFormatter.format(value, decimals)
+            const formatted = ValueFormatter.format(value, decimals ?? 0)
 
             const Icon = receiving ? ArrowDownLeft : ArrowUpRight
 
