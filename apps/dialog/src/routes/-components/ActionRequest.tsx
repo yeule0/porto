@@ -171,7 +171,7 @@ export namespace ActionRequest {
           })
         }
       }
-      balances = balances.toSorted((a, b) => (a.value > b.value ? -1 : 1))
+      balances = balances.toSorted((a, b) => (a.value > b.value ? 1 : -1))
       return balances
     }, [props.assetDiff, account?.address])
 
