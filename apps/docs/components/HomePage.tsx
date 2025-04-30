@@ -164,7 +164,7 @@ export function HomePage() {
             <div className="size-[1em]">
               <DemoIcon />
             </div>
-            Playground
+            Why Porto
           </Ariakit.Button>
           <Ariakit.Button
             className="flex h-[40px] items-center justify-center gap-[6px] rounded-full border border-gray7 px-4 font-[400] hover:bg-gray3"
@@ -180,7 +180,7 @@ export function HomePage() {
             <div className="size-[1.2em]">
               <GitHubIcon />
             </div>
-            View Source
+            GitHub
           </Ariakit.Button>
         </div>
       </div>
@@ -288,7 +288,7 @@ function Demo() {
 
       <div className="flex-1">
         {isMounted && (
-          <div className="relative flex h-full w-full items-center justify-center">
+          <div className="relative flex h-full w-full items-start justify-center pt-20">
             <div className="w-full max-w-[277px]">
               {step === 'sign-in' && (
                 <SignIn next={() => setStep('add-funds')} />
@@ -428,9 +428,6 @@ function SignIn({ next }: { next: () => void }) {
     mutation: {
       onError(error) {
         if (error instanceof ConnectorAlreadyConnectedError) next()
-      },
-      onSettled(data, error) {
-        console.log('onSettled', { data, error })
       },
       onSuccess() {
         next()
