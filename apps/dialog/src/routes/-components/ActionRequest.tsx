@@ -58,7 +58,7 @@ export function ActionRequest(props: ActionRequest.Props) {
 
         <Layout.Content>
           <ActionRequest.PaneWithDetails
-            loading={prepareCallsQuery.isPending}
+            loading={prepareCallsQuery.status === 'pending'}
             quote={quote}
             variant={prepareCallsQuery.isError ? 'warning' : 'default'}
           >
@@ -86,48 +86,50 @@ export function ActionRequest(props: ActionRequest.Props) {
         </Layout.Content>
 
         <Layout.Footer>
-          {prepareCallsQuery.isSuccess && (
-            <Layout.Footer.Actions>
-              <Button
-                className="flex-grow"
-                onClick={onReject}
-                type="button"
-                variant="destructive"
-              >
-                Deny
-              </Button>
+          <Layout.Footer.Actions>
+            {prepareCallsQuery.isError ? (
+              <>
+                <Button
+                  className="flex-grow"
+                  onClick={onReject}
+                  type="button"
+                  variant="destructive"
+                >
+                  Deny
+                </Button>
+                <Button
+                  className="flex-grow"
+                  onClick={onApprove}
+                  type="button"
+                  variant="default"
+                >
+                  Approve anyway
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  className="flex-grow"
+                  disabled={!prepareCallsQuery.isSuccess}
+                  onClick={onReject}
+                  type="button"
+                  variant="destructive"
+                >
+                  Deny
+                </Button>
 
-              <Button
-                className="flex-grow"
-                onClick={onApprove}
-                type="button"
-                variant="success"
-              >
-                Approve
-              </Button>
-            </Layout.Footer.Actions>
-          )}
-
-          {prepareCallsQuery.isError && (
-            <Layout.Footer.Actions>
-              <Button
-                className="flex-grow"
-                onClick={onReject}
-                type="button"
-                variant="destructive"
-              >
-                Deny
-              </Button>
-              <Button
-                className="flex-grow"
-                onClick={onApprove}
-                type="button"
-                variant="default"
-              >
-                Approve anyway
-              </Button>
-            </Layout.Footer.Actions>
-          )}
+                <Button
+                  className="flex-grow"
+                  disabled={!prepareCallsQuery.isSuccess}
+                  onClick={onApprove}
+                  type="button"
+                  variant="success"
+                >
+                  Approve
+                </Button>
+              </>
+            )}
+          </Layout.Footer.Actions>
 
           {account?.address && (
             <Layout.Footer.Account address={account.address} />
@@ -302,7 +304,7 @@ export namespace ActionRequest {
         className={cx('space-y-3 rounded-lg px-3 transition-colors', {
           'bg-surface py-3': variant === 'default',
           'bg-warningTint py-2 text-warning': variant === 'warning',
-          'h-19.5': loading,
+          'h-[90px]': loading,
         })}
       >
         {loading ? (
