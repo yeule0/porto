@@ -199,6 +199,39 @@ describe('sendCalls', () => {
     ).toBe(100n)
   })
 
+  test('behavior: no fee token (ETH)', async () => {
+    const key = Key.createHeadlessWebAuthnP256()
+    const account = await TestActions.createAccount(client, {
+      keys: [key],
+    })
+
+    const { id } = await Relay.sendCalls(client, {
+      account,
+      calls: [
+        {
+          abi: exp2Abi,
+          args: [account.address, 100n],
+          functionName: 'mint',
+          to: exp2Address,
+        },
+      ],
+    })
+
+    expect(id).toBeDefined()
+
+    await waitForCallsStatus(client, {
+      id,
+    })
+
+    expect(
+      await readContract(client, {
+        ...exp2Config,
+        args: [account.address],
+        functionName: 'balanceOf',
+      }),
+    ).toBe(100n)
+  })
+
   test('behavior: via prepareCalls', async () => {
     const key = Key.createHeadlessWebAuthnP256()
     const account = await TestActions.createAccount(client, {
