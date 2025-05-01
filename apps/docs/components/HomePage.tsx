@@ -275,7 +275,7 @@ function Demo() {
       <div className="flex-1">
         {isMounted && (
           <div className="relative flex h-full w-full justify-center">
-            <div className="w-full max-w-[277px] h-full">
+            <div className="h-full w-full max-w-[277px]">
               {step === 'sign-in' && (
                 <SignIn next={() => setStep('add-funds')} />
               )}
@@ -476,9 +476,9 @@ function SignIn({ next }: { next: () => void }) {
   }, [status, chainId, isSafari, connect.mutate, connector])
 
   return (
-    <div className="flex w-full justify-center h-full">
+    <div className="flex h-full w-full justify-center">
       {isSafari ? (
-        <div className="flex w-full gap-2 h-full items-center">
+        <div className="flex h-full w-full items-center gap-2">
           {connect.isPending ? (
             <Button className="flex flex-grow gap-2" disabled>
               <LucidePictureInPicture2 className="size-5" />
@@ -518,7 +518,7 @@ function SignIn({ next }: { next: () => void }) {
       )}
 
       {status === 'connected' && (
-        <div className="flex w-full gap-2 h-full items-center justify-center">
+        <div className="flex h-full w-full items-center justify-center gap-2">
           <div className="flex flex-col gap-2">
             <div title={address}>
               {address.slice(0, 6)}...{address.slice(-4)}
@@ -870,27 +870,6 @@ function PortoIcon() {
           />
         </g>
       </g>
-    </svg>
-  )
-}
-
-function DemoIcon() {
-  return (
-    <svg
-      fill="none"
-      height="100%"
-      viewBox="0 0 18 17"
-      width="100%"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <title>Demo</title>
-      <path
-        d="M9 13.7499L6.0225 15.5349C5.7892 15.6751 5.52217 15.7492 5.25 15.7492C4.97783 15.7492 4.7108 15.6751 4.4775 15.5349L2.2275 14.1849C2.00607 14.0519 1.82275 13.8639 1.69529 13.6393C1.56783 13.4146 1.50057 13.1608 1.5 12.9024V10.4724C1.50057 10.2141 1.56783 9.96033 1.69529 9.73564C1.82275 9.51095 2.00607 9.32298 2.2275 9.18995L5.25 7.37495M9 13.7499V9.62495M9 13.7499L11.9775 15.5349C12.2108 15.6751 12.4778 15.7492 12.75 15.7492C13.0222 15.7492 13.2892 15.6751 13.5225 15.5349L15.7725 14.1849C15.9939 14.0519 16.1773 13.8639 16.3047 13.6393C16.4322 13.4146 16.4994 13.1608 16.5 12.9024V10.4724C16.4994 10.2141 16.4322 9.96033 16.3047 9.73564C16.1773 9.51095 15.9939 9.32298 15.7725 9.18995L12.75 7.37495M9 9.62495L5.25 7.37495M9 9.62495L5.25 11.8749M9 9.62495L12.75 7.37495M9 9.62495L12.75 11.8749M9 9.62495L9 5.49995M5.25 7.37495L5.25 4.09745C5.25057 3.83913 5.31783 3.58533 5.44529 3.36064C5.57275 3.13595 5.75607 2.94798 5.9775 2.81495L8.2275 1.46495C8.4608 1.32478 8.72783 1.25073 9 1.25073C9.27216 1.25073 9.5392 1.32478 9.7725 1.46495L12.0225 2.81495C12.2439 2.94798 12.4273 3.13595 12.5547 3.36064C12.6822 3.58533 12.7494 3.83913 12.75 4.09745L12.75 7.37495M5.25 11.8749L1.695 9.73745M5.25 11.8749V15.7524M12.75 11.8749L16.305 9.73745M12.75 11.8749L12.75 15.7524M9 5.49995L5.445 3.36245M9 5.49995L12.555 3.36245"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-      />
     </svg>
   )
 }
