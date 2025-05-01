@@ -375,7 +375,7 @@ export function experimental_inline(options: inline.Options) {
       iframe.setAttribute('tabindex', '0')
       iframe.setAttribute(
         'sandbox',
-        'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
+        'allow-forms allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox',
       )
       iframe.setAttribute('src', host)
       iframe.setAttribute('title', 'Porto')
