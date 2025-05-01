@@ -3,6 +3,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { readContract, waitForCallsStatus } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 import * as TestActions from '../../../test/src/actions.js'
+import * as Anvil from '../../../test/src/anvil.js'
 import {
   exp1Abi,
   exp1Address,
@@ -199,7 +200,7 @@ describe('sendCalls', () => {
     ).toBe(100n)
   })
 
-  test('behavior: no fee token (ETH)', async () => {
+  test.runIf(Anvil.enabled)('behavior: no fee token (ETH)', async () => {
     const key = Key.createHeadlessWebAuthnP256()
     const account = await TestActions.createAccount(client, {
       keys: [key],
@@ -448,8 +449,7 @@ describe.each([
       ).toBe(100n)
     })
 
-    // TODO(relay): fix
-    test.skip('mint erc20; no fee token (ETH)', async () => {
+    test.runIf(Anvil.enabled)('mint erc20; no fee token (ETH)', async () => {
       // 1. Initialize Account with Admin Key.
       const key = Key.createHeadlessWebAuthnP256()
       const account = await initializeAccount(client, {
