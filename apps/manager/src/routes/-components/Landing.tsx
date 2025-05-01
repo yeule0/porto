@@ -106,6 +106,7 @@ export function Landing() {
                     connect.mutate({
                       connector: connector!,
                       createAccount: false,
+                      selectAccount: true,
                     })
                   }
                   type="button"

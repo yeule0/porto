@@ -59,7 +59,13 @@ export async function connect<config extends Config>(
       | undefined
     if (!provider) throw new ProviderNotFoundError()
 
-    const { createAccount, credentialId, grantPermissions, keyId } = parameters
+    const {
+      createAccount,
+      credentialId,
+      grantPermissions,
+      keyId,
+      selectAccount,
+    } = parameters
     const method = 'wallet_connect'
     type method = typeof method
     await provider.request<{
@@ -75,6 +81,7 @@ export async function connect<config extends Config>(
             credentialId,
             grantPermissions,
             keyId,
+            selectAccount,
           }),
         },
       ],
