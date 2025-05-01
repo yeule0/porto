@@ -8,7 +8,7 @@ import type * as PermissionsRequest from './permissionsRequest.js'
 import type * as Porto from './porto.js'
 import type * as Rpc from './typebox/rpc.js'
 import * as Schema from './typebox/schema.js'
-import type { Compute, PartialBy } from './types.js'
+import type { PartialBy } from './types.js'
 
 type Request = Rpc.parseRequest.ReturnType
 
@@ -248,12 +248,12 @@ export type Mode = {
  * @returns Mode.
  */
 export function from<const mode extends from.Parameters>(
-  mode: mode | from.Parameters,
-): Compute<mode & Pick<Mode, 'setup'>> {
+  mode: from.Parameters,
+): Mode {
   return {
     ...mode,
-    setup: mode.setup ?? (() => {}),
-  } as mode & Pick<Mode, 'setup'>
+    setup: mode.setup ?? (() => () => {}),
+  }
 }
 
 export declare namespace from {
