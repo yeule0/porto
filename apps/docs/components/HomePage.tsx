@@ -1,30 +1,44 @@
 import * as Ariakit from '@ariakit/react'
-import { PortoConfig, UserAgent } from '@porto/apps'
-import { LogoLockup } from '@porto/apps/components'
-import { exp1Config } from '@porto/apps/contracts'
+import { LogoLockup, Toast } from '@porto/apps/components'
+import { exp1Config, exp2Config, expNftConfig } from '@porto/apps/contracts'
 import { cx } from 'cva'
-import { Value } from 'ox'
-import { Mode } from 'porto'
+import { Address, Hex, Provider, Value } from 'ox'
 import { Hooks } from 'porto/wagmi'
 import * as React from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
+import { BaseError, UserRejectedRequestError } from 'viem'
 import {
   ConnectorAlreadyConnectedError,
   useAccount,
   useAccountEffect,
+  useBlockNumber,
   useChainId,
   useConnectors,
+  useReadContract,
+  useSendCalls,
+  useWaitForCallsStatus,
 } from 'wagmi'
+import LucideBanknoteArrowDown from '~icons/lucide/banknote-arrow-down'
+import LucideCheck from '~icons/lucide/check'
 import LucideChevronLeft from '~icons/lucide/chevron-left'
 import LucideChevronRight from '~icons/lucide/chevron-right'
+import LucideGem from '~icons/lucide/gem'
+import LucideInfo from '~icons/lucide/info'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
 import LucidePlay from '~icons/lucide/play'
+import LucideSparkle from '~icons/lucide/sparkle'
 import LucideX from '~icons/lucide/x'
-import { porto, store } from '../wagmi.config'
+import { config, porto } from '../wagmi.config'
 import { Button } from './Button'
 
 export function HomePage() {
-  const dialog = Ariakit.useDialogStore()
+  const [isMounted, setIsMounted] = React.useState(false)
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const dialogStore = Ariakit.useDialogStore()
 
   return (
     <div className="flex justify-center gap-[32px]">
@@ -68,7 +82,7 @@ export function HomePage() {
         <div className="w-full min-lg:hidden">
           <Ariakit.Button
             className="relative inline-flex h-[42px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-[10px] bg-accent px-[18px] font-medium text-white transition-colors hover:not-active:bg-accentHover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            onClick={dialog.show}
+            onClick={dialogStore.show}
           >
             <LucidePlay className="mt-0.5 size-3.5" />
             Try it out
@@ -178,13 +192,18 @@ export function HomePage() {
       </div>
 
       <div className="flex-1 max-lg:hidden">
-        <Demo />
+        {isMounted ? (
+          <Demo />
+        ) : (
+          <div className="flex h-full flex-col rounded-[20px] bg-gray3/50 p-4" />
+        )}
       </div>
 
       <Ariakit.Dialog
         backdrop={<div className="backdrop" />}
         className="fixed inset-0 z-50 h-full bg-white px-5 py-6.5 lg:hidden dark:bg-black"
-        store={dialog}
+        hideOnInteractOutside={false}
+        store={dialogStore}
       >
         <div className="flex h-full flex-col">
           <header className="mb-5 flex items-center justify-between">
@@ -196,9 +215,857 @@ export function HomePage() {
             />
           </header>
 
-          <Demo />
+          {isMounted && <Demo />}
         </div>
       </Ariakit.Dialog>
+    </div>
+  )
+}
+
+const pollingInterval = 800
+const steps = ['sign-in', 'add-funds', 'send', 'mint', 'swap'] as const
+
+function Demo() {
+  const chainId = useChainId()
+  const { address, status } = useAccount()
+
+  const [step, setStep] = React.useState<(typeof steps)[number]>('sign-in')
+  useAccountEffect({
+    onConnect() {
+      setStep('add-funds')
+    },
+    onDisconnect() {
+      setStep('sign-in')
+    },
+  })
+
+  const { data: blockNumber } = useBlockNumber({
+    watch: {
+      enabled: status === 'connected',
+      pollingInterval: pollingInterval + 100,
+    },
+  })
+  const shared = {
+    args: [address!],
+    functionName: 'balanceOf',
+    query: { enabled: Boolean(address) },
+  } as const
+  const { data: exp1Balance, refetch: expBalanceRefetch } = useReadContract({
+    abi: exp1Config.abi,
+    address: exp1Config.address[chainId],
+    ...shared,
+  })
+  const { data: exp2Balance, refetch: exp2BalanceRefetch } = useReadContract({
+    abi: exp2Config.abi,
+    address: exp2Config.address[chainId],
+    ...shared,
+  })
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refetch balance every block
+  React.useEffect(() => {
+    expBalanceRefetch()
+    exp2BalanceRefetch()
+  }, [blockNumber])
+
+  return (
+    <div className="flex h-full flex-col rounded-[20px] bg-gray3/50 p-4">
+      <div className="hidden w-full justify-between p-1 lg:flex">
+        <div className="font-[400] text-[14px] text-gray9 leading-none tracking-[-2.8%]">
+          Demo
+        </div>
+      </div>
+
+      <div className="flex-1">
+        <div className="relative flex h-full w-full justify-center">
+          <div className="flex h-full w-full max-w-[277px] flex-col items-center justify-center">
+            {step === 'sign-in' && (
+              <SignIn chainId={chainId} next={() => setStep('add-funds')} />
+            )}
+            {step === 'add-funds' && (
+              <AddFunds chainId={chainId} next={() => setStep('send')} />
+            )}
+            {step === 'send' && (
+              <Send
+                address={address}
+                chainId={chainId}
+                exp1Balance={exp1Balance}
+              />
+            )}
+            {step === 'mint' && <MintNFT chainId={chainId} />}
+            {step === 'swap' && (
+              <Swap
+                address={address}
+                chainId={chainId}
+                exp1Balance={exp1Balance}
+                exp2Balance={exp2Balance}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex w-full flex-col items-center justify-center space-y-1">
+        <div className="w-full space-y-1">
+          <div className="flex w-full items-end justify-between lg:items-center lg:justify-around">
+            <div className="lg:pb-6">
+              {status === 'connected' && (
+                <button
+                  className={cx(
+                    'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-transparent text-gray8 hover:bg-gray2 disabled:cursor-not-allowed',
+                    step === steps[0] && 'invisible',
+                  )}
+                  disabled={step === steps[0]}
+                  onClick={() =>
+                    step && setStep(steps[steps.indexOf(step) - 1]!)
+                  }
+                  type="button"
+                >
+                  <LucideChevronLeft className="-ms-0.5 size-5" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col pb-3 lg:pb-0">
+              <div className="max-w-[25.5ch] space-y-1">
+                {step === 'sign-in' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Seamless sign in
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Grant permissions with your Porto wallet for security &
+                      ease of use.
+                    </p>
+                  </>
+                )}
+                {step === 'add-funds' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Deposit in seconds
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Fund your account, with no KYC for deposits below $500.
+                    </p>
+                  </>
+                )}
+                {step === 'send' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Instant sends & swaps
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      With permissions, complete common actions without extra
+                      clicks.
+                    </p>
+                  </>
+                )}
+                {step === 'mint' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Rich feature set
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      View rich transaction previews, pay fees in other tokens,
+                      and much more.
+                    </p>
+                  </>
+                )}
+                {step === 'swap' && (
+                  <>
+                    <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
+                      Free from fees
+                    </p>
+                    <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
+                      Apps can cover your fees based on an asset you hold, like
+                      the NFT you minted.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              <div className="h-10 lg:h-8" />
+
+              <div className="flex items-center justify-center gap-1">
+                {steps.map((s) => (
+                  <button
+                    className="size-[7px] rounded-full bg-gray6 transition-all duration-150 hover:not-data-[active=true]:not-data-[disabled=true]:scale-150 hover:not-data-[disabled=true]:bg-gray9 data-[active=true]:w-6 data-[active=true]:bg-gray9"
+                    data-active={s === step}
+                    data-disabled={status !== 'connected'}
+                    key={s}
+                    onClick={() => {
+                      if (status === 'connected') setStep(s)
+                    }}
+                    type="button"
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:pb-6">
+              {status === 'connected' && (
+                <button
+                  className={cx(
+                    'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed',
+                    step === steps[steps.length - 1] && 'invisible',
+                  )}
+                  disabled={step === steps[steps.length - 1]}
+                  onClick={() =>
+                    step && setStep(steps[steps.indexOf(step) + 1]!)
+                  }
+                  type="button"
+                >
+                  <LucideChevronRight className="-me-0.5 size-5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type ChainId = (typeof config)['state']['chainId']
+
+function SignIn(props: { chainId: ChainId; next: () => void }) {
+  const { chainId, next } = props
+
+  const { address, status } = useAccount()
+  const connect = Hooks.useConnect({
+    mutation: {
+      onError(error) {
+        if (error instanceof ConnectorAlreadyConnectedError) next()
+      },
+      onSuccess() {
+        next()
+      },
+    },
+  })
+  const disconnect = Hooks.useDisconnect()
+  const connector = usePortoConnector()
+
+  if (status === 'connected')
+    return (
+      <div className="flex flex-col gap-2">
+        <div title={address}>
+          {address.slice(0, 6)}...{address.slice(-4)}
+        </div>
+
+        <Button
+          className="flex-grow"
+          onClick={() => disconnect.mutate({ connector })}
+          variant="accent"
+        >
+          Sign out
+        </Button>
+      </div>
+    )
+
+  if (connect.isPending)
+    return (
+      <div className="flex w-full">
+        <Button className="flex flex-grow gap-2" disabled>
+          <LucidePictureInPicture2 className="size-5" />
+          Check passkey prompt
+        </Button>
+      </div>
+    )
+
+  const grantPermissions = {
+    expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+    permissions: {
+      calls: [{ to: exp1Config.address[chainId] }],
+      spend: [
+        {
+          limit: Value.fromEther('100'),
+          period: 'hour',
+          token: exp1Config.address[chainId],
+        },
+      ],
+    },
+  } as const
+
+  return (
+    <div className="flex w-full gap-2">
+      <Button
+        className="flex-grow"
+        onClick={() =>
+          connect.mutate({
+            connector,
+            createAccount: true,
+            grantPermissions,
+          })
+        }
+        variant="accent"
+      >
+        Sign up
+      </Button>
+
+      <Button
+        className="flex-grow"
+        onClick={() =>
+          connect.mutate({
+            connector,
+            grantPermissions,
+          })
+        }
+        variant="invert"
+      >
+        Sign in
+      </Button>
+    </div>
+  )
+}
+
+function AddFunds(props: { chainId: ChainId; next: () => void }) {
+  const { chainId, next } = props
+
+  return (
+    <div className="flex w-full flex-col gap-4.5">
+      <ClickHere />
+      <Ariakit.Button
+        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-black px-3 text-center font-medium text-[16px] text-white leading-normal dark:bg-white dark:text-black"
+        onClick={async () => {
+          try {
+            await porto!.provider.request({
+              method: 'experimental_addFunds',
+              params: [
+                {
+                  token: exp1Config.address[chainId],
+                  value: Hex.fromNumber(100),
+                },
+              ],
+            })
+            next()
+          } catch (error) {
+            if (!(error instanceof Provider.UserRejectedRequestError))
+              toast.custom((t) => (
+                <Toast
+                  className={t}
+                  description={
+                    (error as Error)?.message ?? 'Something went wrong'
+                  }
+                  kind="error"
+                  title="Add Funds Failed"
+                />
+              ))
+          }
+        }}
+      >
+        <LucideBanknoteArrowDown className="size-4" />
+        Add funds
+      </Ariakit.Button>
+    </div>
+  )
+}
+
+function Send(props: {
+  address: Address.Address | undefined
+  chainId: (typeof config)['state']['chainId']
+  exp1Balance: bigint | undefined
+}) {
+  const { address, chainId, exp1Balance } = props
+
+  const { data, isPending, sendCallsAsync } = useSendCalls()
+  const {
+    error,
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForCallsStatus({
+    id: data?.id,
+    pollingInterval,
+  })
+  React.useEffect(() => {
+    if (error)
+      toast.custom((t) => (
+        <Toast
+          className={t}
+          description={error.message}
+          kind="error"
+          title="Send Failed"
+        />
+      ))
+  }, [error])
+
+  const form = Ariakit.useFormStore({
+    defaultValues: {
+      amount: '10',
+    },
+  })
+  form.useSubmit(async (state) => {
+    try {
+      const shared = {
+        abi: exp1Config.abi,
+        to: exp1Config.address[chainId],
+      }
+      const amount = Value.fromEther(state.values.amount)
+      await sendCallsAsync({
+        calls: [
+          {
+            ...shared,
+            args: [address, amount],
+            functionName: 'approve',
+          },
+          {
+            ...shared,
+            args: [
+              address,
+              '0x0000000000000000000000000000000000000000',
+              amount,
+            ],
+            functionName: 'transferFrom',
+          },
+        ],
+      })
+    } catch (err) {
+      const error = (() => {
+        if (err instanceof BaseError)
+          return err instanceof BaseError
+            ? err.walk((err) => err instanceof UserRejectedRequestError)
+            : err
+        return err
+      })()
+
+      if (
+        (error as Provider.ProviderRpcError)?.code !==
+        Provider.UserRejectedRequestError.code
+      )
+        toast.custom((t) => (
+          <Toast
+            className={t}
+            description={(err as Error)?.message ?? 'Something went wrong'}
+            kind="error"
+            title="Send Failed"
+          />
+        ))
+    }
+  })
+
+  if (isConfirmed) return <Success text="Sent successfully!" />
+
+  return (
+    <Ariakit.Form
+      className="flex w-full flex-col items-end gap-3"
+      resetOnSubmit={false}
+      store={form}
+    >
+      <div className="relative flex w-full items-center">
+        <Ariakit.VisuallyHidden>
+          <Ariakit.FormLabel name={form.names.amount}>Amount</Ariakit.FormLabel>
+        </Ariakit.VisuallyHidden>
+
+        <Ariakit.FormInput
+          className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 bg-gray1 py-3 ps-3 pe-16 font-medium text-[15px] text-gray12 placeholder:text-gray8 disabled:cursor-not-allowed"
+          disabled={!address}
+          max={exp1Balance ? Value.formatEther(exp1Balance) : 0}
+          min="0"
+          name={form.names.amount}
+          placeholder="0.0"
+          required
+          step="any"
+          type="number"
+        />
+
+        <div className="absolute end-4 flex items-center gap-1.5">
+          <div className="size-4">
+            <Exp1Token />
+          </div>
+          <div className="-tracking-[0.25px] font-medium text-[13px] text-gray9 leading-normal">
+            EXP
+          </div>
+        </div>
+      </div>
+
+      <Ariakit.FormSubmit
+        aria-disabled={!address || isPending || isConfirming}
+        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10"
+        disabled={!address || isPending || isConfirming}
+      >
+        {isPending || isConfirming ? 'Sending...' : 'Send'}
+      </Ariakit.FormSubmit>
+
+      <div className="flex w-full items-center justify-between">
+        <div className="-tracking-[0.392px] text-[14px] text-gray9 leading-normal">
+          Your balance
+        </div>
+        <div className="-tracking-[0.42px] font-medium text-[15px] text-gray12 leading-normal">
+          {exp1Balance ? ValueFormatter.format(exp1Balance) : 0}{' '}
+          <span className="text-gray10">EXP</span>
+        </div>
+      </div>
+    </Ariakit.Form>
+  )
+}
+
+function MintNFT(props: { chainId: (typeof config)['state']['chainId'] }) {
+  const { chainId } = props
+
+  const { data, isPending, sendCalls } = useSendCalls({
+    mutation: {
+      onError(err) {
+        const error = (() => {
+          if (err instanceof BaseError)
+            return err instanceof BaseError
+              ? err.walk((err) => err instanceof UserRejectedRequestError)
+              : err
+          return err
+        })()
+
+        if (
+          (error as Provider.ProviderRpcError)?.code !==
+          Provider.UserRejectedRequestError.code
+        )
+          toast.custom((t) => (
+            <Toast
+              className={t}
+              description={err?.message ?? 'Something went wrong'}
+              kind="error"
+              title="Mint NFT Failed"
+            />
+          ))
+      },
+    },
+  })
+
+  const {
+    error,
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForCallsStatus({
+    id: data?.id,
+    pollingInterval,
+  })
+  React.useEffect(() => {
+    if (error)
+      toast.custom((t) => (
+        <Toast
+          className={t}
+          description={error.message}
+          kind="error"
+          title="Mint NFT Failed"
+        />
+      ))
+  }, [error])
+
+  if (isConfirmed) return <Success text="Minted successfully!" />
+
+  return (
+    <div className="flex w-full flex-col items-center gap-4.5">
+      {!(isPending || isConfirming) && <ClickHere />}
+      <Ariakit.Button
+        aria-disabled={isPending || isConfirming}
+        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-black px-3 text-center font-medium text-[16px] text-white leading-normal aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10 dark:bg-white dark:text-black"
+        disabled={isPending || isConfirming}
+        onClick={() =>
+          sendCalls({
+            calls: [
+              {
+                abi: expNftConfig.abi,
+                functionName: 'mint',
+                to: expNftConfig.address[chainId],
+              },
+            ],
+          })
+        }
+      >
+        {isPending || isConfirming ? (
+          'Minting NFT'
+        ) : (
+          <>
+            <LucideSparkle className="size-4" />
+            Mint NFT
+          </>
+        )}
+      </Ariakit.Button>
+      {!(isPending || isConfirming) && (
+        <div className="-tracking-[0.392px] max-w-[230px] text-center text-[14px] text-gray10 leading-[22px]">
+          Holding this NFT will allow you to get free transactions on Ithaca
+          testnet.
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Swap(props: {
+  address: Address.Address | undefined
+  chainId: (typeof config)['state']['chainId']
+  exp1Balance: bigint | undefined
+  exp2Balance: bigint | undefined
+}) {
+  const { address, chainId, exp1Balance, exp2Balance } = props
+
+  const { data, isPending, sendCallsAsync } = useSendCalls()
+  const {
+    error,
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForCallsStatus({
+    id: data?.id,
+    pollingInterval,
+  })
+  React.useEffect(() => {
+    if (error)
+      toast.custom((t) => (
+        <Toast
+          className={t}
+          description={error.message}
+          kind="error"
+          title="Swap Failed"
+        />
+      ))
+  }, [error])
+
+  const form = Ariakit.useFormStore({
+    defaultValues: {
+      fromSymbol: 'exp1',
+      fromValue: '10',
+      toValue: '0.1',
+    },
+  })
+  form.useSubmit(async (state) => {
+    try {
+      const fromSymbol = state.values.fromSymbol
+      const fromValue = state.values.fromValue
+      const expFromConfig = fromSymbol === 'exp' ? exp1Config : exp2Config
+      const expToConfig = fromSymbol === 'exp' ? exp2Config : exp1Config
+      await sendCallsAsync({
+        calls: [
+          {
+            abi: expFromConfig.abi,
+            args: [
+              expToConfig.address[chainId],
+              address,
+              Value.fromEther(fromValue),
+            ],
+            functionName: 'swap',
+            to: expFromConfig.address[chainId],
+          },
+        ],
+      })
+    } catch (err) {
+      const error = (() => {
+        if (err instanceof BaseError)
+          return err instanceof BaseError
+            ? err.walk((err) => err instanceof UserRejectedRequestError)
+            : err
+        return err
+      })()
+
+      if (
+        (error as Provider.ProviderRpcError)?.code !==
+        Provider.UserRejectedRequestError.code
+      )
+        toast.custom((t) => (
+          <Toast
+            className={t}
+            description={(err as Error)?.message ?? 'Something went wrong'}
+            kind="error"
+            title="Swap Failed"
+          />
+        ))
+    }
+  })
+
+  const fromSymbol = form.useValue('fromSymbol')
+  const fromValue = form.useValue('toValue')
+  const toValue = form.useValue('toValue')
+
+  if (isConfirmed) return <Success text="Swapped successfully!" />
+
+  const from = {
+    balance: fromSymbol === 'exp1' ? exp1Balance : exp2Balance,
+    icon: fromSymbol === 'exp1' ? <Exp1Token /> : <Exp2Token />,
+    symbol: fromSymbol,
+    value: fromValue,
+  }
+  const to = {
+    balance: fromSymbol === 'exp1' ? exp2Balance : exp1Balance,
+    icon: fromSymbol === 'exp1' ? <Exp2Token /> : <Exp1Token />,
+    symbol: fromSymbol === 'exp1' ? 'exp2' : 'exp1',
+    value: toValue,
+  }
+  const noFunds = (exp1Balance ?? 0n) === 0n && (exp2Balance ?? 0n) === 0n
+
+  return (
+    <Ariakit.Form className="mt-2 pb-4" resetOnSubmit={false} store={form}>
+      <div
+        className={cx(
+          'relative mb-2 flex items-center justify-center gap-1',
+          noFunds && 'opacity-50',
+        )}
+      >
+        <div className="relative flex flex-1 items-center">
+          <Ariakit.VisuallyHidden>
+            <Ariakit.FormLabel name={form.names.fromValue}>
+              From value
+            </Ariakit.FormLabel>
+          </Ariakit.VisuallyHidden>
+
+          <Ariakit.FormInput
+            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 bg-gray1 py-3 ps-3 pe-[76px] font-medium text-[15px] text-gray12 placeholder:text-gray8"
+            disabled={!address || noFunds || isPending || isConfirming}
+            max={from.balance ? Value.formatEther(from.balance) : 0}
+            min="0"
+            name={form.names.fromValue}
+            onChange={(e) => {
+              const value = e.target.value
+              const scalar = fromSymbol === 'exp1' ? 0.01 : 100
+              form.setValue(
+                'toValue',
+                value ? (Number(value) * scalar).toString() : '',
+              )
+            }}
+            placeholder="0.0"
+            required
+            step="any"
+            type="number"
+          />
+          <div className="absolute end-4 flex items-center gap-1">
+            <div className="size-4">{from.icon}</div>
+            <span className="-tracking-[0.25px] font-medium text-[13px] text-gray9 uppercase tabular-nums leading-none">
+              {from.symbol}
+            </span>
+          </div>
+        </div>
+
+        <div className="relative flex flex-1 items-center">
+          <Ariakit.VisuallyHidden>
+            <Ariakit.FormLabel name={form.names.toValue}>
+              To value
+            </Ariakit.FormLabel>
+          </Ariakit.VisuallyHidden>
+
+          <Ariakit.FormInput
+            className="-tracking-[0.42px] h-10.5 w-full rounded-[10px] border border-gray5 bg-gray1 py-3 ps-4 pe-[76px] font-medium text-[15px] text-gray12 placeholder:text-gray8"
+            disabled={!address || noFunds || isPending || isConfirming}
+            min="0"
+            name={form.names.toValue}
+            onChange={(e) => {
+              const value = e.target.value
+              const scalar = fromSymbol === 'exp1' ? 100 : 0.01
+              form.setValue(
+                'fromValue',
+                value ? (Number(value) * scalar).toString() : '',
+              )
+            }}
+            placeholder="0.0"
+            required
+            step="any"
+            type="number"
+          />
+          <div className="absolute end-3 flex items-center gap-1">
+            <div className="size-4">{to.icon}</div>
+            <span className="-tracking-[0.25px] font-medium text-[13px] text-gray9 uppercase tabular-nums leading-none">
+              {to.symbol}
+            </span>
+          </div>
+        </div>
+
+        <button
+          aria-label="Switch from and to inputs"
+          className="absolute flex size-5.5 min-w-5.5 items-center justify-center rounded-full bg-gray4"
+          disabled={!address || noFunds || isPending || isConfirming}
+          onClick={() => {
+            form.setValues((x) => ({
+              fromSymbol: x.fromSymbol === 'exp1' ? 'exp2' : 'exp1',
+              fromValue: x.toValue,
+              toValue: x.fromValue,
+            }))
+          }}
+          tabIndex={-1}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            className="size-3.5 text-gray9"
+            fill="none"
+            height="14"
+            viewBox="0 0 14 14"
+            width="14"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5.25 10.5L8.75 7L5.25 3.5"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <Ariakit.FormSubmit
+        aria-disabled={isPending || isConfirming}
+        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10"
+        disabled={isPending || isConfirming}
+      >
+        {isPending || isConfirming ? 'Swapping...' : 'Swap'}
+      </Ariakit.FormSubmit>
+
+      {!(isPending || isConfirming) && (
+        <div className="mt-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <LucideGem className="mt-px size-4 text-amber8" />
+            <div className="-tracking-[0.392px] text-[14px] text-gray10 leading-[22px]">
+              No fee
+            </div>
+          </div>
+
+          <Ariakit.TooltipProvider placement="bottom-end">
+            <Ariakit.TooltipAnchor>
+              <LucideInfo className="size-4 text-gray10" />
+            </Ariakit.TooltipAnchor>
+            <Ariakit.Tooltip className="z-100 max-w-[189px] rounded-[11px] border border-gray4 bg-gray1 p-3.5 shadow-[0px_4px_44px_0px_rgba(0,0,0,0.10)]">
+              <div className="-tracking-[0.25px] font-medium text-[14px] text-gray12 leading-normal">
+                Fees are covered
+              </div>
+              <div className="-tracking-[0.25px] text-[13px] text-gray9 leading-normal">
+                This app is covering your transaction fees for holding{' '}
+                <span className="font-medium text-blue9">Ithaca Genesis</span>.
+              </div>
+            </Ariakit.Tooltip>
+          </Ariakit.TooltipProvider>
+        </div>
+      )}
+    </Ariakit.Form>
+  )
+}
+
+function Success(props: { text: string }) {
+  const { text } = props
+  return (
+    <div className="flex flex-col items-center gap-5">
+      <div className="w-fit rounded-full bg-green3 p-3.5">
+        <LucideCheck className="size-9 text-green9" />
+      </div>
+      <div className="-tracking-[-0.448px] rounded-full bg-gray4 px-4 py-2.5 text-[16px] text-gray9 leading-[22px]">
+        {text}
+      </div>
+    </div>
+  )
+}
+
+function ClickHere() {
+  return (
+    <div className="-ms-4 flex justify-center gap-4">
+      <div className="-tracking-[0.448px] font-medium text-[16px] text-black/50 leading-normal dark:text-white/50">
+        Click here
+      </div>
+      <svg
+        className="mt-2.5 text-black/80 dark:text-white/80"
+        fill="none"
+        height="41"
+        viewBox="0 0 47 41"
+        width="47"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <title>pointer arrow</title>
+        <path
+          d="M38.7964 40.7106C39.1889 41.0992 39.822 41.096 40.2106 40.7036L46.5429 34.3081C46.9314 33.9156 46.9283 33.2824 46.5358 32.8939C46.1434 32.5053 45.5102 32.5084 45.1216 32.9009L39.493 38.5858L33.8081 32.9571C33.4156 32.5686 32.7824 32.5717 32.3939 32.9642C32.0053 33.3566 32.0084 33.9898 32.4009 34.3784L38.7964 40.7106ZM1 1.5L0.968378 2.4995C15.7228 2.9663 24.953 5.21933 30.5709 10.7473C36.1764 16.263 38.4268 25.2825 38.5 40.005L39.5 40L40.5 39.995C40.4265 25.2081 38.1966 15.445 31.9736 9.32167C25.7631 3.21057 15.8166 0.968267 1.03162 0.5005L1 1.5Z"
+          fill="currentColor"
+        />
+      </svg>
     </div>
   )
 }
@@ -242,300 +1109,6 @@ namespace Install {
       value: 'npm' | 'pnpm' | 'yarn'
     }
   }
-}
-
-const steps = ['sign-in', 'add-funds', 'send', 'mint', 'swap'] as const
-
-function Demo() {
-  const account = useAccount()
-  const [step, setStep] = React.useState<(typeof steps)[number]>('sign-in')
-
-  const [isMounted, setIsMounted] = React.useState(false)
-  React.useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  useAccountEffect({
-    onConnect() {
-      setStep('add-funds')
-    },
-    onDisconnect() {
-      setStep('sign-in')
-    },
-  })
-
-  return (
-    <div className="flex h-full flex-col rounded-[20px] bg-gray3/50 p-4">
-      <div className="hidden w-full justify-between p-1 lg:flex">
-        <div className="font-[400] text-[14px] text-gray9 leading-none tracking-[-2.8%]">
-          Demo
-        </div>
-      </div>
-
-      <div className="flex-1">
-        {isMounted && (
-          <div className="relative flex h-full w-full justify-center">
-            <div className="h-full w-full max-w-[277px]">
-              {step === 'sign-in' && (
-                <SignIn next={() => setStep('add-funds')} />
-              )}
-              {step === 'add-funds' && <div />}
-              {step === 'send' && <div />}
-              {step === 'mint' && <div />}
-              {step === 'swap' && <div />}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex w-full flex-col items-center justify-center space-y-1">
-        {isMounted && (
-          <div className="w-full space-y-1">
-            <div className="flex w-full items-end justify-between lg:items-center lg:justify-around">
-              <div className="lg:pb-6">
-                {account.isConnected && (
-                  <button
-                    className={cx(
-                      'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-transparent text-gray8 hover:bg-gray2 disabled:cursor-not-allowed',
-                      step === steps[0] && 'invisible',
-                    )}
-                    disabled={step === steps[0]}
-                    onClick={() => setStep(steps[steps.indexOf(step) - 1]!)}
-                    type="button"
-                  >
-                    <LucideChevronLeft className="-ms-0.5 size-5" />
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col pb-3 lg:pb-0">
-                <div className="max-w-[25.5ch] space-y-1">
-                  {step === 'sign-in' && (
-                    <>
-                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                        Seamless sign in
-                      </p>
-                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                        Grant permissions with your Porto wallet for security &
-                        ease of use.
-                      </p>
-                    </>
-                  )}
-                  {step === 'add-funds' && (
-                    <>
-                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                        Deposit in seconds
-                      </p>
-                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                        Fund your account, with no KYC for deposits below $500.
-                      </p>
-                    </>
-                  )}
-                  {step === 'send' && (
-                    <>
-                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                        Instant sends & swaps
-                      </p>
-                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                        With permissions, complete common actions without extra
-                        clicks.
-                      </p>
-                    </>
-                  )}
-                  {step === 'mint' && (
-                    <>
-                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                        Rich feature set
-                      </p>
-                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                        View rich transaction previews, pay fees in other
-                        tokens, and much more.
-                      </p>
-                    </>
-                  )}
-                  {step === 'swap' && (
-                    <>
-                      <p className="text-center font-[500] text-[19px] text-gray12 tracking-[-2.8%]">
-                        Free from fees
-                      </p>
-                      <p className="text-center text-[15px] text-gray10 leading-[21px] tracking-[-2.8%]">
-                        Apps can cover your fees based on an asset you hold,
-                        like the NFT you minted.
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                <div className="h-10 lg:h-8" />
-
-                <div className="flex items-center justify-center gap-1">
-                  {steps.map((s) => (
-                    <button
-                      className="size-[7px] rounded-full bg-gray6 transition-all duration-150 hover:not-data-[active=true]:not-data-[disabled=true]:scale-150 hover:not-data-[disabled=true]:bg-gray9 data-[active=true]:w-6 data-[active=true]:bg-gray9"
-                      data-active={s === step}
-                      data-disabled={!account.isConnected}
-                      key={s}
-                      onClick={() => {
-                        if (account.isConnected) setStep(s)
-                      }}
-                      type="button"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="lg:pb-6">
-                {account.isConnected && (
-                  <button
-                    className={cx(
-                      'flex size-[32px] items-center justify-center rounded-full border border-gray5 bg-gray1 text-gray9 hover:bg-gray2 disabled:cursor-not-allowed',
-                      step === steps[steps.length - 1] && 'invisible',
-                    )}
-                    disabled={step === steps[steps.length - 1]}
-                    onClick={() => setStep(steps[steps.indexOf(step) + 1]!)}
-                    type="button"
-                  >
-                    <LucideChevronRight className="-me-0.5 size-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function SignIn({ next }: { next: () => void }) {
-  const chainId = useChainId()
-  const { address, status } = useAccount()
-  const connect = Hooks.useConnect({
-    mutation: {
-      onError(error) {
-        if (error instanceof ConnectorAlreadyConnectedError) next()
-      },
-      onSuccess() {
-        next()
-      },
-    },
-  })
-  const disconnect = Hooks.useDisconnect()
-  const connector = usePortoConnector()
-  const isSafari = React.useMemo(() => UserAgent.isSafari(), [])
-
-  React.useEffect(() => {
-    if (status === 'connected') return
-    if (!connector) return
-    if (!porto) return
-    if (isSafari) return
-
-    switchRenderer('inline')
-    function switchRenderer(to: 'iframe' | 'inline') {
-      if (!porto) throw new Error('porto instance not defined')
-
-      const state = store.getState()
-      const fromRenderer = state.renderer
-      const toRenderer = state.renderers.find((x) => x.name === to)
-
-      if (
-        fromRenderer &&
-        toRenderer &&
-        fromRenderer?.name !== toRenderer.name
-      ) {
-        porto._internal.setMode(
-          Mode.dialog({
-            host: PortoConfig.getDialogHost(),
-            renderer: toRenderer,
-          }),
-        )
-        store.setState((x) => ({ ...x, renderer: toRenderer }))
-      }
-    }
-
-    connect.mutate({
-      connector,
-      grantPermissions: {
-        expiry: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
-        permissions: {
-          calls: [{ to: exp1Config.address[chainId] }],
-          spend: [
-            {
-              limit: Value.fromEther('100'),
-              period: 'hour',
-              token: exp1Config.address[chainId],
-            },
-          ],
-        },
-      },
-    })
-
-    return () => {
-      switchRenderer('iframe')
-    }
-  }, [status, chainId, isSafari, connect.mutate, connector])
-
-  return (
-    <div className="flex h-full w-full justify-center">
-      {isSafari ? (
-        <div className="flex h-full w-full items-center gap-2">
-          {connect.isPending ? (
-            <Button className="flex flex-grow gap-2" disabled>
-              <LucidePictureInPicture2 className="size-5" />
-              Check passkey prompt
-            </Button>
-          ) : (
-            <>
-              <Button
-                className="flex-grow"
-                onClick={() =>
-                  connect.mutate({
-                    connector,
-                    createAccount: true,
-                  })
-                }
-                variant="accent"
-              >
-                Sign up
-              </Button>
-
-              <Button
-                className="flex-grow"
-                onClick={() =>
-                  connect.mutate({
-                    connector,
-                  })
-                }
-                variant="invert"
-              >
-                Sign in
-              </Button>
-            </>
-          )}
-        </div>
-      ) : (
-        <div className="pt-20" id="porto" />
-      )}
-
-      {status === 'connected' && (
-        <div className="flex h-full w-full items-center justify-center gap-2">
-          <div className="flex flex-col gap-2">
-            <div title={address}>
-              {address.slice(0, 6)}...{address.slice(-4)}
-            </div>
-
-            <Button
-              className="flex-grow"
-              onClick={() => disconnect.mutate({ connector })}
-              variant="accent"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
 }
 
 function WorksAnywhereIcon() {
@@ -894,4 +1467,75 @@ function GitHubIcon() {
 function usePortoConnector() {
   const connectors = useConnectors()
   return connectors.find((connector) => connector.id === 'xyz.ithaca.porto')!
+}
+
+namespace ValueFormatter {
+  const numberIntl = new Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: 4,
+  })
+
+  export function format(num: bigint | number | undefined, units = 18) {
+    if (!num) return '0'
+    return numberIntl.format(
+      typeof num === 'bigint' ? Number(Value.format(num, units)) : num,
+    )
+  }
+}
+
+function Exp1Token() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="100%"
+      viewBox="0 0 22 22"
+      width="100%"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="11" cy="11" fill="#0588F0" r="10.5" />
+      <path
+        d="M14.008 10.4885C14.3539 10.3849 14.7255 10.532 14.9079 10.8447L16.9254 14.3017C17.1804 14.7387 16.8665 15.2887 16.362 15.2887H5.96663C5.4365 15.2887 5.12732 14.6879 5.43403 14.2538L6.35149 12.9551C6.45278 12.8118 6.59896 12.7066 6.76672 12.6563L14.008 10.4885Z"
+        fill="white"
+      />
+      <path
+        d="M10.2735 5.61316C10.4225 5.34666 10.8216 5.41172 10.8789 5.71184L11.7308 10.1708C11.7747 10.401 11.6389 10.6275 11.4156 10.6961L7.38552 11.9343C7.1039 12.0208 6.86113 11.7182 7.00526 11.4604L10.2735 5.61316Z"
+        fill="white"
+        opacity="0.75"
+      />
+      <path
+        d="M11.3033 5.46716C11.2614 5.24947 11.6099 5.13942 11.7206 5.33129L14.1689 9.63009C14.2331 9.74146 14.1753 9.88374 14.0518 9.91818L12.5692 10.3317C12.3856 10.3829 12.2268 10.2736 12.1907 10.0857L11.3033 5.46716Z"
+        fill="white"
+        opacity="0.5"
+      />
+    </svg>
+  )
+}
+
+function Exp2Token() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="auto"
+      viewBox="0 0 22 22"
+      width="100%"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="11" cy="11" fill="#8774f1" r="10.5" />
+      <path
+        d="M14.008 10.4885C14.3539 10.3849 14.7255 10.532 14.9079 10.8447L16.9254 14.3017C17.1804 14.7387 16.8665 15.2887 16.362 15.2887H5.96663C5.4365 15.2887 5.12732 14.6879 5.43403 14.2538L6.35149 12.9551C6.45278 12.8118 6.59896 12.7066 6.76672 12.6563L14.008 10.4885Z"
+        fill="white"
+      />
+      <path
+        d="M10.2735 5.61316C10.4225 5.34666 10.8216 5.41172 10.8789 5.71184L11.7308 10.1708C11.7747 10.401 11.6389 10.6275 11.4156 10.6961L7.38552 11.9343C7.1039 12.0208 6.86113 11.7182 7.00526 11.4604L10.2735 5.61316Z"
+        fill="white"
+        opacity="0.75"
+      />
+      <path
+        d="M11.3033 5.46716C11.2614 5.24947 11.6099 5.13942 11.7206 5.33129L14.1689 9.63009C14.2331 9.74146 14.1753 9.88374 14.0518 9.91818L12.5692 10.3317C12.3856 10.3829 12.2268 10.2736 12.1907 10.0857L11.3033 5.46716Z"
+        fill="white"
+        opacity="0.5"
+      />
+    </svg>
+  )
 }
