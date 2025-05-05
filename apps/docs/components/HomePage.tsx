@@ -485,26 +485,13 @@ function SignIn(props: { chainId: ChainId; next: () => void }) {
   } as const
 
   return (
-    <div className="flex w-full gap-2">
+    <div className="flex w-full">
       <Button
         className="flex-grow"
         onClick={() =>
           connect.mutate({
             connector,
-            createAccount: true,
-            grantPermissions,
-          })
-        }
-        variant="accent"
-      >
-        Sign up
-      </Button>
-
-      <Button
-        className="flex-grow"
-        onClick={() =>
-          connect.mutate({
-            connector,
+            createAccount: false,
             grantPermissions,
           })
         }
