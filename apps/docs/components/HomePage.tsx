@@ -826,8 +826,8 @@ function Swap(props: {
     try {
       const fromSymbol = state.values.fromSymbol
       const fromValue = state.values.fromValue
-      const expFromConfig = fromSymbol === 'exp' ? exp1Config : exp2Config
-      const expToConfig = fromSymbol === 'exp' ? exp2Config : exp1Config
+      const expFromConfig = fromSymbol === 'exp1' ? exp1Config : exp2Config
+      const expToConfig = fromSymbol === 'exp1' ? exp2Config : exp1Config
       await sendCallsAsync({
         calls: [
           {
