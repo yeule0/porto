@@ -1,10 +1,29 @@
 ## Overview
 
-Porto implements the following [Wagmi](https://github.com/wevm/wagmi) VanillaJS Actions and React Hooks that map directly to the [experimental JSON-RPC methods](#json-rpc-reference).
+Porto implements the following [Wagmi](https://github.com/wevm/wagmi) Connector, VanillaJS Actions, and React Hooks that map directly to the [experimental JSON-RPC methods](#json-rpc-reference).
 
 :::info
 Porto only supports the React version of Wagmi at the moment. If you are interested in adding support for other Wagmi Adapters, please create a Pull Request.
 :::
+
+### Connector
+
+Import the `porto` connector from the `'porto/wagmi'` entrypoint and add to your Wagmi Config.
+
+```ts
+import { porto } from 'porto/wagmi' // [!code focus]
+import { createConfig, http } from 'wagmi'
+import { baseSepolia } from 'wagmi/chains'
+
+export const config = createConfig({
+  chains: [baseSepolia],
+  connectors: [porto()], // [!code focus]
+  ssr: true,
+  transports: {
+    [baseSepolia.id]: http(),
+  },
+})
+```
 
 ### VanillaJS Actions
 

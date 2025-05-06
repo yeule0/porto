@@ -206,6 +206,10 @@ export default defineConfig({
             text: 'Overview',
           },
           {
+            link: '/sdk/wagmi/connector',
+            text: 'Connector 🚧',
+          },
+          {
             collapsed: true,
             disabled: true,
             items: [
