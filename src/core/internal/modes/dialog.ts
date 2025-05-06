@@ -430,25 +430,23 @@ export function dialog(parameters: dialog.Parameters = {}) {
         if (key && key.role === 'session') {
           try {
             // TODO: use eventual Viem Action.
-            const req = await provider
-              .request(
-                Schema.Encode(Rpc.wallet_prepareCalls.Request, {
-                  method: 'wallet_prepareCalls',
-                  params: [
-                    {
-                      calls,
-                      capabilities:
-                        request._decoded.method === 'wallet_sendCalls'
-                          ? request._decoded.params?.[0]?.capabilities
-                          : undefined,
-                      chainId: client.chain.id,
-                      from: account.address,
-                      key,
-                    },
-                  ],
-                } satisfies Rpc.wallet_prepareCalls.Request),
-              )
-              .then((x) => Schema.Decode(Rpc.wallet_prepareCalls.Response, x))
+            const req = await provider.request(
+              Schema.Encode(Rpc.wallet_prepareCalls.Request, {
+                method: 'wallet_prepareCalls',
+                params: [
+                  {
+                    calls,
+                    capabilities:
+                      request._decoded.method === 'wallet_sendCalls'
+                        ? request._decoded.params?.[0]?.capabilities
+                        : undefined,
+                    chainId: client.chain.id,
+                    from: account.address,
+                    key,
+                  },
+                ],
+              } satisfies Rpc.wallet_prepareCalls.Request),
+            )
 
             const signature = await Key.sign(key, {
               payload: req.digest,
@@ -456,17 +454,15 @@ export function dialog(parameters: dialog.Parameters = {}) {
             })
 
             // TODO: use eventual Viem Action.
-            const result = await provider.request(
-              Schema.Encode(Rpc.wallet_sendPreparedCalls.Request, {
-                method: 'wallet_sendPreparedCalls',
-                params: [
-                  {
-                    ...req,
-                    signature,
-                  },
-                ],
-              } satisfies Rpc.wallet_sendPreparedCalls.Request),
-            )
+            const result = await provider.request({
+              method: 'wallet_sendPreparedCalls',
+              params: [
+                {
+                  ...req,
+                  signature,
+                },
+              ],
+            })
 
             const id = result[0]
             if (!id) throw new Error('id not found')
