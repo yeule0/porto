@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { Button, Spinner, Toast } from '@porto/apps/components'
 import { exp1Address } from '@porto/apps/contracts'
+import { useCopyToClipboard } from '@porto/apps/hooks'
 import { Link } from '@tanstack/react-router'
 import { Cuer } from 'cuer'
 import { cx } from 'cva'
@@ -24,7 +25,6 @@ import { useClickOutside } from '~/hooks/useClickOutside'
 import { useSwapAssets } from '~/hooks/useSwapAssets'
 import { useErc20Info } from '~/hooks/useTokenInfo'
 import { porto } from '~/lib/Porto'
-import { config } from '~/lib/Wagmi'
 import {
   ArrayUtils,
   DateFormatter,
@@ -60,6 +60,8 @@ function TokenSymbol({
 }
 
 export function Dashboard() {
+  const [, copyToClipboard] = useCopyToClipboard({ timeout: 2_000 })
+
   const chainId = useChainId()
   const account = useAccount()
 
@@ -68,8 +70,7 @@ export function Dashboard() {
   const disconnect = Hooks.useDisconnect()
   const permissions = Hooks.usePermissions()
 
-  const addressTransfers = useAddressTransfers({ chainIds: [chainId] })
-
+  const addressTransfers = useAddressTransfers({ chainId })
   const swapAssets = useSwapAssets({ chainId })
 
   useWatchBlockNumber({
@@ -85,23 +86,6 @@ export function Dashboard() {
   })
 
   const revokePermissions = Hooks.useRevokePermissions()
-
-  const [selectedChains, _setSelectedChains] = React.useState(
-    config.chains.map((c) => c.id.toString()),
-  )
-
-  const filteredTransfers = React.useMemo(() => {
-    return addressTransfers.data
-      ?.filter((c) =>
-        selectedChains.some((cc) => cc === c?.chainId?.toString()),
-      )
-      .flatMap((chainTransfer) =>
-        chainTransfer?.items.map((item) => ({
-          chainId: chainTransfer.chainId,
-          ...item,
-        })),
-      )
-  }, [addressTransfers.data, selectedChains])
 
   const totalBalance = React.useMemo(() => {
     if (!swapAssets.data) return 0n
@@ -195,8 +179,7 @@ export function Dashboard() {
         <Ariakit.Button
           className="flex w-[150px] items-center justify-center gap-3 hover:cursor-pointer!"
           onClick={() =>
-            navigator.clipboard
-              .writeText(account.address ?? '')
+            copyToClipboard(account.address ?? '')
               .then(() => toast.success('Copied address to clipboard'))
               .catch(() => toast.error('Failed to copy address to clipboard'))
           }
@@ -220,7 +203,11 @@ export function Dashboard() {
 
       <details
         className="group"
-        open={swapAssets.data && swapAssets.data?.length > 0}
+        open={
+          swapAssets.data &&
+          swapAssets.data?.length > 0 &&
+          swapAssets.data.some((asset) => asset.balance !== 0n)
+        }
       >
         <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
           <span>Assets</span>
@@ -229,9 +216,9 @@ export function Dashboard() {
             className="ml-2"
             onClick={async (event) => {
               event.preventDefault()
-              if (!account.address) {
+              if (!account.address)
                 return toast.error('No account address found')
-              }
+
               await porto.provider.request({
                 method: 'experimental_addFunds',
                 params: [
@@ -254,8 +241,13 @@ export function Dashboard() {
         <PaginatedTable
           columns={[
             { header: 'Name', key: 'name', width: 'w-[40%]' },
-            { align: 'right', header: '', key: 'balance', width: 'w-[20%]' },
-            { align: 'right', header: '', key: 'symbol', width: 'w-[20%]' },
+            {
+              align: 'right',
+              header: 'Amount',
+              key: 'amount',
+              width: 'w-[20%]',
+            },
+            { align: 'right', header: 'Value', key: 'value', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
             { align: 'right', header: '', key: 'action', width: 'w-[20%]' },
           ]}
@@ -283,7 +275,7 @@ export function Dashboard() {
 
       <details
         className="group tabular-nums"
-        open={filteredTransfers?.length > 0}
+        open={!!addressTransfers.data?.items?.length}
       >
         <summary className='relative cursor-default list-none pr-1 font-semibold text-lg after:absolute after:right-1 after:font-normal after:text-gray10 after:text-sm after:content-["[+]"] group-open:after:content-["[–]"]'>
           History
@@ -292,10 +284,11 @@ export function Dashboard() {
         <PaginatedTable
           columns={[
             { header: 'Time', key: 'time' },
-            { header: 'Account', key: 'recipient' },
+            { header: 'From', key: 'sender' },
+            { header: 'To', key: 'recipient' },
             { align: 'right', header: 'Amount', key: 'amount' },
           ]}
-          data={filteredTransfers}
+          data={addressTransfers.data?.items}
           emptyMessage="No transactions yet"
           renderRow={(transfer) => {
             const amount = Number.parseFloat(
@@ -318,24 +311,36 @@ export function Dashboard() {
                     target="_blank"
                   >
                     <ExternalLinkIcon className="mr-1 size-4 text-gray10" />
-                    <span className="min-w-[50px] text-gray11 sm:min-w-[65px]">
-                      {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))}{' '}
-                      ago
+                    <span className="min-w-[35px] text-gray11 sm:min-w-[65px]">
+                      {DateFormatter.ago(new Date(transfer?.timestamp ?? ''))}
                     </span>
                   </a>
                 </td>
-                <td className="flex min-w-full items-center py-1 text-left font-medium">
-                  <div className="my-0.5 flex flex-row items-center gap-x-2 rounded-full bg-gray3 p-0.5">
-                    <AccountIcon className="size-4 rounded-full text-gray10" />
+                <td className="py-1 text-left font-medium">
+                  <div className="flex items-center">
+                    <div className="my-0.5 flex flex-row items-center gap-x-2 rounded-full bg-gray3">
+                      <AccountIcon className="hidden size-4 rounded-full text-gray10 sm:block" />
+                    </div>
+                    <TruncatedAddress
+                      address={transfer?.to.hash ?? ''}
+                      className="ml-2"
+                    />
                   </div>
-                  <TruncatedAddress
-                    address={transfer?.to.hash ?? ''}
-                    className="ml-2"
-                  />
+                </td>
+                <td className="py-1 text-left font-medium">
+                  <div className="flex items-center">
+                    <div className="my-0.5 flex flex-row items-center gap-x-2 rounded-full bg-gray3">
+                      <AccountIcon className="hidden size-4 rounded-full text-gray10 sm:block" />
+                    </div>
+                    <TruncatedAddress
+                      address={transfer?.to.hash ?? ''}
+                      className="ml-2"
+                    />
+                  </div>
                 </td>
                 <td className="py-1 text-right text-gray12">
-                  <span className="text-md">{amount}</span>
-                  <div className="inline-block w-[65px]">
+                  <span className="text-sm sm:text-md">{amount}</span>
+                  <div className="inline-block w-[45px]">
                     <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
                       <TokenSymbol
                         address={transfer?.token.address as Address.Address}
@@ -537,9 +542,8 @@ export function Dashboard() {
                     <td className="text-right">
                       <Ariakit.Button
                         className="size-7 rounded-full px-1 pt-1 hover:bg-gray4"
-                        onClick={() => {
-                          navigator.clipboard
-                            .writeText(key.publicKey)
+                        onClick={() =>
+                          copyToClipboard(key.publicKey)
                             .then(() =>
                               toast.success('Copied address to clipboard'),
                             )
@@ -548,7 +552,7 @@ export function Dashboard() {
                                 'Failed to copy address to clipboard',
                               ),
                             )
-                        }}
+                        }
                       >
                         <CopyIcon className="m-auto size-4 text-gray10 sm:size-5" />
                       </Ariakit.Button>
@@ -695,6 +699,12 @@ function AssetRow({
     [value, decimals],
   )
 
+  // total value of the asset
+  const totalValue = React.useMemo(
+    () => price * Number(formattedBalance),
+    [price, formattedBalance],
+  )
+
   const sendCalls = useSendCalls({
     mutation: {
       onError: (error) => {
@@ -815,6 +825,8 @@ function AssetRow({
   const ref = React.useRef<HTMLTableCellElement | null>(null)
   useClickOutside([ref], () => setViewState('default'))
 
+  if (value === 0n) return null
+
   return (
     <tr className="font-normal sm:text-sm">
       {viewState === 'default' ? (
@@ -827,7 +839,7 @@ function AssetRow({
           </td>
           <td className="w-[20%] text-right text-md">{formattedBalance}</td>
           <td className="w-[20%] pl-3.5 text-right text-md">
-            ${ValueFormatter.formatToPrice(price)}
+            ${ValueFormatter.formatToPrice(totalValue)}
           </td>
           <td className="w-[20%] pr-1.5 pl-3 text-left text-sm">
             <span className="rounded-2xl bg-gray3 px-2 py-1 font-[500] text-gray10 text-xs">
