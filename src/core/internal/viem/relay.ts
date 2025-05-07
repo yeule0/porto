@@ -23,10 +23,11 @@ import {
   withCache,
 } from 'viem'
 import { prepareAuthorization } from 'viem/actions'
-import { getExecuteError } from 'viem/experimental/erc7821'
+import {
+  type GetExecuteErrorReturnType,
+  getExecuteError,
+} from 'viem/experimental/erc7821'
 
-import * as Delegation from '../_generated/contracts/Delegation.js'
-import * as EntryPoint from '../_generated/contracts/EntryPoint.js'
 import type * as RpcSchema from '../relay/rpcSchema.js'
 import * as Rpc from '../relay/typebox/rpc.js'
 import type { sendCalls } from '../relay.js'
@@ -681,44 +682,34 @@ export function parseExecutionError<const calls extends readonly unknown[]>(
 ) {
   if (!(e instanceof BaseError)) return
 
-  const getAbiError = (error: BaseError) => {
-    const cause = error.walk(
-      (e) =>
-        'data' in (e as BaseError) ||
-        Boolean((e as BaseError).details?.match(/(0x[0-9a-f]{8})/)),
-    ) as
-      | (BaseError & { code?: number; data?: Hex.Hex | Error | undefined })
-      | undefined
-    if (!cause) return undefined
-
-    let data: Hex.Hex | undefined
-    if (cause instanceof BaseError) {
-      if (cause.code === 3 && typeof cause.data === 'string')
-        data = Hex.slice(cause.data, 0, 4)
-      else {
-        const [, match] = cause.details?.match(/(0x[0-9a-f]{8})/) || []
-        if (match) data = match as Hex.Hex
-      }
-    }
-
-    if (!data) {
-      if (!('data' in cause)) return undefined
-      if (cause.data instanceof BaseError) return getAbiError(cause.data)
-      if (typeof cause.data !== 'string') return undefined
-      if (cause.data === '0x') return undefined
-      data = cause.data as Hex.Hex
-    }
-
+  const getAbiError = (error: GetExecuteErrorReturnType) => {
     try {
+      if (error.name === 'ContractFunctionExecutionError') {
+        const data =
+          error.cause.name === 'ContractFunctionRevertedError'
+            ? error.cause.data
+            : undefined
+        if (data)
+          return AbiError.fromAbi(
+            [data.abiItem],
+            data.errorName,
+          ) as AbiError.AbiError
+      }
+
+      const cause = error.walk(
+        (e) =>
+          !(e instanceof Error) &&
+          (e as { code?: number | undefined }).code === 3,
+      ) as (BaseError & { code: number; data: Hex.Hex }) | undefined
+      if (!cause) return undefined
+
+      const { data, message } = cause
       if (data === '0xd0d5039b') return AbiError.from('error Unauthorized()')
-      return AbiError.fromAbi(
-        [
-          ...Delegation.abi,
-          ...EntryPoint.abi,
-          AbiError.from('error CallError()'),
-        ],
-        data,
-      )
+      return {
+        inputs: [],
+        name: (message ?? data).split('(')[0]!,
+        type: 'error',
+      } satisfies AbiError.AbiError
     } catch {
       return undefined
     }
