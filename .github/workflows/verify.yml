@@ -81,11 +81,6 @@ jobs:
           username: jxom
           password: ${{ secrets.RELAY_GH_TOKEN }}
 
-      - name: Pull Relay
-        if: matrix.local == 'true'
-        shell: bash
-        run: docker pull ghcr.io/ithacaxyz/relay:${{ vars.VITE_RELAY_VERSION }}
-
       - name: Test
         uses: nick-fields/retry@v3
         with:
@@ -97,4 +92,3 @@ jobs:
           VITE_ANVIL_FORK_URL: ${{ secrets.VITE_ANVIL_FORK_URL }}
           VITE_FAUCET_PRIVATE_KEY: ${{ secrets.VITE_FAUCET_PRIVATE_KEY }}
           VITE_GECKO_API: ${{ secrets.VITE_GECKO_API }}
-          VITE_RELAY_VERSION: ${{ vars.VITE_RELAY_VERSION }}

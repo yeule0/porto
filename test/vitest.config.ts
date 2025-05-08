@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
         reporter: process.env.CI ? ['lcov'] : ['text', 'json', 'html'],
       },
       globalSetup: [join(__dirname, './globalSetup.ts')],
+      hookTimeout: 20_000,
       include: [
         'src/**/*.test.ts',
         ...(env.VITE_LOCAL === 'false' ? ['!src/**/*delegation.test.ts'] : []),
