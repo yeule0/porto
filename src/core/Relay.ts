@@ -5,16 +5,15 @@ import type * as Hex from 'ox/Hex'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
 import type { Client } from 'viem'
+import * as Account from './Account.js'
+import type { Chain } from './Chains.js'
+import type * as Capabilities from './internal/relay/typebox/capabilities.js'
+import type * as Quote from './internal/relay/typebox/quote.js'
+import type { MaybePromise, OneOf, RequiredBy } from './internal/types.js'
+import * as Actions from './internal/viem/relay.js'
+import * as Key from './Key.js'
 
-import type { Chain } from '../Chains.js'
-import * as Account from './account.js'
-import * as Key from './key.js'
-import type * as Capabilities from './relay/typebox/capabilities.js'
-import type * as Quote from './relay/typebox/quote.js'
-import type { MaybePromise, OneOf, RequiredBy } from './types.js'
-import * as Actions from './viem/relay.js'
-
-export { getFeeTokens, health } from './viem/relay.js'
+export { getFeeTokens, health } from './internal/viem/relay.js'
 
 /**
  * Creates a new Porto Account via the Relay.

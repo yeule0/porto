@@ -9,9 +9,9 @@ import {
   exp1Config,
   getPorto as getPorto_,
 } from '../../../test/src/porto.js'
+import * as Key from '../Key.js'
 import * as Call from './call.js'
 import * as Delegation from './delegation.js'
-import * as Key from './key.js'
 
 const getPorto = () =>
   getPorto_({

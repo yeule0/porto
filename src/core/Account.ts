@@ -2,10 +2,9 @@ import * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
-
-import type * as Storage from '../Storage.js'
-import * as Key from './key.js'
-import type { Compute, RequiredBy } from './types.js'
+import type { Compute, RequiredBy } from './internal/types.js'
+import * as Key from './Key.js'
+import type * as Storage from './Storage.js'
 
 /** A delegated account. */
 export type Account = {

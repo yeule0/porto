@@ -2,10 +2,10 @@ import { Hex } from 'ox'
 import { verifyHash } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 
-import { createAccount } from '../../../test/src/actions.js'
-import { getPorto } from '../../../test/src/porto.js'
-import * as Account from './account.js'
-import * as Key from './key.js'
+import { createAccount } from '../../test/src/actions.js'
+import { getPorto } from '../../test/src/porto.js'
+import * as Account from './Account.js'
+import * as Key from './Key.js'
 
 const { client } = getPorto()
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Address, Hex } from 'ox'
-import { Relay } from 'porto/internal'
+import { Relay } from 'porto'
 import { Hooks } from 'porto/remote'
 import { porto } from './Porto.js'
 

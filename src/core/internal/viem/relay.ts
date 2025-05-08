@@ -27,10 +27,9 @@ import {
   type GetExecuteErrorReturnType,
   getExecuteError,
 } from 'viem/experimental/erc7821'
-
+import type { sendCalls } from '../../Relay.js'
 import type * as RpcSchema from '../relay/rpcSchema.js'
 import * as Rpc from '../relay/typebox/rpc.js'
-import type { sendCalls } from '../relay.js'
 import * as Schema from '../typebox/schema.js'
 import { Value } from '../typebox/schema.js'
 

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Address, Json } from 'ox'
-import { Account, Relay } from 'porto/internal'
+import { Account, Relay } from 'porto'
 import { Hooks } from 'porto/remote'
 
 import * as FeeToken from './FeeToken'

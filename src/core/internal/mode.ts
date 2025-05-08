@@ -1,9 +1,10 @@
 import * as AbiItem from 'ox/AbiItem'
 import type * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
-import type * as Account from './account.js'
+
+import type * as Account from '../Account.js'
+import type * as Key from '../Key.js'
 import * as Call from './call.js'
-import type * as Key from './key.js'
 import type * as PermissionsRequest from './permissionsRequest.js'
 import type * as Porto from './porto.js'
 import type * as Rpc from './typebox/rpc.js'

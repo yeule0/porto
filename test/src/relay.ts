@@ -25,6 +25,7 @@ export const instances = {
     ],
     simulator: simulatorAddress,
     userOpGasBuffer: 100_000n,
+    version: 'v7.0.1',
   }),
 } as const
 
@@ -38,9 +39,11 @@ function defineRelay(parameters: {
   entrypoint: string
   delegationProxy: string
   feeTokens: string[]
+  image?: string | undefined
   simulator: string
   txGasBuffer?: bigint | undefined
   userOpGasBuffer?: bigint | undefined
+  version?: string | undefined
   port?: number | undefined
 }) {
   const { endpoint, port = 9119 } = parameters

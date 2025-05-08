@@ -14,12 +14,14 @@ type RelayParameters = {
     port?: number | undefined
     metricsPort?: number | undefined
   }
+  image?: string | undefined
   quoteTtl?: number | undefined
   registry?: string | undefined
   signersMnemonic?: string | undefined
   simulator?: string | undefined
   txGasBuffer?: bigint | undefined
   userOpGasBuffer?: bigint | undefined
+  version?: string | undefined
 }
 
 export const poolId =
@@ -32,7 +34,9 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
   const {
     endpoint,
     feeTokens,
+    image = 'ghcr.io/ithacaxyz/relay',
     signersMnemonic = 'test test test test test test test test test test test junk',
+    version = 'latest',
     ...rest
   } = args
 
@@ -73,7 +77,7 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
         `${port}:${port}`,
         '-v',
         `${resolve(import.meta.dirname, 'registry.toml')}:/app/registry.toml`,
-        `${process.env.VITE_RELAY_IMAGE || 'ghcr.io/ithacaxyz/relay'}:${process.env.VITE_RELAY_VERSION || 'latest'}`,
+        `${image}:${version}`,
         ...toArgs({
           ...rest,
           endpoint: endpoint?.replaceAll(

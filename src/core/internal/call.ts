@@ -1,9 +1,8 @@
 import * as AbiFunction from 'ox/AbiFunction'
 import type * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
-
+import * as Key from '../Key.js'
 import * as Delegation from './_generated/contracts/Delegation.js'
-import * as Key from './key.js'
 
 /** Stub address for self-execution. */
 export const self = '0x2323232323232323232323232323232323232323'

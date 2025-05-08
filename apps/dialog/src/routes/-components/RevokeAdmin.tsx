@@ -1,6 +1,6 @@
 import { Button } from '@porto/apps/components'
 import { Address, Hex } from 'ox'
-import { Key } from 'porto/internal'
+import { Key } from 'porto'
 import { Hooks } from 'porto/wagmi'
 
 import { CheckBalance } from '~/components/CheckBalance'

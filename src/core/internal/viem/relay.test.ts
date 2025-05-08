@@ -6,9 +6,9 @@ import * as TestActions from '../../../../test/src/actions.js'
 import * as Anvil from '../../../../test/src/anvil.js'
 import { exp1Abi, exp1Address } from '../../../../test/src/porto.js'
 import { getPorto } from '../../../../test/src/porto.js'
-import * as Key from '../key.js'
+import * as Key from '../../Key.js'
+import { sendCalls } from '../../Relay.js'
 import type * as Capabilities from '../relay/typebox/capabilities.js'
-import { sendCalls } from '../relay.js'
 import {
   createAccount,
   getAccounts,

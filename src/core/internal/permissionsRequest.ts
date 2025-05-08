@@ -1,7 +1,7 @@
 import * as Address from 'ox/Address'
 import * as Hex from 'ox/Hex'
 
-import * as Key from './key.js'
+import * as Key from '../Key.js'
 import * as Permissions from './typebox/permissions.js'
 import type { StaticDecode } from './typebox/schema.js'
 

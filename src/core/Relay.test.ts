@@ -2,8 +2,8 @@ import { Hex, Value } from 'ox'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { readContract, waitForCallsStatus } from 'viem/actions'
 import { describe, expect, test } from 'vitest'
-import * as TestActions from '../../../test/src/actions.js'
-import * as Anvil from '../../../test/src/anvil.js'
+import * as TestActions from '../../test/src/actions.js'
+import * as Anvil from '../../test/src/anvil.js'
 import {
   exp1Abi,
   exp1Address,
@@ -11,10 +11,10 @@ import {
   exp2Address,
   exp2Config,
   getPorto,
-} from '../../../test/src/porto.js'
-import * as Delegation from './delegation.js'
-import * as Key from './key.js'
-import * as Relay from './relay.js'
+} from '../../test/src/porto.js'
+import * as Delegation from './internal/delegation.js'
+import * as Key from './Key.js'
+import * as Relay from './Relay.js'
 
 const { client } = getPorto()
 

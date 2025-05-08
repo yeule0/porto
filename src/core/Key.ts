@@ -11,12 +11,10 @@ import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
 import * as WebAuthnP256 from 'ox/WebAuthnP256'
 import * as WebCryptoP256 from 'ox/WebCryptoP256'
-
-import type * as Storage from '../Storage.js'
-import * as Call from './call.js'
-import type * as RelayKey_typebox from './relay/typebox/key.js'
-import type * as RelayPermission_typebox from './relay/typebox/permission.js'
-import type * as Key_typebox from './typebox/key.js'
+import * as Call from './internal/call.js'
+import type * as RelayKey_typebox from './internal/relay/typebox/key.js'
+import type * as RelayPermission_typebox from './internal/relay/typebox/permission.js'
+import type * as Key_typebox from './internal/typebox/key.js'
 import type {
   Compute,
   ExactPartial,
@@ -24,7 +22,8 @@ import type {
   OneOf,
   UnionOmit,
   UnionRequiredBy,
-} from './types.js'
+} from './internal/types.js'
+import type * as Storage from './Storage.js'
 
 type PrivateKeyFn = () => Hex.Hex
 

@@ -9,9 +9,9 @@ import {
 import { verifyHash } from 'viem/actions'
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest'
 
-import { createAccount } from '../../../test/src/actions.js'
-import { getPorto } from '../../../test/src/porto.js'
-import * as Key from './key.js'
+import { createAccount } from '../../test/src/actions.js'
+import { getPorto } from '../../test/src/porto.js'
+import * as Key from './Key.js'
 
 const { client } = getPorto()
 
