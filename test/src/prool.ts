@@ -29,6 +29,8 @@ export const poolId =
   Number(process.env.VITEST_SHARD_ID ?? 1) *
   Math.floor(Math.random() * 10000)
 
+let pulled = false
+
 export const relay = defineInstance((parameters?: RelayParameters) => {
   const args = (parameters || {}) as RelayParameters
   const {
@@ -60,12 +62,15 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
     async start({ port: port_ = port }, options) {
       port = port_
 
-      spawnSync('docker', [
-        'pull',
-        `${image}:${version}`,
-        '--platform',
-        'linux/x86_64',
-      ])
+      if (!pulled) {
+        spawnSync('docker', [
+          'pull',
+          `${image}:${version}`,
+          '--platform',
+          'linux/x86_64',
+        ])
+        pulled = true
+      }
 
       const args_ = [
         '-e',
