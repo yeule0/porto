@@ -28,7 +28,7 @@ const config = {
       [Chains.portoDev.id]: {
         default: http(),
         relay: http(
-          'https://relay-dev.ithaca.xyz',
+          'https://porto-dev.rpc.ithaca.xyz',
           Sentry.httpTransportOptions(),
         ),
       },

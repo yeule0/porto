@@ -53,7 +53,7 @@ export const portoDev = /*#__PURE__*/ define({
   name: 'Porto Dev',
   nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
   rpcUrls: {
-    default: { http: ['https://porto-dev.ithaca.xyz'] },
+    default: { http: ['https://porto-dev.rpc.ithaca.xyz'] },
   },
   testnet: true,
 })

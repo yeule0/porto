@@ -24,7 +24,7 @@ export const exp2Config = {
 
 const relayUrl = Anvil.enabled
   ? Relay.instances.odyssey.rpcUrl
-  : 'https://relay-dev.ithaca.xyz'
+  : 'https://porto-dev.rpc.ithaca.xyz'
 
 export function getPorto(
   parameters: {
