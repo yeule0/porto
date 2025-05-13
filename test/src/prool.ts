@@ -79,8 +79,6 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
       }
 
       const port_relay = port + 1
-      const port_anvil = Number(new URL(endpoint).port)
-      const id_anvil = new URL(endpoint).pathname.split('/')[1]
 
       const args_ = [
         '-e',
@@ -155,7 +153,7 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
             body.method.startsWith('wallet_')
           )
             return `http://${host}:${port_relay}`
-          return `http://${host}:${port_anvil}/${id_anvil}`
+          return endpoint
         })()
 
         return proxy.web(req, res, {
