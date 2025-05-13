@@ -46,7 +46,7 @@ export const portoDev = /*#__PURE__*/ define({
   },
   contracts: {
     delegation: {
-      address: '0x1bd84b4584a60cbcc1b3153694a69315f795c1ba',
+      address: '0x8e06c8ef5ee7d24ffb7fe05c6276b60dc360fe23',
     },
   },
   id: 28_404,
