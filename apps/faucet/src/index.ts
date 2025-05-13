@@ -83,6 +83,7 @@ export default {
       // wait for transaction inclusion
       const receipt = await waitForTransactionReceipt(client, {
         hash,
+        pollingInterval: 1_000,
       })
 
       if (receipt.status === 'success')

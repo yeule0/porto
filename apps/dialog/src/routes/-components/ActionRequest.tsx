@@ -46,96 +46,99 @@ export function ActionRequest(props: ActionRequest.Props) {
       onReject={onReject}
       query={prepareCallsQuery}
     >
-      <Layout loading={loading} loadingTitle="Sending...">
-        <Layout.Header>
-          <Layout.Header.Default
-            content={<>Review the action to perform below.</>}
-            icon={prepareCallsQuery.isError ? TriangleAlert : Star}
-            title="Action Request"
-            variant={prepareCallsQuery.isError ? 'warning' : 'default'}
-          />
-        </Layout.Header>
+      {prepareCallsQuery.isFetched ? (
+        <Layout loading={loading} loadingTitle="Sending...">
+          <Layout.Header>
+            <Layout.Header.Default
+              content={<>Review the action to perform below.</>}
+              icon={prepareCallsQuery.isError ? TriangleAlert : Star}
+              title="Action Request"
+              variant={prepareCallsQuery.isError ? 'warning' : 'default'}
+            />
+          </Layout.Header>
 
-        <Layout.Content>
-          <ActionRequest.PaneWithDetails
-            loading={prepareCallsQuery.status === 'pending'}
-            quote={quote}
-            variant={prepareCallsQuery.isError ? 'warning' : 'default'}
-          >
-            {prepareCallsQuery.isError && (
-              <div className="space-y-2 text-[14px] text-primary">
-                <p className="font-medium text-warning">Error</p>
-                <p>
-                  An error occurred while simulating the action. Proceed with
-                  caution.
-                </p>
-                <p>
-                  Contact <span className="font-medium">{url?.hostname}</span>{' '}
-                  for more information.
-                </p>
-              </div>
+          <Layout.Content>
+            <ActionRequest.PaneWithDetails
+              quote={quote}
+              variant={prepareCallsQuery.isError ? 'warning' : 'default'}
+            >
+              {prepareCallsQuery.isError && (
+                <div className="space-y-2 text-[14px] text-primary">
+                  <p className="font-medium text-warning">Error</p>
+                  <p>
+                    An error occurred while simulating the action. Proceed with
+                    caution.
+                  </p>
+                  <p>
+                    Contact <span className="font-medium">{url?.hostname}</span>{' '}
+                    for more information.
+                  </p>
+                </div>
+              )}
+
+              {assetDiff && address && (
+                <ActionRequest.AssetDiff
+                  address={address}
+                  assetDiff={assetDiff}
+                />
+              )}
+            </ActionRequest.PaneWithDetails>
+          </Layout.Content>
+
+          <Layout.Footer>
+            <Layout.Footer.Actions>
+              {prepareCallsQuery.isError ? (
+                <>
+                  <Button
+                    className="flex-grow"
+                    onClick={onReject}
+                    type="button"
+                    variant="destructive"
+                  >
+                    Deny
+                  </Button>
+                  <Button
+                    className="flex-grow"
+                    onClick={onApprove}
+                    type="button"
+                    variant="default"
+                  >
+                    Approve anyway
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    className="flex-grow"
+                    disabled={!prepareCallsQuery.isSuccess}
+                    onClick={onReject}
+                    type="button"
+                    variant="destructive"
+                  >
+                    Deny
+                  </Button>
+
+                  <Button
+                    className="flex-grow"
+                    disabled={!prepareCallsQuery.isSuccess}
+                    onClick={onApprove}
+                    type="button"
+                    variant="success"
+                  >
+                    Approve
+                  </Button>
+                </>
+              )}
+            </Layout.Footer.Actions>
+
+            {account?.address && (
+              <Layout.Footer.Account address={account.address} />
             )}
-
-            {assetDiff && address && (
-              <ActionRequest.AssetDiff
-                address={address}
-                assetDiff={assetDiff}
-              />
-            )}
-          </ActionRequest.PaneWithDetails>
-        </Layout.Content>
-
-        <Layout.Footer>
-          <Layout.Footer.Actions>
-            {prepareCallsQuery.isError ? (
-              <>
-                <Button
-                  className="flex-grow"
-                  onClick={onReject}
-                  type="button"
-                  variant="destructive"
-                >
-                  Deny
-                </Button>
-                <Button
-                  className="flex-grow"
-                  onClick={onApprove}
-                  type="button"
-                  variant="default"
-                >
-                  Approve anyway
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  className="flex-grow"
-                  disabled={!prepareCallsQuery.isSuccess}
-                  onClick={onReject}
-                  type="button"
-                  variant="destructive"
-                >
-                  Deny
-                </Button>
-
-                <Button
-                  className="flex-grow"
-                  disabled={!prepareCallsQuery.isSuccess}
-                  onClick={onApprove}
-                  type="button"
-                  variant="success"
-                >
-                  Approve
-                </Button>
-              </>
-            )}
-          </Layout.Footer.Actions>
-
-          {account?.address && (
-            <Layout.Footer.Account address={account.address} />
-          )}
-        </Layout.Footer>
-      </Layout>
+          </Layout.Footer>
+        </Layout>
+      ) : (
+        <div className="h-40" />
+      )}
     </CheckBalance>
   )
 }

@@ -16,7 +16,6 @@ import * as Relay from '../../Relay.js'
 import type * as Storage from '../../Storage.js'
 import * as Call from '../call.js'
 import * as Delegation from '../delegation.js'
-import * as HumanId from '../humanId.js'
 import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type { Client } from '../porto.js'
@@ -78,12 +77,7 @@ export function relay(parameters: relay.Parameters = {}) {
         const account = await Relay.createAccount(client, {
           async keys({ ids }) {
             id = ids[0]!
-            const label =
-              parameters.label ??
-              HumanId.create({
-                capitalize: true,
-                separator: ' ',
-              })
+            const label = parameters.label ?? 'Porto Account'
 
             const key = !mock
               ? await Key.createWebAuthnP256({
@@ -347,12 +341,7 @@ export function relay(parameters: relay.Parameters = {}) {
           feeToken: feeToken.address,
           async keys({ ids }) {
             const id = ids[0]!
-            const label =
-              parameters.label ??
-              HumanId.create({
-                capitalize: true,
-                separator: ' ',
-              })
+            const label = parameters.label ?? 'Porto Account'
 
             const key = !mock
               ? await Key.createWebAuthnP256({
