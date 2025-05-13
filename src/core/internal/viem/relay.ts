@@ -313,10 +313,14 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
           Value.Encode(Rpc.wallet_prepareCalls.Parameters, {
             calls,
             capabilities,
-            chainId: chain?.id,
+            chainId: chain!.id,
             from: address,
-            key,
-          }),
+            key: {
+              prehash: key.prehash,
+              publicKey: key.publicKey,
+              type: key.type,
+            },
+          } satisfies Rpc.wallet_prepareCalls.Parameters),
         ],
       },
       {
