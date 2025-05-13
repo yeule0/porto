@@ -412,7 +412,7 @@ function Demo() {
                     'flex size-[32px] items-center justify-center rounded-full border disabled:cursor-not-allowed',
                     step === steps[steps.length - 1] && 'invisible',
                     complete
-                      ? 'border-accent bg-accent text-white hover:bg-accentHover'
+                      ? 'border-accent bg-accent text-white outline outline-dashed outline-blue9 outline-offset-8 hover:bg-accentHover'
                       : 'border-gray5 bg-transparent text-gray8 hover:bg-gray2 ',
                   )}
                   disabled={step === steps[steps.length - 1]}
@@ -501,7 +501,7 @@ function SignIn(props: { chainId: ChainId; next: () => void }) {
   return (
     <div className="flex w-full">
       <Ariakit.Button
-        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover"
+        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal outline outline-dashed outline-blue9 outline-offset-2 hover:bg-accentHover"
         onClick={() =>
           connect.mutate({
             connector,
@@ -604,7 +604,11 @@ function BuyNow(props: { chainId: ChainId; next: () => void }) {
 
       <Ariakit.Button
         aria-disabled={isPending || isConfirming}
-        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10"
+        className={cx(
+          '-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10',
+          !(isPending || isConfirming) &&
+            'outline outline-dashed outline-blue9 outline-offset-2',
+        )}
         disabled={isPending || isConfirming}
         onClick={() =>
           sendCalls({
@@ -736,7 +740,11 @@ function SendTip(props: {
 
       <Ariakit.Button
         aria-disabled={isPending || isConfirming}
-        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10"
+        className={cx(
+          '-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10',
+          !(isPending || isConfirming) &&
+            'outline outline-dashed outline-blue9 outline-offset-2',
+        )}
         disabled={isPending || isConfirming}
         onClick={() => {
           const shared = {
@@ -760,12 +768,7 @@ function SendTip(props: {
           })
         }}
       >
-        {isPending ? (
-          <>
-            <LucidePictureInPicture2 className="size-5" />
-            Check prompt
-          </>
-        ) : isConfirming ? (
+        {isPending || isConfirming ? (
           'Tipping creator'
         ) : (
           <>
@@ -988,7 +991,11 @@ function Subscribe(props: {
 
       <Ariakit.FormSubmit
         aria-disabled={grantPermissions.isPending}
-        className="-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10"
+        className={cx(
+          '-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] bg-accent px-3 text-center font-medium text-[16px] text-white leading-normal hover:bg-accentHover aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10',
+          !grantPermissions.isPending &&
+            'outline outline-dashed outline-blue9 outline-offset-2',
+        )}
         disabled={grantPermissions.isPending}
       >
         {grantPermissions.isPending ? (
@@ -1258,6 +1265,8 @@ function Swap(props: {
         className={cx(
           '-tracking-[0.448px] flex h-10.5 w-full items-center justify-center gap-1.5 rounded-[10px] px-3 text-center font-medium text-[16px] leading-normal aria-disabled:pointer-events-none aria-disabled:bg-gray5 aria-disabled:text-gray10',
           isConfirmed ? 'bg-green3 text-green10' : 'bg-accent text-white ',
+          !(isPending || isConfirming || isConfirmed) &&
+            'outline outline-dashed outline-blue9 outline-offset-2',
         )}
         disabled={isPending || isConfirming}
       >
