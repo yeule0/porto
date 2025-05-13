@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
@@ -74,8 +75,11 @@ export default defineConfig(({ mode }) => ({
         }: {
           delegationProxy?: string
         } = {}) => {
+          const containerName = 'playground'
+          spawnSync('docker', ['rm', '-f', containerName])
           const stop = await relay({
             accountRegistry: accountRegistryAddress,
+            containerName: 'playground',
             delegationProxy,
             endpoint: anvilConfig.rpcUrl,
             entrypoint: entryPointAddress,

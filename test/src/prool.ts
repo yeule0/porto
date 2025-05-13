@@ -6,6 +6,7 @@ import { execa } from 'prool/processes'
 
 type RelayParameters = {
   accountRegistry: string
+  containerName?: string | undefined
   endpoint: string
   entrypoint: string
   delegationProxy: string
@@ -34,6 +35,7 @@ let pulled = false
 export const relay = defineInstance((parameters?: RelayParameters) => {
   const args = (parameters || {}) as RelayParameters
   const {
+    containerName = crypto.randomUUID(),
     endpoint,
     feeTokens,
     image = 'ghcr.io/ithacaxyz/relay',
@@ -46,8 +48,6 @@ export const relay = defineInstance((parameters?: RelayParameters) => {
   const name = 'relay'
   const process_ = execa({ name })
   let port = args.http?.port ?? 9119
-
-  const containerName = crypto.randomUUID()
 
   return {
     _internal: {
