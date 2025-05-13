@@ -22,7 +22,20 @@ export function CheckBalance(props: CheckBalance.Props) {
     chainId: chain?.id,
   })
 
-  const hasInsufficientBalance = query.error?.message?.includes('PaymentError')
+  const previousErrorMessage = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    previousErrorMessage.current = query.error?.message ?? null
+  }, [query.error])
+
+  const hasInsufficientBalance = React.useMemo(() => {
+    if (
+      query.isFetching &&
+      previousErrorMessage.current?.includes('PaymentError')
+    )
+      return true
+    if (query.error?.message?.includes('PaymentError')) return true
+    return false
+  }, [query.error?.message, query.isFetching])
 
   if (!hasInsufficientBalance) return children
   if (step === 'success') return children
