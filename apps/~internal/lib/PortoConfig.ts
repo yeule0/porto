@@ -40,7 +40,10 @@ const config = {
     transports: {
       [Chains.baseSepolia.id]: {
         default: http(),
-        relay: http('https://relay.ithaca.xyz', Sentry.httpTransportOptions()),
+        relay: http(
+          'https://base-sepolia.rpc.ithaca.xyz',
+          Sentry.httpTransportOptions(),
+        ),
       },
     },
   },
@@ -51,7 +54,10 @@ const config = {
     transports: {
       [Chains.baseSepolia.id]: {
         default: http(),
-        relay: http('https://relay.ithaca.xyz', Sentry.httpTransportOptions()),
+        relay: http(
+          'https://base-sepolia.rpc.ithaca.xyz',
+          Sentry.httpTransportOptions(),
+        ),
       },
     },
   },

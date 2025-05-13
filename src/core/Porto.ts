@@ -23,7 +23,7 @@ export const defaultConfig = {
   transports: {
     [Chains.baseSepolia.id]: {
       default: http(),
-      relay: http('https://relay.ithaca.xyz'),
+      relay: http('https://base-sepolia.rpc.ithaca.xyz'),
     },
   },
 } as const satisfies Config

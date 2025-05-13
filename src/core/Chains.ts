@@ -31,7 +31,7 @@ export const baseSepolia = /*#__PURE__*/ define({
   },
   rpcUrls: {
     default: {
-      http: ['https://base-sepolia.ithaca.xyz'],
+      http: ['https://base-sepolia.rpc.ithaca.xyz'],
     },
   },
 })
