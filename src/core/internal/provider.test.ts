@@ -1254,132 +1254,109 @@ describe.each([
       ).toBe(40_000n)
     })
 
-    test('behavior: `permissions.calls` unauthorized', async () => {
-      const { porto } = getPorto()
-      const client = Porto_internal.getClient(porto).extend(() => ({
-        mode: 'anvil',
-      }))
+    // TODO: remove condition once Anvil supports reverts on delegated accounts.
+    test.runIf(type === 'relay')(
+      'behavior: `permissions.calls` unauthorized',
+      async () => {
+        const { porto } = getPorto()
+        const client = Porto_internal.getClient(porto).extend(() => ({
+          mode: 'anvil',
+        }))
 
-      const { address } = await porto.provider.request({
-        method: 'experimental_createAccount',
-      })
-      await setBalance(client, {
-        address,
-        value: Value.fromEther('10000'),
-      })
+        const { address } = await porto.provider.request({
+          method: 'experimental_createAccount',
+        })
+        await setBalance(client, {
+          address,
+          value: Value.fromEther('10000'),
+        })
 
-      const alice = '0x0000000000000000000000000000000000069422'
+        const alice = '0x0000000000000000000000000000000000069422'
 
-      const permissions = await porto.provider.request({
-        method: 'experimental_grantPermissions',
-        params: [
-          {
-            expiry: 9999999999,
-            permissions: {
-              calls: [{ to: '0x0000000000000000000000000000000000000000' }],
-              spend: [
-                {
-                  limit: Hex.fromNumber(69420),
-                  period: 'day',
-                  token: exp1Address,
-                },
-              ],
-            },
-          },
-        ],
-      })
-      await expect(() =>
-        porto.provider.request({
-          method: 'wallet_sendCalls',
+        const permissions = await porto.provider.request({
+          method: 'experimental_grantPermissions',
           params: [
             {
-              calls: [
-                {
-                  data: encodeFunctionData({
-                    abi: exp1Abi,
-                    args: [alice, 69420n],
-                    functionName: 'mint',
-                  }),
-                  to: exp1Address,
-                },
-              ],
-              capabilities: {
-                permissions,
+              expiry: 9999999999,
+              permissions: {
+                calls: [{ to: '0x0000000000000000000000000000000000000000' }],
+                spend: [
+                  {
+                    limit: Hex.fromNumber(69420),
+                    period: 'day',
+                    token: exp1Address,
+                  },
+                ],
               },
-              from: address,
-              version: '1',
             },
           ],
-        }),
-      ).rejects.toThrowError('Unauthorized')
-    })
-
-    test('behavior: `permissions.spend` exceeded', async () => {
-      const { porto } = getPorto()
-      const client = Porto_internal.getClient(porto).extend(() => ({
-        mode: 'anvil',
-      }))
-
-      const { address } = await porto.provider.request({
-        method: 'experimental_createAccount',
-      })
-      await setBalance(client, {
-        address,
-        value: Value.fromEther('10000'),
-      })
-
-      const alice = Hex.random(20)
-
-      const permissions = await porto.provider.request({
-        method: 'experimental_grantPermissions',
-        params: [
-          {
-            expiry: 9999999999,
-            permissions: {
-              calls: [{ to: exp1Address }],
-              spend: [
-                {
-                  limit: Hex.fromNumber(Value.fromEther('50')),
-                  period: 'day',
-                  token: exp1Address,
-                },
-              ],
-            },
-          },
-        ],
-      })
-
-      const { id } = await porto.provider.request({
-        method: 'wallet_sendCalls',
-        params: [
-          {
-            calls: [
+        })
+        await expect(() =>
+          porto.provider.request({
+            method: 'wallet_sendCalls',
+            params: [
               {
-                data: encodeFunctionData({
-                  abi: exp1Abi,
-                  args: [alice, Value.fromEther('50')],
-                  functionName: 'transfer',
-                }),
-                to: exp1Address,
+                calls: [
+                  {
+                    data: encodeFunctionData({
+                      abi: exp1Abi,
+                      args: [alice, 69420n],
+                      functionName: 'mint',
+                    }),
+                    to: exp1Address,
+                  },
+                ],
+                capabilities: {
+                  permissions,
+                },
+                from: address,
+                version: '1',
               },
             ],
-            capabilities: {
-              permissions,
+          }),
+        ).rejects.toThrowError('Unauthorized')
+      },
+    )
+
+    // TODO: remove condition once Anvil supports reverts on delegated accounts.
+    test.runIf(type === 'relay')(
+      'behavior: `permissions.spend` exceeded',
+      async () => {
+        const { porto } = getPorto()
+        const client = Porto_internal.getClient(porto).extend(() => ({
+          mode: 'anvil',
+        }))
+
+        const { address } = await porto.provider.request({
+          method: 'experimental_createAccount',
+        })
+        await setBalance(client, {
+          address,
+          value: Value.fromEther('10000'),
+        })
+
+        const alice = Hex.random(20)
+
+        const permissions = await porto.provider.request({
+          method: 'experimental_grantPermissions',
+          params: [
+            {
+              expiry: 9999999999,
+              permissions: {
+                calls: [{ to: exp1Address }],
+                spend: [
+                  {
+                    limit: Hex.fromNumber(Value.fromEther('50')),
+                    period: 'day',
+                    token: exp1Address,
+                  },
+                ],
+              },
             },
-            from: address,
-            version: '1',
-          },
-        ],
-      })
+          ],
+        })
 
-      expect(id).toBeDefined()
-
-      await waitForCallsStatus(Porto_internal.getProviderClient(porto), {
-        id,
-      })
-
-      await expect(() =>
-        porto.provider.request({
+        const { id } = await porto.provider.request({
           method: 'wallet_sendCalls',
           params: [
             {
@@ -1387,7 +1364,7 @@ describe.each([
                 {
                   data: encodeFunctionData({
                     abi: exp1Abi,
-                    args: [alice, Value.fromEther('200')],
+                    args: [alice, Value.fromEther('50')],
                     functionName: 'transfer',
                   }),
                   to: exp1Address,
@@ -1400,9 +1377,40 @@ describe.each([
               version: '1',
             },
           ],
-        }),
-      ).rejects.toThrowError('ExceededSpendLimit')
-    })
+        })
+
+        expect(id).toBeDefined()
+
+        await waitForCallsStatus(Porto_internal.getProviderClient(porto), {
+          id,
+        })
+
+        await expect(() =>
+          porto.provider.request({
+            method: 'wallet_sendCalls',
+            params: [
+              {
+                calls: [
+                  {
+                    data: encodeFunctionData({
+                      abi: exp1Abi,
+                      args: [alice, Value.fromEther('200')],
+                      functionName: 'transfer',
+                    }),
+                    to: exp1Address,
+                  },
+                ],
+                capabilities: {
+                  permissions,
+                },
+                from: address,
+                version: '1',
+              },
+            ],
+          }),
+        ).rejects.toThrowError('ExceededSpendLimit')
+      },
+    )
 
     test('behavior: revoked permission', async () => {
       const { porto } = getPorto()
