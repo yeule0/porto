@@ -4,7 +4,7 @@ import { Key } from 'porto'
 import { Hooks } from 'porto/wagmi'
 
 import { CheckBalance } from '~/components/CheckBalance'
-import * as Relay from '~/lib/Relay'
+import * as RpcServer from '~/lib/RpcServer'
 import { Layout } from '~/routes/-components/Layout'
 import { StringFormatter } from '~/utils'
 import WalletIcon from '~icons/lucide/wallet-cards'
@@ -18,7 +18,7 @@ export function RevokeAdmin(props: RevokeAdmin.Props) {
     (admin) => admin.id === revokeKeyId,
   )
 
-  const prepareCallsQuery = Relay.usePrepareCalls({
+  const prepareCallsQuery = RpcServer.usePrepareCalls({
     enabled: !!revokeKey,
     feeToken,
     revokeKeys: revokeKey ? [Key.from(revokeKey)] : [],

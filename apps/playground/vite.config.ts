@@ -18,7 +18,7 @@ import {
   exp1Address,
   simulatorAddress,
 } from '../../test/src/_generated/addresses.js'
-import { relay } from '../../test/src/prool.js'
+import { rpcServer } from '../../test/src/prool.js'
 
 const logger = createLogger('info', {
   prefix: 'playground',
@@ -44,7 +44,7 @@ export default defineConfig(({ mode }) => ({
           port: 8545,
           rpcUrl: 'http://127.0.0.1:8545',
         }
-        const relayConfig = {
+        const rpcServerConfig = {
           port: 9119,
           rpcUrl: 'http://127.0.0.1:9119',
         }
@@ -68,16 +68,16 @@ export default defineConfig(({ mode }) => ({
 
         logger.info('Anvil started on ' + anvilConfig.rpcUrl)
 
-        logger.info('Starting Relay...')
+        logger.info('Starting RPC Server...')
 
-        const startRelay = async ({
+        const startRpcServer = async ({
           delegationProxy = delegationProxyAddress,
         }: {
           delegationProxy?: string
         } = {}) => {
           const containerName = 'playground'
           spawnSync('docker', ['rm', '-f', containerName])
-          const stop = await relay({
+          const stop = await rpcServer({
             accountRegistry: accountRegistryAddress,
             containerName: 'playground',
             delegationProxy,
@@ -88,22 +88,22 @@ export default defineConfig(({ mode }) => ({
               exp1Address,
             ],
             http: {
-              port: relayConfig.port,
+              port: rpcServerConfig.port,
             },
             simulator: simulatorAddress,
             userOpGasBuffer: 100_000n,
           }).start()
-          await fetch(relayConfig.rpcUrl + '/start')
+          await fetch(rpcServerConfig.rpcUrl + '/start')
           return stop
         }
-        let stopRelay = await startRelay()
+        let stopRpcServer = await startRpcServer()
 
-        logger.info('Relay started on ' + relayConfig.rpcUrl)
+        logger.info('RPC Server started on ' + rpcServerConfig.rpcUrl)
 
         server.middlewares.use(async (req, res, next) => {
-          if (req.url?.startsWith('/relay/up')) {
-            stopRelay()
-            stopRelay = await startRelay({
+          if (req.url?.startsWith('/rpc/up')) {
+            stopRpcServer()
+            stopRpcServer = await startRpcServer({
               delegationProxy: delegationNewProxyAddress,
             })
             res.statusCode = 302

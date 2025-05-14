@@ -3,7 +3,7 @@ import { Button, Spinner } from '@porto/apps/components'
 import { cx } from 'cva'
 import { Address } from 'ox'
 import { Chains } from 'porto'
-import * as Quote_relay from 'porto/core/internal/relay/typebox/quote'
+import * as Quote_typebox from 'porto/core/internal/rpcServer/typebox/quote'
 import * as Rpc from 'porto/core/internal/typebox/request'
 import { Hooks, Porto as Porto_ } from 'porto/remote'
 import * as React from 'react'
@@ -12,7 +12,7 @@ import { CheckBalance } from '~/components/CheckBalance'
 import * as FeeToken from '~/lib/FeeToken'
 import { porto } from '~/lib/Porto'
 import * as Price from '~/lib/Price'
-import * as Relay from '~/lib/Relay'
+import * as RpcServer from '~/lib/RpcServer'
 import { Layout } from '~/routes/-components/Layout'
 import { ValueFormatter } from '~/utils'
 import ArrowDownLeft from '~icons/lucide/arrow-down-left'
@@ -27,7 +27,7 @@ export function ActionRequest(props: ActionRequest.Props) {
 
   const account = Hooks.useAccount(porto, { address })
 
-  const prepareCallsQuery = Relay.usePrepareCalls({
+  const prepareCallsQuery = RpcServer.usePrepareCalls({
     address,
     calls,
     chainId,
@@ -272,7 +272,7 @@ export namespace ActionRequest {
   export namespace Details {
     export type Props = {
       chain?: Chains.Chain | undefined
-      quote: Quote_relay.Quote
+      quote: Quote_typebox.Quote
     }
   }
 
@@ -357,7 +357,7 @@ export namespace ActionRequest {
       error?: Error | null | undefined
       errorMessage?: string | undefined
       loading?: boolean | undefined
-      quote?: Quote_relay.Quote | undefined
+      quote?: Quote_typebox.Quote | undefined
     }
   }
 
@@ -379,7 +379,7 @@ export namespace ActionRequest {
     chains extends readonly [PortoConfig.Chain, ...PortoConfig.Chain[]],
   >(
     porto: Pick<Porto_.Porto<chains>, '_internal'>,
-    quote: Quote_relay.Quote,
+    quote: Quote_typebox.Quote,
   ): Quote | undefined {
     const { chainId, op, nativeFeeEstimate, txGas, ttl } = quote ?? {}
     const { paymentToken, totalPaymentMaxAmount } = op ?? {}
