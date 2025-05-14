@@ -24,6 +24,17 @@ export function CheckBalance(props: CheckBalance.Props) {
 
   const hasInsufficientBalance = query.error?.message?.includes('PaymentError')
 
+  if (step === 'success') return children
+  if (step === 'add-funds')
+    return (
+      <AddFunds
+        address={address}
+        onApprove={() => setStep('success')}
+        onReject={onReject}
+        onSuccess={() => query.refetch()}
+        tokenAddress={props.feeToken!}
+      />
+    )
   if (query.isPending)
     return (
       <div className="flex h-40 items-center justify-center">
@@ -33,19 +44,6 @@ export function CheckBalance(props: CheckBalance.Props) {
       </div>
     )
   if (!hasInsufficientBalance) return children
-  if (step === 'success') return children
-  if (step === 'add-funds')
-    return (
-      <AddFunds
-        address={address}
-        onApprove={() => {
-          setStep('success')
-          query.refetch()
-        }}
-        onReject={onReject}
-        tokenAddress={props.feeToken!}
-      />
-    )
   return (
     <Layout>
       <Layout.Header>
