@@ -24,7 +24,7 @@ export function CheckBalance(props: CheckBalance.Props) {
 
   const hasInsufficientBalance = query.error?.message?.includes('PaymentError')
 
-  if (!query.isFetched)
+  if (query.isPending)
     return (
       <div className="flex h-40 items-center justify-center">
         <div className="size-[24px]">

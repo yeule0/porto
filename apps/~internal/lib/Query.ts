@@ -30,6 +30,7 @@ export function useQueryWithPersistedError<data, error>(
     get(target, prop) {
       if (prop === 'error') return error
       if (prop === 'isError') return !!error
+      if (prop === 'isPending') return error ? false : target.isPending
       return target[prop as keyof typeof target]
     },
   })
