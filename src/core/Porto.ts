@@ -2,7 +2,7 @@ import type * as Address from 'ox/Address'
 import type * as Hex from 'ox/Hex'
 import type * as RpcRequest from 'ox/RpcRequest'
 import type * as RpcResponse from 'ox/RpcResponse'
-import { http } from 'viem'
+import { http, type Transport } from 'viem'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { createStore, type Mutate, type StoreApi } from 'zustand/vanilla'
 import type * as Account from './Account.js'
@@ -21,10 +21,7 @@ export const defaultConfig = {
   storage: typeof window !== 'undefined' ? Storage.idb() : Storage.memory(),
   storageKey: 'porto.store',
   transports: {
-    [Chains.baseSepolia.id]: {
-      default: http(),
-      relay: http('https://base-sepolia.rpc.ithaca.xyz'),
-    },
+    [Chains.baseSepolia.id]: http(),
   },
 } as const satisfies Config
 
@@ -46,14 +43,22 @@ export function create<
 export function create(
   parameters: ExactPartial<Config> | undefined = {},
 ): Porto {
+  const chains = parameters.chains ?? defaultConfig.chains
+  const transports = Object.fromEntries(
+    chains!.map((chain) => [
+      chain.id,
+      parameters.transports?.[chain.id] ?? http(),
+    ]),
+  )
+
   const config = {
     announceProvider:
       parameters.announceProvider ?? defaultConfig.announceProvider,
-    chains: parameters.chains ?? defaultConfig.chains,
+    chains,
     mode: parameters.mode ?? defaultConfig.mode,
     storage: parameters.storage ?? defaultConfig.storage,
     storageKey: parameters.storageKey ?? defaultConfig.storageKey,
-    transports: parameters.transports ?? defaultConfig.transports,
+    transports,
   } satisfies Config
 
   const store = createStore(
@@ -162,12 +167,9 @@ export type Config<
    */
   storageKey?: string | undefined
   /**
-   * Transport to use for each chain.
+   * Transport overrides to use for each chain.
    */
-  transports: Record<
-    chains[number]['id'],
-    Transport | { default: Transport; relay?: Transport | undefined }
-  >
+  transports: Record<chains[number]['id'], Transport>
 }
 
 export type Porto<
@@ -209,8 +211,6 @@ export type Store<
   StoreApi<State<chains>>,
   [['zustand/subscribeWithSelector', never], ['zustand/persist', any]]
 >
-
-export type Transport = internal.Transport
 
 export type QueuedRequest<result = unknown> = {
   account:
