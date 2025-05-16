@@ -298,7 +298,12 @@ describe.each([
       })
 
       expect(permissions.address).toBeDefined()
-      expect({ ...permissions, address: null }).matchSnapshot()
+      expect({
+        ...permissions,
+        address: null,
+        capabilities: null,
+        chainId: null,
+      }).matchSnapshot()
 
       {
         const permissions = await porto.provider.request({
@@ -324,7 +329,12 @@ describe.each([
         })
 
         expect(permissions.address).toBeDefined()
-        expect({ ...permissions, address: null }).matchSnapshot()
+        expect({
+          ...permissions,
+          address: null,
+          capabilities: null,
+          chainId: null,
+        }).matchSnapshot()
       }
 
       const accounts = porto._internal.store.getState().accounts
