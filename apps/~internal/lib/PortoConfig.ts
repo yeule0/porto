@@ -10,12 +10,14 @@ const config = {
     chains: [Chains.anvil],
     mode: Mode.rpcServer({
       feeToken: 'EXP',
+      persistPreCalls: false,
     }),
   },
   dev: {
     chains: [Chains.portoDev],
     mode: Mode.rpcServer({
       feeToken: 'EXP',
+      persistPreCalls: false,
     }),
     storageKey: 'porto.store.dev',
     transports: {
@@ -24,14 +26,18 @@ const config = {
   },
   prod: {
     chains: [Chains.baseSepolia],
-    mode: Mode.rpcServer(),
+    mode: Mode.rpcServer({
+      persistPreCalls: false,
+    }),
     transports: {
       [Chains.baseSepolia.id]: http(undefined, Sentry.httpTransportOptions()),
     },
   },
   stg: {
     chains: [Chains.baseSepolia],
-    mode: Mode.rpcServer(),
+    mode: Mode.rpcServer({
+      persistPreCalls: false,
+    }),
     storageKey: 'porto.store.stg',
     transports: {
       [Chains.baseSepolia.id]: http(undefined, Sentry.httpTransportOptions()),
