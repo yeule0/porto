@@ -35,9 +35,9 @@ export const Quote = Type.Object({
     /** The maximum priority fee per gas for the bundle. */
     maxPriorityFeePerGas: Primitive.BigInt,
   }),
-  /** The decimals of the payment token. */
-  op: UserOp.UserOp,
   /** The `UserOp` the quote is for. */
+  op: UserOp.UserOp,
+  /** The decimals of the payment token. */
   paymentTokenDecimals: Type.Number(),
   /** The time-to-live of the quote. */
   ttl: Type.Number(),
