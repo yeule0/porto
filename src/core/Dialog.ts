@@ -278,7 +278,7 @@ export function popup() {
       let popup: Window | null = null
 
       function onBlur() {
-        handleBlur(store)
+        if (popup) handleBlur(store)
       }
 
       let messenger: Messenger.Bridge | undefined
