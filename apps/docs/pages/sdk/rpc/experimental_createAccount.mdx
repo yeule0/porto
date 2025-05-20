@@ -36,11 +36,26 @@ type Request = {
 
 ## Response
 
-Address of the created account.
+Address of the created account, and its capabilities.
 
 ```ts
-type Response = `0x${string}`
+type Response = {
+  // Address of the created account.
+  address: `0x${string}`,
+  // Account capabilities.
+  capabilities?: {
+    // Admins of the account.
+    admins?: AdminsCapabilityResponse,
+    // Permissions the account has authorized.
+    permissions?: PermissionsCapabilityResponse
+  }
+}
 ```
+
+Capabilities:
+
+- [`AdminsCapabilityResponse`](/sdk/rpc/capabilities#TODO)
+- [`PermissionsCapabilityResponse`](/sdk/rpc/capabilities#TODO)
 
 ## Example
 

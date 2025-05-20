@@ -25,8 +25,8 @@ The following JSON-RPC methods support the request capabilities:
 
 - [`wallet_sendCalls`](/sdk/rpc/wallet_sendCalls)
 - [`wallet_prepareCalls`](/sdk/rpc/wallet_prepareCalls)
-- [`wallet_prepareUpgradeAccount`](/sdk/rpc/wallet_prepareUpgradeAccount)
-- [`wallet_revokePermissions`](/sdk/rpc/wallet_revokePermissions)
+- [`wallet_prepareUpgradeAccount`](#TODO)
+- [`experimental_revokePermissions`](/sdk/rpc/experimental_revokePermissions)
 
 ```ts
 type FeeTokenRequestCapabilities = {
@@ -69,7 +69,7 @@ Permissions may be granted upon connection with the `grantPermissions` capabilit
 The following JSON-RPC methods support the request capabilities:
 
 - [`wallet_connect`](/sdk/rpc/wallet_connect)
-- [`wallet_prepareUpgradeAccount`](/sdk/rpc/wallet_prepareUpgradeAccount)
+- [`wallet_prepareUpgradeAccount`](#TODO)
 
 ```ts
 type PermissionsRequestCapabilities = {
@@ -110,7 +110,7 @@ type PermissionsRequestCapabilities = {
 The following JSON-RPC methods support `permissions` response capabilities:
 
 - [`wallet_connect`](/sdk/rpc/wallet_connect)
-- [`wallet_upgradeAccount`](/sdk/rpc/wallet_prepareUpgradeAccount)
+- [`wallet_upgradeAccount`](#TODO)
 - [`experimental_createAccount`](/sdk/rpc/experimental_createAccount)
 
 ```ts
