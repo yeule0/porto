@@ -42,10 +42,10 @@ export namespace relay_health {
 export namespace wallet_getAccounts {
   /** Parameters for `wallet_getAccounts` request. */
   export const Parameters = Type.Object({
-    /** Key identifier. */
-    chain_id: Type.Number(),
     /** Target chain ID. */
     // TODO: `Primitive.Number`
+    chainId: Type.Number(),
+    /** Key identifier. */
     id: Primitive.Hex,
   })
   export type Parameters = Typebox.StaticDecode<typeof Parameters>
@@ -77,16 +77,27 @@ export namespace wallet_getCapabilities {
   })
   export type Request = Typebox.StaticDecode<typeof Request>
 
+  const VersionedContract = Type.Object({
+    address: Primitive.Address,
+    version: Typebox.Optional(Type.Union([Type.String(), Type.Null()])),
+  })
+
   export const Response = Type.Object({
     contracts: Type.Object({
-      /** Delegation proxy address. */
-      delegationImplementation: Primitive.Address,
+      /** Account registry address. */
+      accountRegistry: VersionedContract,
       /** Delegation implementation address. */
-      delegationProxy: Primitive.Address,
+      delegationImplementation: VersionedContract,
+      /** Delegation proxy address. */
+      delegationProxy: VersionedContract,
       /** Entrypoint address. */
-      entrypoint: Primitive.Address,
+      entrypoint: VersionedContract,
+      /** Legacy delegation implementation address. */
+      legacyDelegations: Type.Array(VersionedContract),
+      /** Legacy entrypoint address. */
+      legacyEntrypoints: Type.Array(VersionedContract),
       /** Simulator address. */
-      simulator: Typebox.Optional(Primitive.Address),
+      simulator: VersionedContract,
     }),
     fees: Type.Object({
       /** Fee recipient address. */
@@ -324,6 +335,10 @@ export namespace wallet_prepareCalls {
                 decimals: Typebox.Optional(
                   Type.Union([Type.Number(), Type.Null()]),
                 ),
+                direction: Type.Union([
+                  Type.Literal('incoming'),
+                  Type.Literal('outgoing'),
+                ]),
                 name: Typebox.Optional(
                   Type.Union([Type.String(), Type.Null()]),
                 ),
@@ -337,6 +352,10 @@ export namespace wallet_prepareCalls {
                 address: Typebox.Optional(
                   Type.Union([Primitive.Address, Type.Null()]),
                 ),
+                direction: Type.Union([
+                  Type.Literal('incoming'),
+                  Type.Literal('outgoing'),
+                ]),
                 name: Typebox.Optional(
                   Type.Union([Type.String(), Type.Null()]),
                 ),
@@ -349,6 +368,10 @@ export namespace wallet_prepareCalls {
               }),
               Type.Object({
                 address: Type.Null(),
+                direction: Type.Union([
+                  Type.Literal('incoming'),
+                  Type.Literal('outgoing'),
+                ]),
                 name: Type.Null(),
                 symbol: Type.String(),
                 type: Type.Null(),

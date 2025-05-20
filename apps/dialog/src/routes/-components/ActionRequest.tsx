@@ -161,10 +161,10 @@ export namespace ActionRequest {
       <>
         <div className="space-y-2">
           {balances.map((balance) => {
-            const { address, symbol, value } = balance
+            const { address, direction, symbol, value } = balance
             if (value === BigInt(0)) return null
 
-            const receiving = value > BigInt(0)
+            const receiving = direction === 'incoming'
             const absoluteValue = value < 0n ? -value : value
             const formatted = ValueFormatter.format(
               absoluteValue,
