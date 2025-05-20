@@ -326,6 +326,10 @@ export default defineConfig({
             text: 'Overview',
           },
           {
+            link: '/sdk/rpc/capabilities',
+            text: 'Capabilities',
+          },
+          {
             link: '/sdk/rpc/eth_accounts',
             text: 'eth_accounts',
           },
