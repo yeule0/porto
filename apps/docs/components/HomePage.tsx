@@ -613,6 +613,12 @@ function BuyNow(props: { chainId: ChainId; next: () => void }) {
           sendCalls({
             calls: [
               {
+                abi: exp1Config.abi,
+                args: [expNftConfig.address[chainId], Value.fromEther('10')],
+                functionName: 'approve',
+                to: exp1Config.address[chainId],
+              },
+              {
                 abi: expNftConfig.abi,
                 functionName: 'mint',
                 to: expNftConfig.address[chainId],
