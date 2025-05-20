@@ -16,7 +16,6 @@
 | [`wallet_prepareCalls`](/sdk/rpc/wallet_prepareCalls)                       | Prepares a call bundle.                                                            | [ERC-7836](https://eips.ethereum.org/EIPS/eip-7836) |
 | [`wallet_sendCalls`](/sdk/rpc/wallet_sendCalls)                             | Broadcast a bundle of calls to the network.                                        | [ERC-5792](https://eips.ethereum.org/EIPS/eip-5792) |
 | [`wallet_sendPreparedCalls`](/sdk/rpc/wallet_sendPreparedCalls)             | Executes a signed and prepared call bundle.                                        | [ERC-7836](https://eips.ethereum.org/EIPS/eip-7836) |
-| [`experimental_createAccount`](/sdk/rpc/experimental_createAccount)         | Creates an account.                                                                | Experimental                                        |
 | [`experimental_getPermissions`](/sdk/rpc/experimental_getPermissions)       | Returns the active permissions for an account.                                     | Experimental                                        |
 | [`experimental_grantPermissions`](/sdk/rpc/experimental_grantPermissions)   | Grants permissions for an Application to perform actions on behalf of the account. | Experimental                                        |
 | [`experimental_revokePermissions`](/sdk/rpc/experimental_revokePermissions) | Revokes a permission.                                                              | Experimental                                        |

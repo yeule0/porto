@@ -64,18 +64,36 @@ The `permissions` capability enables the following methods:
 
 ### Request Capabilities
 
-Permissions may be granted upon connection with the `grantPermissions` capability.
+The following permission request capabilities are supported:
 
-The following JSON-RPC methods support the request capabilities:
+- `grantPermissions`: Requests for the wallet to grant these permissions.
+- `permissions`: Use the provided permission for the request.
+
+The following JSON-RPC methods support these capabilities:
 
 - [`wallet_connect`](/sdk/rpc/wallet_connect)
 - [`wallet_prepareUpgradeAccount`](#TODO)
 
 ```ts
 type PermissionsRequestCapabilities = {
+  /** Requests for the wallet to grant these permissions. */
   grantPermissions: {
     /** Expiry of the permissions. */
     expiry: number
+
+    /** 
+     * Key to grant permissions to. 
+     * Defaults to a wallet-managed key. 
+     */
+    key?: {
+      /** 
+       * Public key. 
+       * Accepts an address for `address` & `secp256k1` types. 
+       */
+      publicKey?: `0x${string}`,
+      /** Key type. */
+      type?: 'address' | 'p256' | 'secp256k1' | 'webauthn-p256', 
+    }
   
     /** Permissions. */
     permissions: {
@@ -101,17 +119,26 @@ type PermissionsRequestCapabilities = {
         token?: `0x${string}`
       }[],
     }
+  },
+
+  /** Permission to use for the request. */
+  permissions: {
+    /** ID of the permission to use. */
+    id: `0x${string}`
   }
 }
 ```
 
 ### Response Capabilities
 
-The following JSON-RPC methods support `permissions` response capabilities:
+The following permission response capabilities are supported:
+
+- `permissions`: Returns the permissions granted on the request.
+
+The following JSON-RPC methods support these capabilities:
 
 - [`wallet_connect`](/sdk/rpc/wallet_connect)
 - [`wallet_upgradeAccount`](#TODO)
-- [`experimental_createAccount`](/sdk/rpc/experimental_createAccount)
 
 ```ts
 type PermissionsResponseCapabilities = {

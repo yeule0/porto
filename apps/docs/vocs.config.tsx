@@ -243,11 +243,6 @@ export default defineConfig({
               },
               {
                 disabled: true,
-                link: '/sdk/wagmi/createAccount',
-                text: 'createAccount',
-              },
-              {
-                disabled: true,
                 link: '/sdk/wagmi/disconnect',
                 text: 'disconnect',
               },
@@ -282,11 +277,6 @@ export default defineConfig({
                 disabled: true,
                 link: '/sdk/wagmi/useConnect',
                 text: 'useConnect',
-              },
-              {
-                disabled: true,
-                link: '/sdk/wagmi/useCreateAccount',
-                text: 'useCreateAccount',
               },
               {
                 disabled: true,
@@ -346,32 +336,12 @@ export default defineConfig({
             text: 'eth_signTypedData_V4',
           },
           {
-            link: '/sdk/rpc/experimental_createAccount',
-            text: 'experimental_createAccount',
-          },
-          {
-            link: '/sdk/rpc/experimental_getAccountVersion',
-            text: 'experimental_getAccountVersion',
-          },
-          {
-            link: '/sdk/rpc/experimental_getAdmins',
-            text: 'experimental_getAdmins',
-          },
-          {
             link: '/sdk/rpc/experimental_getPermissions',
             text: 'experimental_getPermissions',
           },
           {
-            link: '/sdk/rpc/experimental_grantAdmin',
-            text: 'experimental_grantAdmin',
-          },
-          {
             link: '/sdk/rpc/experimental_grantPermissions',
             text: 'experimental_grantPermissions',
-          },
-          {
-            link: '/sdk/rpc/experimental_revokeAdmin',
-            text: 'experimental_revokeAdmin',
           },
           {
             link: '/sdk/rpc/experimental_revokePermissions',
