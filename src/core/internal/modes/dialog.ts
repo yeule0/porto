@@ -262,8 +262,12 @@ export function dialog(parameters: dialog.Parameters = {}) {
       },
 
       async grantPermissions(parameters) {
-        const { internal } = parameters
-        const { request, store } = internal
+        const { account, internal } = parameters
+        const {
+          config: { storage },
+          request,
+          store,
+        } = internal
 
         if (request.method !== 'experimental_grantPermissions')
           throw new Error(
@@ -283,10 +287,17 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         // Send a request off to the dialog to grant the permissions.
         const provider = getProvider(store)
-        await provider.request({
+        const { capabilities } = await provider.request({
           method: 'experimental_grantPermissions',
           params: [permissionsRequest],
         })
+
+        const { preCalls } = capabilities ?? {}
+        if (preCalls)
+          await PreCalls.add(preCalls as PreCalls.PreCalls, {
+            address: account.address,
+            storage,
+          })
 
         return { key }
       },
