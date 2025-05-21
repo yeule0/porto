@@ -12,8 +12,8 @@ import { waitForCallsStatus } from 'viem/actions'
 import * as Account from '../../Account.js'
 import * as Key from '../../Key.js'
 import * as RpcServer from '../../RpcServer.js'
+import * as AccountContract from '../accountContract.js'
 import * as Call from '../call.js'
-import * as Delegation from '../delegation.js'
 import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type { Client } from '../porto.js'
@@ -117,17 +117,17 @@ export function rpcServer(parameters: rpcServer.Parameters = {}) {
         const { client } = internal
 
         const { contracts } = await RpcServer.getCapabilities(client)
-        const { delegationImplementation } = contracts
+        const { accountImplementation } = contracts
 
-        const latest = await Delegation.getEip712Domain(client, {
-          account: delegationImplementation,
+        const latest = await AccountContract.getEip712Domain(client, {
+          account: accountImplementation,
         }).then((x) => x.version)
 
-        const current = await Delegation.getEip712Domain(client, {
+        const current = await AccountContract.getEip712Domain(client, {
           account: address,
         })
           .then((x) => x.version)
-          // TODO: get counterfactual account delegation via rpc server.
+          // TODO: get counterfactual account version via rpc server.
           .catch(() => latest)
 
         if (!current || !latest) throw new Error('version not found.')
@@ -369,7 +369,7 @@ export function rpcServer(parameters: rpcServer.Parameters = {}) {
             ...context,
             account,
             calls,
-            nonce: context.quote?.op!.nonce,
+            nonce: context.quote?.intent!.nonce,
           },
           key,
           signPayloads: [digest],
@@ -591,16 +591,17 @@ export function rpcServer(parameters: rpcServer.Parameters = {}) {
         if (!key) throw new Error('admin key not found.')
 
         const { contracts } = await RpcServer.getCapabilities(client)
-        const { delegationImplementation: delegation } = contracts
-        if (!delegation) throw new Error('delegation not found.')
+        const { accountImplementation } = contracts
+        if (!accountImplementation)
+          throw new Error('accountImplementation not found.')
 
         const feeToken = await resolveFeeToken(internal)
 
         return await RpcServer.sendCalls(client, {
           account,
           calls: [
-            Call.upgradeProxyDelegation({
-              delegation: delegation.address,
+            Call.upgradeProxyAccount({
+              address: accountImplementation.address,
               to: account.address,
             }),
           ],

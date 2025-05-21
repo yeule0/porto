@@ -9,8 +9,8 @@ import * as Typebox from '../../typebox/typebox.js'
 import { Type } from '../../typebox/typebox.js'
 import * as C from './capabilities.js'
 import * as Key from './key.js'
+import * as PreCall from './preCall.js'
 import * as Quote from './quote.js'
-import * as UserOp from './userOp.js'
 
 const Authorization = Type.Object({
   address: Primitive.Address,
@@ -85,17 +85,17 @@ export namespace wallet_getCapabilities {
   export const Response = Type.Object({
     contracts: Type.Object({
       /** Account registry address. */
+      accountImplementation: VersionedContract,
+      /** Account implementation address. */
+      accountProxy: VersionedContract,
+      /** Account proxy address. */
       accountRegistry: VersionedContract,
-      /** Delegation implementation address. */
-      delegationImplementation: VersionedContract,
-      /** Delegation proxy address. */
-      delegationProxy: VersionedContract,
-      /** Entrypoint address. */
-      entrypoint: VersionedContract,
-      /** Legacy delegation implementation address. */
-      legacyDelegations: Type.Array(VersionedContract),
-      /** Legacy entrypoint address. */
-      legacyEntrypoints: Type.Array(VersionedContract),
+      /** Legacy account implementation address. */
+      legacyAccountImplementations: Type.Array(VersionedContract),
+      /** Legacy orchestrator address. */
+      legacyOrchestrators: Type.Array(VersionedContract),
+      /** Orchestrator address. */
+      orchestrator: VersionedContract,
       /** Simulator address. */
       simulator: VersionedContract,
     }),
@@ -109,10 +109,10 @@ export namespace wallet_getCapabilities {
         /** Gas estimate configuration. */
         gas: Typebox.Optional(
           Type.Object({
+            /** Extra buffer added to Intent gas estimates. */
+            intentBuffer: Typebox.Optional(Type.Number()),
             /** Extra buffer added to transaction gas estimates. */
             txBuffer: Typebox.Optional(Type.Number()),
-            /** Extra buffer added to UserOp gas estimates. */
-            userOpBuffer: Typebox.Optional(Type.Number()),
           }),
         ),
         /** The lifetime of a price rate. */
@@ -310,10 +310,10 @@ export namespace wallet_prepareCalls {
     authorizeKeys: Typebox.Optional(C.authorizeKeys.Request),
     /** Metadata for the call bundle. */
     meta: C.meta.Request,
-    /** Optional preOps to execute before signature verification. */
-    preOp: Typebox.Optional(Type.Boolean()),
-    /** Whether the call bundle is to be considered a preop. */
-    preOps: Typebox.Optional(Type.Array(UserOp.PreOp)),
+    /** Whether the call bundle is to be considered a preCall. */
+    preCall: Typebox.Optional(Type.Boolean()),
+    /** Optional preCalls to execute before signature verification. */
+    preCalls: Typebox.Optional(Type.Array(PreCall.PreCall)),
     /** Keys to revoke on the account. */
     revokeKeys: Typebox.Optional(C.revokeKeys.Request),
   })
@@ -436,7 +436,7 @@ export namespace wallet_prepareCalls {
     /** Quote for the call bundle. */
     context: Type.Object({
       /** Quote for the call bundle. */
-      preOp: Typebox.Optional(Type.Partial(UserOp.PreOp)),
+      preCall: Typebox.Optional(Type.Partial(PreCall.PreCall)),
       /** The call bundle. */
       quote: Typebox.Optional(Type.Partial(Quote.Signed)),
     }),
@@ -472,8 +472,8 @@ export namespace wallet_prepareUpgradeAccount {
      * If `None`, the native token will be used.
      */
     feeToken: Typebox.Optional(Primitive.Address),
-    /** Optional preOps to execute before signature verification. */
-    preOps: Typebox.Optional(Type.Array(UserOp.PreOp)),
+    /** Optional preCalls to execute before signature verification. */
+    preCalls: Typebox.Optional(Type.Array(PreCall.PreCall)),
   })
   export type Capabilities = Typebox.StaticDecode<typeof Capabilities>
 
@@ -536,9 +536,9 @@ export namespace wallet_sendPreparedCalls {
     ),
     /** Quote for the call bundle. */
     context: Type.Object({
-      /** Quote for the call bundle. */
-      preOp: Typebox.Optional(Type.Partial(UserOp.PreOp)),
       /** The call bundle. */
+      preCall: Typebox.Optional(Type.Partial(PreCall.PreCall)),
+      /** Quote for the call bundle. */
       quote: Typebox.Optional(Type.Partial(Quote.Signed)),
     }),
     /** Key that was used to sign the call bundle. */
@@ -574,7 +574,7 @@ export namespace wallet_upgradeAccount {
     /** Signed quote of the prepared bundle. */
     context: Type.Object({
       /** Signed quote of the prepared bundle. */
-      preOp: Typebox.Optional(Type.Partial(UserOp.PreOp)),
+      preCall: Typebox.Optional(Type.Partial(PreCall.PreCall)),
       /** The call bundle. */
       quote: Typebox.Optional(Type.Partial(Quote.Signed)),
     }),

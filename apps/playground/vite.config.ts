@@ -14,11 +14,11 @@ import mkcert from 'vite-plugin-mkcert'
 import { Key, RpcServer } from '../../src/index.js'
 import { Sponsor } from '../../src/server/index.js'
 import {
+  accountNewProxyAddress,
+  accountProxyAddress,
   accountRegistryAddress,
-  delegationNewProxyAddress,
-  delegationProxyAddress,
-  entryPointAddress,
   exp1Address,
+  orchestratorAddress,
   simulatorAddress,
 } from '../../test/src/_generated/addresses.js'
 import { rpcServer } from '../../test/src/prool.js'
@@ -85,18 +85,17 @@ export default defineConfig(({ mode }) => ({
         logger.info('Starting RPC Server...')
 
         const startRpcServer = async ({
-          delegationProxy = delegationProxyAddress,
+          accountProxy = accountProxyAddress,
         }: {
-          delegationProxy?: string
+          accountProxy?: string
         } = {}) => {
           const containerName = 'playground'
           spawnSync('docker', ['rm', '-f', containerName])
           const stop = await rpcServer({
             accountRegistry: accountRegistryAddress,
             containerName: 'playground',
-            delegationProxy,
+            delegationProxy: accountProxy,
             endpoint: anvilConfig.rpcUrl,
-            entrypoint: entryPointAddress,
             feeTokens: [
               '0x0000000000000000000000000000000000000000',
               exp1Address,
@@ -104,8 +103,10 @@ export default defineConfig(({ mode }) => ({
             http: {
               port: rpcServerConfig.port,
             },
+            intentGasBuffer: 100_000n,
+            orchestrator: orchestratorAddress,
             simulator: simulatorAddress,
-            userOpGasBuffer: 100_000n,
+            version: '22fc7a9',
           }).start()
           await fetch(rpcServerConfig.rpcUrl + '/start')
           return stop
@@ -126,7 +127,7 @@ export default defineConfig(({ mode }) => ({
 
           stopRpcServer()
           stopRpcServer = await startRpcServer({
-            delegationProxy: delegationNewProxyAddress,
+            accountProxy: accountNewProxyAddress,
           })
           res.statusCode = 302
           res.setHeader('Location', '/')

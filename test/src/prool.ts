@@ -12,7 +12,6 @@ type RpcServerParameters = {
   accountRegistry: string
   containerName?: string | undefined
   endpoint: string
-  entrypoint: string
   delegationProxy: string
   feeTokens: string[]
   http?: {
@@ -20,12 +19,13 @@ type RpcServerParameters = {
     metricsPort?: number | undefined
   }
   image?: string | undefined
+  orchestrator: string
   quoteTtl?: number | undefined
   registry?: string | undefined
   signersMnemonic?: string | undefined
   simulator?: string | undefined
   txGasBuffer?: bigint | undefined
-  userOpGasBuffer?: bigint | undefined
+  intentGasBuffer?: bigint | undefined
   version?: string | undefined
 }
 

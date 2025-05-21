@@ -32,9 +32,11 @@ import {
 import * as Account from '../Account.js'
 import * as Key from '../Key.js'
 import type * as Storage from '../Storage.js'
-import * as Delegation from './_generated/contracts/Delegation.js'
+import * as PortoAccount from './_generated/contracts/PortoAccount.js'
 import * as Call from './call.js'
 import type { OneOf } from './types.js'
+
+export { abi, code } from './_generated/contracts/PortoAccount.js'
 
 /**
  * Executes a set of calls on a delegated account.
@@ -242,7 +244,7 @@ export async function keyAt<chain extends Chain | undefined>(
   const account = Account.from(parameters.account)
 
   const key = await readContract(client, {
-    abi: Delegation.abi,
+    abi: PortoAccount.abi,
     address: account.address,
     args: [BigInt(index)],
     functionName: 'keyAt',
@@ -410,7 +412,7 @@ export function parseExecutionError<const calls extends readonly unknown[]>(
     try {
       if (data === '0xd0d5039b') return AbiError.from('error Unauthorized()')
       return AbiError.fromAbi(
-        [...Delegation.abi, AbiError.from('error CallError()')],
+        [...PortoAccount.abi, AbiError.from('error CallError()')],
         data,
       )
     } catch {
@@ -431,7 +433,7 @@ export declare namespace parseExecutionError {
 
 /** Thrown when the execution fails. */
 export class ExecutionError extends Errors.BaseError<BaseError> {
-  override readonly name = 'Delegation.ExecutionError'
+  override readonly name = 'AccountContract.ExecutionError'
 
   abiError?: AbiError.AbiError | undefined
 

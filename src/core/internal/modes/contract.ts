@@ -12,16 +12,15 @@ import { encodeFunctionData, parseAbi } from 'viem'
 import { call, readContract } from 'viem/actions'
 import * as Account from '../../Account.js'
 import * as Key from '../../Key.js'
-import * as DelegationContract from '../_generated/contracts/Delegation.js'
+import * as AccountContract from '../accountContract.js'
 import * as Call from '../call.js'
-import * as Delegation from '../delegation.js'
 import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
 
 /**
  * Mode for a WebAuthn-based environment that interacts directly
- * to the delegation contract. Account management and signing is handled locally.
+ * to the account contract. Account management and signing is handled locally.
  *
  * @param parameters - Parameters.
  * @returns Mode.
@@ -71,17 +70,20 @@ export function contract(parameters: contract.Parameters = {}) {
       keys,
     })
 
-    const delegation = client.chain.contracts.delegation?.address
+    const delegation = client.chain.contracts.portoAccount?.address
     if (!delegation)
       throw new Error(
-        `contract \`delegation\` not found on chain ${client.chain.name}.`,
+        `contract \`portoAccount\` not found on chain ${client.chain.name}.`,
       )
 
-    const { request, signPayloads } = await Delegation.prepareExecute(client, {
-      account,
-      calls: Mode.getAuthorizeCalls(account.keys),
-      delegation,
-    })
+    const { request, signPayloads } = await AccountContract.prepareExecute(
+      client,
+      {
+        account,
+        calls: Mode.getAuthorizeCalls(account.keys),
+        delegation,
+      },
+    )
 
     return { context: request, signPayloads }
   }
@@ -135,7 +137,7 @@ export function contract(parameters: contract.Parameters = {}) {
 
         // Execute the account creation.
         // TODO: wait for tx to be included?
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           ...(context as any),
           account,
           signatures,
@@ -151,8 +153,8 @@ export function contract(parameters: contract.Parameters = {}) {
         const { address, internal } = parameters
         const { client } = internal
 
-        const delegation = client.chain.contracts.delegation?.address
-        if (!delegation) throw new Error('delegation address not found.')
+        const delegation = client.chain.contracts.portoAccount?.address
+        if (!delegation) throw new Error('portoAccount address not found.')
 
         const { data } = await call(client, {
           data: encodeFunctionData({
@@ -162,11 +164,11 @@ export function contract(parameters: contract.Parameters = {}) {
           to: delegation,
         }).catch(() => ({ data: undefined }))
 
-        const latest = await Delegation.getEip712Domain(client, {
+        const latest = await AccountContract.getEip712Domain(client, {
           account: data ? Hex.slice(data, 12) : delegation,
         }).then((x) => x.version)
 
-        const current = await Delegation.getEip712Domain(client, {
+        const current = await AccountContract.getEip712Domain(client, {
           account: address,
         })
           .then((x) => x.version)
@@ -212,7 +214,7 @@ export function contract(parameters: contract.Parameters = {}) {
         const authorizeKey = Key.from(parameters.key)
 
         // TODO: wait for tx to be included?
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           account,
           // Extract calls to authorize the key.
           calls: Mode.getAuthorizeCalls([authorizeKey]),
@@ -231,7 +233,7 @@ export function contract(parameters: contract.Parameters = {}) {
         if (!key) throw new Error('key not found.')
 
         // TODO: wait for tx to be included?
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           account,
           // Extract calls to authorize the key.
           calls: Mode.getAuthorizeCalls([key]),
@@ -278,7 +280,7 @@ export function contract(parameters: contract.Parameters = {}) {
         // Fetch the delegated account's keys.
         const [keyCount, extraKey] = await Promise.all([
           readContract(client, {
-            abi: DelegationContract.abi,
+            abi: AccountContract.abi,
             address,
             functionName: 'keyCount',
           }),
@@ -286,7 +288,7 @@ export function contract(parameters: contract.Parameters = {}) {
         ])
         const keys = await Promise.all(
           Array.from({ length: Number(keyCount) }, (_, index) =>
-            Delegation.keyAt(client, { account: address, index }),
+            AccountContract.keyAt(client, { account: address, index }),
           ),
         )
 
@@ -313,7 +315,7 @@ export function contract(parameters: contract.Parameters = {}) {
         // If there is an extra key to authorize, we need to authorize it.
         if (extraKey)
           // TODO: wait for tx to be included?
-          await Delegation.execute(client, {
+          await AccountContract.execute(client, {
             account,
             calls: Mode.getAuthorizeCalls([extraKey]),
             storage: internal.config.storage,
@@ -328,7 +330,7 @@ export function contract(parameters: contract.Parameters = {}) {
         const { internal, key } = parameters
         const { client } = internal
 
-        const { request, signPayloads } = await Delegation.prepareExecute(
+        const { request, signPayloads } = await AccountContract.prepareExecute(
           client,
           parameters,
         )
@@ -361,7 +363,7 @@ export function contract(parameters: contract.Parameters = {}) {
         const key = account.keys?.find((key) => key.publicKey === id)
         if (!key) return
 
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           account,
           calls: [Call.revoke({ keyHash: key.hash })],
           storage: internal.config.storage,
@@ -378,7 +380,7 @@ export function contract(parameters: contract.Parameters = {}) {
         // We shouldn't be able to revoke the admin keys.
         if (key.role === 'admin') throw new Error('cannot revoke permissions.')
 
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           account,
           calls: [Call.setCanExecute({ enabled: false, key })],
           storage: internal.config.storage,
@@ -398,7 +400,7 @@ export function contract(parameters: contract.Parameters = {}) {
 
         // Execute the calls (with the key if provided, otherwise it will
         // fall back to an admin key).
-        const id = await Delegation.execute(client, {
+        const id = await AccountContract.execute(client, {
           account,
           calls,
           key,
@@ -422,7 +424,7 @@ export function contract(parameters: contract.Parameters = {}) {
           publicKey: key.publicKey,
         })
 
-        const hash = await Delegation.execute(client, {
+        const hash = await AccountContract.execute(client, {
           account,
           calls: context.calls,
           nonce: context.nonce,
@@ -479,7 +481,7 @@ export function contract(parameters: contract.Parameters = {}) {
 
         // Execute the account creation.
         // TODO: wait for tx to be included?
-        await Delegation.execute(client, {
+        await AccountContract.execute(client, {
           ...(context as any),
           signatures,
           storage: internal.config.storage,

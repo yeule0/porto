@@ -16,7 +16,7 @@ import { encodeFunctionData, hashMessage, hashTypedData } from 'viem'
 import { readContract, setCode, waitForCallsStatus } from 'viem/actions'
 import { describe, expect, test, vi } from 'vitest'
 
-import { delegationOldProxyAddress } from '../../../test/src/_generated/addresses.js'
+import { accountOldProxyAddress } from '../../../test/src/_generated/addresses.js'
 import { createAccount, setBalance } from '../../../test/src/actions.js'
 import * as Anvil from '../../../test/src/anvil.js'
 import * as Http from '../../../test/src/http.js'
@@ -631,8 +631,8 @@ describe.each([
       })
       expect(version).toMatchInlineSnapshot(`
         {
-          "current": "0.1.2",
-          "latest": "0.1.2",
+          "current": "0.2.0",
+          "latest": "0.2.0",
         }
       `)
     })
@@ -650,8 +650,8 @@ describe.each([
       })
       expect(version).toMatchInlineSnapshot(`
         {
-          "current": "0.1.2",
-          "latest": "0.1.2",
+          "current": "0.2.0",
+          "latest": "0.2.0",
         }
       `)
     })
@@ -718,7 +718,7 @@ describe.each([
 
       await setCode(client, {
         address,
-        bytecode: Hex.concat('0xef0100', delegationOldProxyAddress),
+        bytecode: Hex.concat('0xef0100', accountOldProxyAddress),
       })
 
       const version = await porto.provider.request({
@@ -727,7 +727,7 @@ describe.each([
       expect(version).toMatchInlineSnapshot(`
         {
           "current": "0.0.1",
-          "latest": "0.1.2",
+          "latest": "0.2.0",
         }
       `)
     })
@@ -746,12 +746,12 @@ describe.each([
         ...capabilities,
         contracts: {
           ...capabilities.contracts,
-          delegationImplementation: {
-            address: delegationOldProxyAddress,
+          accountImplementation: {
+            address: accountOldProxyAddress,
             version: '0.0.1',
           },
-          delegationProxy: {
-            address: delegationOldProxyAddress,
+          accountProxy: {
+            address: accountOldProxyAddress,
             version: '0.0.1',
           },
         },

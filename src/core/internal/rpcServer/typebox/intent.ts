@@ -1,31 +1,31 @@
 /**
- * User operation.
+ * Intent.
  *
- * @see https://github.com/ithacaxyz/relay/blob/main/src/types/op.rs
+ * @see https://github.com/ithacaxyz/relay/blob/main/src/types/intent.rs
  */
 
 import * as Primitive from '../../typebox/primitive.js'
 import type * as Typebox from '../../typebox/typebox.js'
 import { Type } from '../../typebox/typebox.js'
 
-export const UserOp = Type.Object({
+export const Intent = Type.Object({
   /** The combined gas limit for payment, verification, and calling the EOA. */
   combinedGas: Primitive.BigInt,
   /**
-   * Optional array of encoded UserOps that will be verified and executed
-   * after PREP (if any) and before the validation of the overall UserOp.
+   * Optional array of encoded Intents that will be verified and executed
+   * after PREP (if any) and before the validation of the overall Intent.
    *
-   * A PreOp will NOT have its gas limit or payment applied.
-   * The overall UserOp's gas limit and payment will be applied, encompassing all its PreOps.
-   * The execution of a PreOp will check and increment the nonce in the PreOp.
-   * If at any point, any PreOp cannot be verified to be correct, or fails in execution,
-   * the overall UserOp will revert before validation, and execute will return a non-zero error.
-   * A PreOp can contain PreOps, forming a tree structure.
+   * A PreCall will NOT have its gas limit or payment applied.
+   * The overall Intent's gas limit and payment will be applied, encompassing all its PreCalls.
+   * The execution of a PreCall will check and increment the nonce in the PreCall.
+   * If at any point, any PreCall cannot be verified to be correct, or fails in execution,
+   * the overall Intent will revert before validation, and execute will return a non-zero error.
+   * A PreCall can contain PreCalls, forming a tree structure.
    * The `executionData` tree will be executed in post-order (i.e. left -> right -> current).
-   * The `encodedPreOps` are included in the EIP712 signature, which enables execution order
+   * The `encodedPreCalls` are included in the EIP712 signature, which enables execution order
    * to be enforced on-the-fly even if the nonces are from different sequences.
    */
-  encodedPreOps: Type.Array(Primitive.Hex),
+  encodedPreCalls: Type.Array(Primitive.Hex),
   /** Users address. */
   eoa: Primitive.Address,
   /**
@@ -65,14 +65,14 @@ export const UserOp = Type.Object({
    *      `-------------------------------------'
    *
    * If the upper 16 bits of the sequence key is `0xc1d0`, then the EIP-712 has
-   * of the UserOp will exlude the chain ID.
+   * of the Intent will exlude the chain ID.
    *
    * # Ordering
    *
    * Ordering matters within a sequence key, but not between sequence keys.
    *
-   * This means that users who do not care about the order of specific userops
-   * can sign their userops using a random sequence key. On the other hand, if
+   * This means that users who do not care about the order of specific intents
+   * can sign their intents using a random sequence key. On the other hand, if
    * they do care about ordering, they would use the same sequence key.
    */
   nonce: Primitive.BigInt,
@@ -113,9 +113,11 @@ export const UserOp = Type.Object({
    */
   signature: Primitive.Hex,
   /**
-   * The maximum amount of the token to pay.
+   * Optional. If non-zero, the EOA must use `supportedAccountImplementation`.
+   * Otherwise, if left as `address(0)`, any EOA implementation will be supported.
+   * This field is NOT included in the EIP712 signature.
    */
-  supportedDelegationImplementation: Primitive.Address,
+  supportedAccountImplementation: Primitive.Address,
   /**
    * The wrapped signature.
    *
@@ -124,13 +126,11 @@ export const UserOp = Type.Object({
    */
   totalPaymentAmount: Primitive.BigInt,
   /**
-   * Optional. If non-zero, the EOA must use `supportedDelegationImplementation`.
-   * Otherwise, if left as `address(0)`, any EOA implementation will be supported.
-   * This field is NOT included in the EIP712 signature.
+   * The maximum amount of the token to pay.
    */
   totalPaymentMaxAmount: Primitive.BigInt,
 })
-export type UserOp = Typebox.StaticDecode<typeof UserOp>
+export type Intent = Typebox.StaticDecode<typeof Intent>
 
 export const Partial = Type.Object({
   eoa: Primitive.Address,
@@ -139,34 +139,3 @@ export const Partial = Type.Object({
   nonce: Primitive.BigInt,
 })
 export type Partial = Typebox.StaticDecode<typeof Partial>
-
-export const PreOp = Type.Object({
-  /**
-   * The user's address.
-   *
-   * This can be set to `address(0)`, which allows it to be
-   * coalesced to the parent UserOp's EOA.
-   */
-  eoa: Primitive.Address,
-  /**
-   * An encoded array of calls, using ERC7579 batch execution encoding.
-   *
-   * `abi.encode(calls)`, where `calls` is of type `Call[]`.
-   * This allows for more efficient safe forwarding to the EOA.
-   */
-  executionData: Primitive.Hex,
-  /**
-   * Per delegated EOA. Same logic as the `nonce` in UserOp.
-   *
-   * A nonce of `type(uint256).max` skips the check, incrementing,
-   * and the emission of the {UserOpExecuted} event.
-   */
-  nonce: Primitive.BigInt,
-  /**
-   * The wrapped signature.
-   *
-   * `abi.encodePacked(innerSignature, keyHash, prehash)`.
-   */
-  signature: Primitive.Hex,
-})
-export type PreOp = Typebox.StaticDecode<typeof PreOp>
