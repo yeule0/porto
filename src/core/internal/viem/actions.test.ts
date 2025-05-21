@@ -244,7 +244,6 @@ describe('getAccounts', () => {
       account,
       calls: [],
       feeToken,
-      nonce: 0n,
     })
 
     const result = await getAccounts(client, {
@@ -318,7 +317,6 @@ describe('getKeys', () => {
       account,
       calls: [],
       feeToken,
-      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -362,7 +360,6 @@ describe('getKeys', () => {
       account,
       calls: [],
       feeToken,
-      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -386,7 +383,6 @@ describe('getKeys', () => {
       account,
       calls: [],
       feeToken,
-      nonce: 0n,
     })
 
     const result = await getKeys(client, {
@@ -443,8 +439,7 @@ describe('prepareCalls + sendPreparedCalls', () => {
     })
   })
 
-  // TODO: uncomment once https://github.com/ithacaxyz/account/pull/147 merged.
-  test.skip('behavior: fee payer', async () => {
+  test('behavior: fee payer', async () => {
     const userKey = Key.createHeadlessWebAuthnP256()
     const userAccount = await TestActions.createAccount(client, {
       keys: [userKey],
@@ -501,15 +496,10 @@ describe('prepareCalls + sendPreparedCalls', () => {
     })
 
     const result = await sendPreparedCalls(client, {
-      context: {
-        quote: {
-          ...request.context.quote,
-          op: {
-            ...request.context.quote!.op!,
-            paymentSignature: sponsorSignature,
-          },
-        },
+      capabilities: {
+        feeSignature: sponsorSignature,
       },
+      context: request.context,
       key: request.key!,
       signature,
     })

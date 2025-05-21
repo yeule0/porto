@@ -819,6 +819,9 @@ export function from<
             permissions: {
               supported: true,
             },
+            sponsor: {
+              supported: true,
+            },
           } as const
 
           const capabilities = {} as Record<Hex.Hex, typeof value>
@@ -855,6 +858,7 @@ export function from<
               },
               key,
               preCalls: capabilities?.preCalls as any,
+              sponsorUrl: config.sponsorUrl ?? capabilities?.sponsorUrl,
             })
 
           return Typebox.Encode(Rpc.wallet_prepareCalls.Response, {
@@ -932,6 +936,7 @@ export function from<
             },
             permissionsId: capabilities?.permissions?.id,
             preCalls: capabilities?.preCalls as any,
+            sponsorUrl: config.sponsorUrl ?? capabilities?.sponsorUrl,
           })
 
           return { id } satisfies Typebox.Static<

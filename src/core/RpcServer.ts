@@ -4,7 +4,7 @@ import type * as Errors from 'ox/Errors'
 import type * as Hex from 'ox/Hex'
 import * as Secp256k1 from 'ox/Secp256k1'
 import * as Signature from 'ox/Signature'
-import { type Client, zeroAddress } from 'viem'
+import { type Client, createClient, http, zeroAddress } from 'viem'
 import * as Account from './Account.js'
 import type { Chain } from './Chains.js'
 import type * as Capabilities from './internal/rpcServer/typebox/capabilities.js'
@@ -246,6 +246,7 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
     permissionsFeeLimit,
     preCalls,
     revokeKeys,
+    sponsorUrl,
   } = parameters
 
   const account = parameters.account
@@ -294,23 +295,33 @@ export async function prepareCalls<const calls extends readonly unknown[]>(
         }))
       : undefined
 
-  const { capabilities, context, digest } = await Actions.prepareCalls(client, {
-    address: account?.address,
-    calls: (calls ?? []) as any,
-    capabilities: {
-      authorizeKeys,
-      meta: {
-        feeToken,
-        nonce,
+  const client_ = sponsorUrl
+    ? createClient({
+        chain: client.chain,
+        transport: http(sponsorUrl),
+      })
+    : client
+
+  const { capabilities, context, digest } = await Actions.prepareCalls(
+    client_,
+    {
+      address: account?.address,
+      calls: (calls ?? []) as any,
+      capabilities: {
+        authorizeKeys,
+        meta: {
+          feeToken,
+          nonce,
+        },
+        preOp,
+        preOps,
+        revokeKeys: revokeKeys?.map((key) => ({
+          hash: key.hash,
+        })),
       },
-      preOp,
-      preOps,
-      revokeKeys: revokeKeys?.map((key) => ({
-        hash: key.hash,
-      })),
+      key: key ? Key.toRpcServer(key) : undefined,
     },
-    key: key ? Key.toRpcServer(key) : undefined,
-  })
+  )
   return {
     capabilities: { ...capabilities, quote: context.quote as any },
     context,
@@ -350,6 +361,8 @@ export namespace prepareCalls {
       | undefined
     /** Additional keys to revoke from the account. */
     revokeKeys?: readonly Key.Key[] | undefined
+    /** Sponsor URL. */
+    sponsorUrl?: string | undefined
   } & Omit<Capabilities.meta.Request, 'keyHash'>
 
   export type ReturnType = {
@@ -573,6 +586,7 @@ export async function sendCalls<const calls extends readonly unknown[]>(
   if (parameters.signature) {
     const { context, key, signature } = parameters
     return await Actions.sendPreparedCalls(client, {
+      capabilities: parameters.capabilities,
       context,
       key: Key.toRpcServer(key),
       signature,
@@ -607,7 +621,7 @@ export async function sendCalls<const calls extends readonly unknown[]>(
   )
 
   // Prepare main bundle.
-  const { context, digest } = await prepareCalls(client, {
+  const { capabilities, context, digest } = await prepareCalls(client, {
     ...parameters,
     key,
     preCalls,
@@ -620,7 +634,16 @@ export async function sendCalls<const calls extends readonly unknown[]>(
   })
 
   // Broadcast the bundle to the RPC Server.
-  return await sendCalls(client, { context, key, signature })
+  return await sendCalls(client, {
+    capabilities: capabilities.feeSignature
+      ? {
+          feeSignature: capabilities.feeSignature,
+        }
+      : undefined,
+    context,
+    key,
+    signature,
+  })
 }
 
 export declare namespace sendCalls {
@@ -628,6 +651,10 @@ export declare namespace sendCalls {
     calls extends readonly unknown[] = readonly unknown[],
   > = OneOf<
     | {
+        /** Capabilities. */
+        capabilities?:
+          | Actions.sendPreparedCalls.Parameters['capabilities']
+          | undefined
         /** Context. */
         context: prepareCalls.ReturnType['context']
         /** Key. */
@@ -655,6 +682,8 @@ export declare namespace sendCalls {
                 })
             >[]
           | undefined
+        /** Sponsor URL. */
+        sponsorUrl?: string | undefined
       })
   >
 

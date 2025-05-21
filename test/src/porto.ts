@@ -32,9 +32,10 @@ export function getPorto(
       permissionsFeeLimit: Record<string, bigint>
       mock: boolean
     }) => Mode.Mode | undefined
+    sponsorUrl?: string | undefined
   } = {},
 ) {
-  const { mode = Mode.contract } = parameters
+  const { mode = Mode.contract, sponsorUrl } = parameters
   const porto = Porto.create({
     chains: [chain],
     mode: mode({
@@ -43,6 +44,7 @@ export function getPorto(
         EXP: Value.fromEther('100'),
       },
     }),
+    sponsorUrl,
     storage: Storage.memory(),
     transports: {
       [chain.id]: http(rpcUrl, {
