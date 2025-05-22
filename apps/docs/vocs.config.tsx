@@ -160,16 +160,13 @@ export default defineConfig({
             text: 'Porto',
           },
           {
-            disabled: true,
             link: '/sdk/api/chains',
-            text: 'Chains 🚧',
+            text: 'Chains',
           },
           {
             collapsed: true,
-            disabled: true,
             items: [
               {
-                disabled: true,
                 link: '/sdk/api/dialog/iframe',
                 text: '.iframe',
               },
@@ -180,7 +177,7 @@ export default defineConfig({
               },
             ],
             link: '/sdk/api/dialog',
-            text: 'Dialog 🚧',
+            text: 'Dialog',
           },
           {
             collapsed: true,
@@ -207,7 +204,6 @@ export default defineConfig({
           },
           {
             collapsed: true,
-            disabled: true,
             items: [
               {
                 disabled: true,
@@ -215,23 +211,19 @@ export default defineConfig({
                 text: '.cookie',
               },
               {
-                disabled: true,
                 link: '/sdk/api/storage/idb',
                 text: '.idb',
               },
               {
-                disabled: true,
                 link: '/sdk/api/storage/localstorage',
                 text: '.localStorage',
               },
               {
-                disabled: true,
                 link: '/sdk/api/storage/memory',
                 text: '.memory',
               },
             ],
-            link: '/sdk/api/storage',
-            text: 'Storage 🚧',
+            text: 'Storage',
           },
         ],
         text: 'API Reference',
@@ -243,35 +235,30 @@ export default defineConfig({
             text: 'Overview',
           },
           {
+            disabled: true,
             link: '/sdk/wagmi/connector',
             text: 'Connector 🚧',
           },
           {
             collapsed: true,
-            disabled: true,
             items: [
               {
-                disabled: true,
                 link: '/sdk/wagmi/connect',
                 text: 'connect',
               },
               {
-                disabled: true,
                 link: '/sdk/wagmi/disconnect',
                 text: 'disconnect',
               },
               {
-                disabled: true,
                 link: '/sdk/wagmi/grantPermissions',
                 text: 'grantPermissions',
               },
               {
-                disabled: true,
-                link: '/sdk/wagmi/permissions',
-                text: 'permissions',
+                link: '/sdk/wagmi/getPermissions',
+                text: 'getPermissions',
               },
               {
-                disabled: true,
                 link: '/sdk/wagmi/revokePermissions',
                 text: 'revokePermissions',
               },
@@ -281,34 +268,20 @@ export default defineConfig({
                 text: 'upgradeAccount',
               },
             ],
-            text: 'Actions 🚧',
+            text: 'Actions',
           },
           {
             collapsed: true,
-            disabled: true,
             items: [
               {
-                disabled: true,
-                link: '/sdk/wagmi/useConnect',
-                text: 'useConnect',
-              },
-              {
-                disabled: true,
-                link: '/sdk/wagmi/useDisconnect',
-                text: 'useDisconnect',
-              },
-              {
-                disabled: true,
                 link: '/sdk/wagmi/useGrantPermissions',
                 text: 'useGrantPermissions',
               },
               {
-                disabled: true,
                 link: '/sdk/wagmi/usePermissions',
                 text: 'usePermissions',
               },
               {
-                disabled: true,
                 link: '/sdk/wagmi/useRevokePermissions',
                 text: 'useRevokePermissions',
               },
@@ -318,7 +291,7 @@ export default defineConfig({
                 text: 'useUpgradeAccount',
               },
             ],
-            text: 'Hooks 🚧',
+            text: 'Hooks',
           },
         ],
         text: 'Wagmi Reference',
