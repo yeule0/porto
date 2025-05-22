@@ -121,8 +121,18 @@ export default defineConfig({
           },
           {
             disabled: true,
+            link: '/sdk/guides/custom-fee-tokens',
+            text: 'Custom Fee Tokens 🚧',
+          },
+          {
+            disabled: true,
             link: '/sdk/guides/payments',
             text: 'Payments 🚧',
+          },
+          {
+            disabled: true,
+            link: '/sdk/guides/permissions',
+            text: 'Permissions 🚧',
           },
           {
             disabled: true,
