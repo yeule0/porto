@@ -1175,7 +1175,7 @@ describe.each([
       ).toBe(69420n)
     })
 
-    test.runIf(type === 'rpcServer')(
+    test.runIf(type === 'rpcServer' && Anvil.enabled)(
       'behavior: `feeToken` capability',
       async () => {
         const { porto } = getPorto()
