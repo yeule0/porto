@@ -20,27 +20,7 @@ export const config = createConfig({
 
 ## Parameters
 
-### config
-
-`ExactPartial<Porto.Config<chains>> | undefined`
-
-Optional configuration object for the Porto connector. All properties are optional.
-
-#### announceProvider
-
-`boolean | undefined`
-
-Whether to announce the provider via EIP-6963.
-
-**Default:** `true`
-
-#### chains
-
-`readonly [Chain, ...Chain[]] | undefined`
-
-List of supported chains.
-
-#### feeToken
+### feeToken
 
 `'ETH' | 'EXP' | undefined`
 
@@ -48,7 +28,7 @@ Token to use to pay for fees.
 
 **Default:** `'ETH'`
 
-#### mode
+### mode
 
 `Mode.Mode | null | undefined`
 
@@ -56,13 +36,13 @@ Mode to use for the connector.
 
 **Default:** `Mode.dialog()`
 
-#### sponsorUrl
+### sponsorUrl
 
 `string | undefined`
 
 URL to use for app-based sponsorship.
 
-#### storage
+### storage
 
 `Storage.Storage | undefined`
 
@@ -70,17 +50,11 @@ Storage to use for persisting data.
 
 **Default:** `Storage.idb()`
 
-#### storageKey
+### storageKey
 
 `string | undefined`
 
 Key to use for store.
-
-#### transports
-
-`Record<number, Transport> | undefined`
-
-Transport overrides to use for each chain.
 
 ## Return Type
 
