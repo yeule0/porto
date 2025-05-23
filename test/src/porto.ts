@@ -41,7 +41,7 @@ export function getPorto(
     mode: mode({
       mock: true,
       permissionsFeeLimit: {
-        EXP: Value.fromEther('100'),
+        USDT: Value.fromEther('100'),
       },
     }),
     sponsorUrl,

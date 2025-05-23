@@ -496,7 +496,7 @@ export namespace ActionRequest {
       } as const
 
       const tokenConfig = (() => {
-        if (paymentToken) {
+        if (paymentToken && paymentToken !== nativeConfig.address) {
           return {
             ...feeToken.data,
             value: totalPaymentMaxAmount,

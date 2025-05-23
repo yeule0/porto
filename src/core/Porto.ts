@@ -9,6 +9,7 @@ import type * as Account from './Account.js'
 import * as Chains from './Chains.js'
 import type * as internal from './internal/porto.js'
 import * as Provider from './internal/provider.js'
+import * as FeeToken from './internal/typebox/feeToken.js'
 import type { ExactPartial, OneOf } from './internal/types.js'
 import * as Mode from './Mode.js'
 import * as Storage from './Storage.js'
@@ -204,7 +205,7 @@ export type State<
 > = {
   accounts: readonly Account.Account[]
   chainId: chains[number]['id']
-  feeToken: 'ETH' | 'EXP' | undefined
+  feeToken: FeeToken.Symbol | undefined
   requestQueue: readonly QueuedRequest[]
 }
 

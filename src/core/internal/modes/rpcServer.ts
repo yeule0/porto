@@ -18,11 +18,13 @@ import * as Mode from '../mode.js'
 import * as PermissionsRequest from '../permissionsRequest.js'
 import type { Client } from '../porto.js'
 import * as PreCalls from '../preCalls.js'
+import * as FeeToken from '../typebox/feeToken.js'
 import * as RpcServer_viem from '../viem/actions.js'
 
 export const defaultPermissionsFeeLimit = {
   ETH: Value.fromEther('0.0001'),
-  EXP: Value.fromEther('1'),
+  USDC: Value.fromEther('1'),
+  USDT: Value.fromEther('1'),
 }
 
 /**
@@ -690,7 +692,7 @@ export declare namespace rpcServer {
     /**
      * Fee limit to use for permissions.
      */
-    permissionsFeeLimit?: Record<string, bigint> | undefined
+    permissionsFeeLimit?: Record<FeeToken.Kind, bigint> | undefined
     /**
      * Whether to store pre-calls in a persistent storage.
      *
@@ -741,7 +743,7 @@ namespace getAuthorizeKeyPreCalls {
   }
 }
 
-async function resolveFeeToken(
+export async function resolveFeeToken(
   internal: Mode.ActionsInternal,
   parameters?:
     | {
@@ -752,24 +754,25 @@ async function resolveFeeToken(
 ) {
   const { client, store } = internal
   const { feeToken: defaultFeeToken } = store.getState()
-  const { feeToken: address } = parameters ?? {}
+  const { feeToken: overrideFeeToken } = parameters ?? {}
 
   const feeTokens = await RpcServer_viem.getCapabilities(client).then(
     (capabilities) => capabilities.fees.tokens,
   )
   const feeToken = feeTokens?.find((feeToken) => {
-    if (address) return Address.isEqual(feeToken.address, address)
+    if (overrideFeeToken)
+      return Address.isEqual(feeToken.address, overrideFeeToken)
     if (defaultFeeToken) return defaultFeeToken === feeToken.symbol
     return feeToken.symbol === 'ETH'
   })
 
-  const permissionsFeeLimit = feeToken?.symbol
-    ? parameters?.permissionsFeeLimit?.[feeToken.symbol]
+  const permissionsFeeLimit = feeToken?.kind
+    ? parameters?.permissionsFeeLimit?.[feeToken.kind]
     : undefined
 
   if (!feeToken)
     throw new Error(
-      `fee token ${address ?? defaultFeeToken} not found. Available: ${feeTokens?.map((x) => `${x.symbol} (${x.address})`).join(', ')}`,
+      `fee token ${overrideFeeToken ?? defaultFeeToken} not found. Available: ${feeTokens?.map((x) => `${x.symbol} (${x.address})`).join(', ')}`,
     )
   return {
     address: feeToken.address,

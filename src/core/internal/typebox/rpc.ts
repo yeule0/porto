@@ -123,7 +123,7 @@ export namespace experimental_getAdmins {
 
 export namespace experimental_grantAdmin {
   export const Capabilities = Type.Object({
-    feeToken: Typebox.Optional(Primitive.Address),
+    feeToken: Typebox.Optional(C.feeToken.Request),
   })
   export type Capabilities = Typebox.StaticDecode<typeof Capabilities>
 
@@ -252,7 +252,7 @@ export namespace experimental_getPermissions {
 
 export namespace experimental_prepareUpgradeAccount {
   export const Capabilities = Type.Object({
-    feeToken: Typebox.Optional(Primitive.Address),
+    feeToken: Typebox.Optional(C.feeToken.Request),
     grantPermissions: Typebox.Optional(C.grantPermissions.Request),
   })
   export type Capabilities = Typebox.StaticDecode<typeof Capabilities>
@@ -280,7 +280,7 @@ export namespace experimental_prepareUpgradeAccount {
 
 export namespace experimental_revokeAdmin {
   export const Capabilities = Type.Object({
-    feeToken: Typebox.Optional(Primitive.Address),
+    feeToken: Typebox.Optional(C.feeToken.Request),
   })
   export type Capabilities = Typebox.StaticDecode<typeof Capabilities>
 
@@ -303,7 +303,7 @@ export namespace experimental_revokeAdmin {
 
 export namespace experimental_revokePermissions {
   export const Capabilities = Type.Object({
-    feeToken: Typebox.Optional(Primitive.Address),
+    feeToken: Typebox.Optional(C.feeToken.Request),
   })
   export type Capabilities = Typebox.StaticDecode<typeof Capabilities>
 
@@ -526,7 +526,7 @@ export namespace wallet_getCapabilities {
 
 export namespace wallet_prepareCalls {
   export const Capabilities = Type.Object({
-    feeToken: Typebox.Optional(Primitive.Address),
+    feeToken: Typebox.Optional(C.feeToken.Request),
     permissions: Typebox.Optional(C.permissions.Request),
     preCalls: Typebox.Optional(C.preCalls.Request),
     sponsorUrl: Typebox.Optional(Type.String()),

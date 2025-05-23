@@ -14,6 +14,11 @@ export namespace createAccount {
   export type Request = Typebox.StaticDecode<typeof Request>
 }
 
+export namespace feeToken {
+  export const Request = Primitive.Address
+  export type Request = Typebox.StaticDecode<typeof Request>
+}
+
 export namespace grantPermissions {
   export const Request = Permissions.Request
   export type Request = Typebox.StaticDecode<typeof Request>

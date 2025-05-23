@@ -1175,6 +1175,72 @@ describe.each([
       ).toBe(69420n)
     })
 
+    test.runIf(type === 'rpcServer')(
+      'behavior: `feeToken` capability',
+      async () => {
+        const { porto } = getPorto()
+        const client = Porto_internal.getClient(porto).extend(() => ({
+          mode: 'anvil',
+        }))
+
+        const { address } = await porto.provider.request({
+          method: 'experimental_createAccount',
+        })
+        await setBalance(client, {
+          address,
+          value: Value.fromEther('10000'),
+        })
+
+        const alice = Hex.random(20)
+
+        const { id } = await porto.provider.request({
+          method: 'wallet_sendCalls',
+          params: [
+            {
+              calls: [
+                {
+                  data: encodeFunctionData({
+                    abi: exp1Abi,
+                    args: [alice, 100n],
+                    functionName: 'mint',
+                  }),
+                  to: exp1Address,
+                },
+              ],
+              capabilities: {
+                feeToken: '0x0000000000000000000000000000000000000000',
+              },
+              from: address,
+              version: '1',
+            },
+          ],
+        })
+
+        expect(id).toBeDefined()
+
+        await waitForCallsStatus(Porto_internal.getProviderClient(porto), {
+          id,
+        })
+
+        expect(
+          await readContract(client, {
+            abi: exp1Abi,
+            address: exp1Address,
+            args: [address],
+            functionName: 'balanceOf',
+          }),
+        ).toBe(Value.fromEther('10000'))
+        expect(
+          await readContract(client, {
+            abi: exp1Abi,
+            address: exp1Address,
+            args: [alice],
+            functionName: 'balanceOf',
+          }),
+        ).toBe(100n)
+      },
+    )
+
     test.runIf(type === 'rpcServer' && Anvil.enabled)(
       'behavior: fee sponsor',
       async () => {

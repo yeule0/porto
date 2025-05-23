@@ -12,6 +12,7 @@ import * as PermissionsRequest from '../permissionsRequest.js'
 import type * as Porto from '../porto.js'
 import * as PreCalls from '../preCalls.js'
 import * as Typebox from '../typebox/typebox.js'
+import { resolveFeeToken } from './rpcServer.js'
 
 export function dialog(parameters: dialog.Parameters = {}) {
   const {
@@ -265,11 +266,21 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const key = Key.from(params.key)
         if (!key) throw new Error('no key found.')
 
+        const feeToken = await resolveFeeToken(internal, parameters)
+
         // Send a request off to the dialog to authorize the admin.
         const provider = getProvider(store)
         await provider.request({
           method: 'experimental_grantAdmin',
-          params: request.params,
+          params: [
+            {
+              ...request.params?.[0],
+              capabilities: {
+                ...request.params?.[0]?.capabilities,
+                feeToken: feeToken.address,
+              },
+            },
+          ],
         })
 
         return { key }
@@ -417,6 +428,8 @@ export function dialog(parameters: dialog.Parameters = {}) {
         if (request.method !== 'wallet_prepareCalls')
           throw new Error('Cannot prepare calls for method: ' + request.method)
 
+        const feeToken = await resolveFeeToken(internal, parameters)
+
         const preCalls = await PreCalls.get({
           address: account.address,
           storage,
@@ -430,6 +443,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
               ...request.params?.[0],
               capabilities: {
                 ...request.params?.[0]?.capabilities,
+                feeToken: feeToken.address,
                 preCalls,
               },
             },
@@ -453,8 +467,21 @@ export function dialog(parameters: dialog.Parameters = {}) {
             'Cannot prepare create account for method: ' + request.method,
           )
 
+        const feeToken = await resolveFeeToken(internal, parameters)
+
         const provider = getProvider(store)
-        return await provider.request(request)
+        return await provider.request({
+          ...request,
+          params: [
+            {
+              ...request.params?.[0],
+              capabilities: {
+                ...request.params?.[0]?.capabilities,
+                feeToken: feeToken.address,
+              },
+            },
+          ],
+        })
       },
 
       async revokeAdmin(parameters) {
@@ -467,8 +494,21 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const key = account.keys?.find((key) => key.publicKey === id)
         if (!key) return
 
+        const feeToken = await resolveFeeToken(internal, parameters)
+
         const provider = getProvider(store)
-        return await provider.request(request)
+        return await provider.request({
+          ...request,
+          params: [
+            {
+              ...request.params?.[0],
+              capabilities: {
+                ...request.params?.[0]?.capabilities,
+                feeToken: feeToken.address,
+              },
+            },
+          ],
+        })
       },
 
       async revokePermissions(parameters) {
@@ -501,6 +541,8 @@ export function dialog(parameters: dialog.Parameters = {}) {
 
         const provider = getProvider(store)
 
+        const feeToken = await resolveFeeToken(internal, parameters)
+
         const preCalls = await PreCalls.get({
           address: account.address,
           storage,
@@ -529,6 +571,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                       ...(request._decoded.method === 'wallet_sendCalls'
                         ? request._decoded.params?.[0]?.capabilities
                         : undefined),
+                      feeToken: feeToken.address,
                       preCalls,
                       sponsorUrl,
                     },
@@ -577,6 +620,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 ...request.params?.[0],
                 // @ts-expect-error
                 capabilities: {
+                  feeToken: feeToken.address,
                   preCalls,
                 },
               },
@@ -600,6 +644,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
                 ...request.params?.[0],
                 capabilities: {
                   ...request.params?.[0]?.capabilities,
+                  feeToken: feeToken.address,
                   preCalls,
                   sponsorUrl,
                 },
