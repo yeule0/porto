@@ -19,7 +19,9 @@ export default defineConfig(({ mode }) => {
       hookTimeout: 20_000,
       include: [
         'src/**/*.test.ts',
-        ...(env.VITE_LOCAL === 'false' ? ['!src/**/*delegation.test.ts'] : []),
+        ...(env.VITE_LOCAL === 'false'
+          ? ['!src/**/*accountContract.test.ts']
+          : []),
       ],
       passWithNoTests: true,
       poolOptions:
