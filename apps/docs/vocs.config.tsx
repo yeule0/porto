@@ -115,6 +115,10 @@ export default defineConfig({
         text: 'GitHub',
       },
       {
+        link: '/sdk/faq',
+        text: 'FAQ',
+      },
+      {
         items: [
           {
             link: '/sdk/guides/discover-accounts',
