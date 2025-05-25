@@ -55,6 +55,14 @@ export const rpcServer = defineInstance((parameters?: RpcServerParameters) => {
   let port = args.http?.port ?? 9119
   let server: Server | undefined
 
+  function stop() {
+    if (server) {
+      server.close()
+      server = undefined
+    }
+    spawnSync('docker', ['rm', '-f', containerName])
+  }
+
   return {
     _internal: {
       args,
@@ -115,64 +123,65 @@ export const rpcServer = defineInstance((parameters?: RpcServerParameters) => {
         ...feeTokens.flatMap((feeToken) => ['--fee-token', feeToken]),
       ]
 
-      await process_.start(($) => $`docker run ${args_}`, {
-        ...options,
-        resolver({ process, resolve, reject }) {
-          // TODO: remove once relay has feedback on startup.
-          setTimeout(3_000).then(resolve)
-          process.stdout.on('data', (data) => {
-            const message = data.toString()
-            if (message.includes('Started relay service')) resolve()
-          })
-          process.stderr.on('data', (data) => {
-            const message = data.toString()
-            if (message.includes('WARNING')) return
-            reject(data)
-          })
-        },
-      })
-
-      const proxy = httpProxy.createProxyServer({
-        ignorePath: true,
-        ws: false,
-      })
-      server = createServer(async (req, res) => {
-        const body = await new Promise<RpcRequest.RpcRequest>((resolve) => {
-          let body = ''
-          req.on('data', (chunk) => {
-            body += chunk
-          })
-          req.on('end', () => {
-            resolve(JSON.parse(body || '{}'))
-          })
+      try {
+        await process_.start(($) => $`docker run ${args_}`, {
+          ...options,
+          resolver({ process, resolve, reject }) {
+            // TODO: remove once relay has feedback on startup.
+            setTimeout(3_000).then(resolve)
+            process.stdout.on('data', (data) => {
+              const message = data.toString()
+              if (message.includes('Started relay service')) resolve()
+            })
+            process.stderr.on('data', (data) => {
+              const message = data.toString()
+              if (message.includes('WARNING')) return
+              reject(data)
+            })
+          },
         })
 
-        const target = (() => {
-          if (
-            body.method &&
-            (body.method.startsWith('relay_') ||
-              body.method.startsWith('wallet_'))
-          )
-            return `http://${host}:${port_relay}`
-          return endpoint
-        })()
-
-        return proxy.web(req, res, {
-          buffer: Readable.from(JSON.stringify(body)),
-          target,
+        const proxy = httpProxy.createProxyServer({
+          ignorePath: true,
+          ws: false,
         })
-      }).listen(port)
-      return new Promise((resolve, reject) => {
-        server!.on('error', reject)
-        server!.on('listening', resolve)
-      })
+        server = createServer(async (req, res) => {
+          const body = await new Promise<RpcRequest.RpcRequest>((resolve) => {
+            let body = ''
+            req.on('data', (chunk) => {
+              body += chunk
+            })
+            req.on('end', () => {
+              resolve(JSON.parse(body || '{}'))
+            })
+          })
+
+          const target = (() => {
+            if (
+              body.method &&
+              (body.method.startsWith('relay_') ||
+                body.method.startsWith('wallet_'))
+            )
+              return `http://${host}:${port_relay}`
+            return endpoint
+          })()
+
+          return proxy.web(req, res, {
+            buffer: Readable.from(JSON.stringify(body)),
+            target,
+          })
+        }).listen(port)
+        return await new Promise((resolve, reject) => {
+          server!.on('error', reject)
+          server!.on('listening', resolve)
+        })
+      } catch (error) {
+        stop()
+        throw error
+      }
     },
     async stop() {
-      if (server) {
-        server.close()
-        server = undefined
-      }
-      spawnSync('docker', ['rm', '-f', containerName])
+      stop()
     },
   }
 })
