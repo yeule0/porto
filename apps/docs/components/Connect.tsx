@@ -1,4 +1,4 @@
-import { PortoConfig } from '@porto/apps'
+import { Env } from '@porto/apps'
 import {
   useAccount,
   useChainId,
@@ -10,7 +10,7 @@ import LucideWallet from '~icons/lucide/wallet'
 import { Button } from './Button'
 import { permissions } from './HomePage'
 
-const idOrigin = new URL(PortoConfig.getDialogHost()).origin
+const idOrigin = `https://${Env.get()}.id.porto.sh`
 
 export function Connect(props: Connect.Props) {
   const { variant = 'default', signInText = 'Sign in' } = props
