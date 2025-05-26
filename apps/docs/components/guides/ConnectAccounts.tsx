@@ -1,5 +1,5 @@
-import { Button } from '@porto/apps/components'
 import { useAccount, useChainId, useConnect, useDisconnect } from 'wagmi'
+import { Button } from '../Button'
 import { permissions } from '../HomePage'
 
 export function SignInButton() {
