@@ -1,5 +1,5 @@
-import { Address, Value } from 'ox'
 import * as React from 'react'
+import { Address, formatUnits, parseEther } from 'viem'
 import {
   BaseError,
   useAccount,
@@ -10,16 +10,14 @@ import {
 } from 'wagmi'
 import { exp1Config } from './contracts'
 
-const pollingInterval = 800
-
 const format = (num: bigint | number | undefined, units = 18) => {
   if (!num) return '0'
   return new Intl.NumberFormat('en-US', {
     maximumSignificantDigits: 4,
-  }).format(typeof num === 'bigint' ? Number(Value.format(num, units)) : num)
+  }).format(typeof num === 'bigint' ? Number(formatUnits(num, units)) : num)
 }
 
-export function SendTip(props: { address?: Address.Address | undefined }) {
+export function SendTip(props: { address?: Address | undefined }) {
   const { address = props.address, status } = useAccount()
   const creatorAddress = '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e'
 
@@ -33,7 +31,6 @@ export function SendTip(props: { address?: Address.Address | undefined }) {
   useWatchBlockNumber({
     enabled: true,
     onBlockNumber: (_) => expBalanceRefetch(),
-    pollingInterval: pollingInterval + 100,
   })
 
   const { data, isPending, sendCalls } = useSendCalls()
@@ -44,7 +41,6 @@ export function SendTip(props: { address?: Address.Address | undefined }) {
     isSuccess: isConfirmed,
   } = useWaitForCallsStatus({
     id: data?.id,
-    pollingInterval,
   })
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -53,7 +49,7 @@ export function SendTip(props: { address?: Address.Address | undefined }) {
       abi: exp1Config.abi,
       to: exp1Config.address,
     }
-    const amount = Value.fromEther('1')
+    const amount = parseEther('1')
     sendCalls({
       calls: [
         {

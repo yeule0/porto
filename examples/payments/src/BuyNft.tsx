@@ -1,5 +1,5 @@
-import { Value } from 'ox'
 import * as React from 'react'
+import { parseEther } from 'viem'
 import {
   BaseError,
   useAccount,
@@ -15,7 +15,6 @@ export function BuyNow() {
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForCallsStatus({
       id: data?.id,
-      pollingInterval: 800,
     })
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -25,7 +24,7 @@ export function BuyNow() {
       calls: [
         {
           abi: exp1Config.abi,
-          args: [expNftConfig.address, Value.fromEther('10')],
+          args: [expNftConfig.address, parseEther('10')],
           functionName: 'approve',
           to: exp1Config.address,
         },

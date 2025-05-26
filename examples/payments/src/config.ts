@@ -6,6 +6,7 @@ export const config = createConfig({
   chains: [baseSepolia],
   connectors: [porto()],
   multiInjectedProviderDiscovery: false,
+  pollingInterval: 1_000,
   transports: {
     [baseSepolia.id]: http(),
   },

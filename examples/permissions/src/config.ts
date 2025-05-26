@@ -1,5 +1,5 @@
-import { Value } from 'ox'
 import { porto } from 'porto/wagmi'
+import { parseEther } from 'viem'
 import { createConfig, http } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { exp1Config } from './contracts'
@@ -8,6 +8,7 @@ export const config = createConfig({
   chains: [baseSepolia],
   connectors: [porto()],
   multiInjectedProviderDiscovery: false,
+  pollingInterval: 1_000,
   transports: {
     [baseSepolia.id]: http(),
   },
@@ -20,7 +21,7 @@ export const permissions = () =>
       calls: [{ to: exp1Config.address }],
       spend: [
         {
-          limit: Value.fromEther('10'),
+          limit: parseEther('10'),
           period: 'hour',
           token: exp1Config.address,
         },

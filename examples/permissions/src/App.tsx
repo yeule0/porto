@@ -1,4 +1,4 @@
-import { Value } from 'ox'
+import { formatEther } from 'viem'
 import { useAccount, useConnect, useDisconnect, useReadContract } from 'wagmi'
 import { permissions } from './config'
 import { exp1Config } from './contracts'
@@ -82,7 +82,7 @@ function Balance() {
   return (
     <div>
       <h2>Balance</h2>
-      <div>Balance: {Value.format(balance ?? 0n, 18)} EXP</div>
+      <div>Balance: {formatEther(balance ?? 0n)} EXP</div>
     </div>
   )
 }
