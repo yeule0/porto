@@ -1,18 +1,22 @@
 import { cva, type VariantProps } from 'cva'
 import type * as React from 'react'
+import { cloneElement } from 'react'
 
 export function Button(props: Button.Props) {
   const {
     className,
     disabled,
+    render,
     size,
     static: static_,
     variant,
-    asChild = false,
     ...rest
   } = props
+  const Element = render
+    ? (props: Button.Props) => cloneElement(render, props)
+    : 'button'
   return (
-    <button
+    <Element
       className={Button.className({
         className,
         disabled,
@@ -31,7 +35,7 @@ export namespace Button {
   export interface Props
     extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'disabled'>,
       VariantProps<typeof className> {
-    asChild?: boolean
+    render?: React.ReactElement
   }
 
   export const className = cva(

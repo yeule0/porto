@@ -1,4 +1,4 @@
-import { useCopyToClipboard } from '@porto/apps/hooks'
+import { PortoConfig } from '@porto/apps'
 import {
   useAccount,
   useChainId,
@@ -6,9 +6,11 @@ import {
   useConnectors,
   useDisconnect,
 } from 'wagmi'
-import LucideCheck from '~icons/lucide/check'
+import LucideWallet from '~icons/lucide/wallet'
 import { Button } from './Button'
 import { permissions } from './HomePage'
+
+const idOrigin = new URL(PortoConfig.getDialogHost()).origin
 
 export function Connect(props: Connect.Props) {
   const { variant = 'default', signInText = 'Sign in' } = props
@@ -24,26 +26,19 @@ export function Connect(props: Connect.Props) {
 
   const size = variant === 'topnav' ? 'small' : 'default'
 
-  const [copied, copyToClipboard] = useCopyToClipboard({
-    timeout: 2_000,
-  })
-
   if (account.address)
     return (
       <div className="flex items-center gap-2">
-        {variant !== 'topnav' && (
-          <Button onClick={() => copyToClipboard(account.address!)} size={size}>
-            {copied && (
-              <div className="absolute inset-0 flex items-center justify-center gap-1.5">
-                <LucideCheck />
-                Copied
-              </div>
-            )}
-            <div className={copied ? 'invisible' : undefined}>
-              {account.address.slice(0, 6)}...{account.address.slice(-4)}
-            </div>
-          </Button>
-        )}
+        <Button
+          className="gap-2"
+          render={
+            // biome-ignore lint/a11y/useAnchorContent:
+            <a href={idOrigin} />
+          }
+          size={size}
+        >
+          <LucideWallet className="text-gray10" /> Porto ID
+        </Button>
         <Button
           onClick={() => disconnect.disconnect()}
           size={size}
