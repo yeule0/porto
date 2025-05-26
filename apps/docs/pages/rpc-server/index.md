@@ -6,6 +6,10 @@ Execution is paid for in one of the fee tokens accepted by the RPC on a given ne
 
 The RPC server has passthrough to a standard Ethereum node.
 
+:::note
+We'd love to hear your feedback. Report any issues or feature suggestions [on the issue tracker](https://github.com/ithacaxyz/rpc-server-issues).
+:::
+
 ## Endpoints
 
 The RPC server has multiple endpoints, one for each chain/environment.
@@ -50,13 +54,12 @@ The RPC server will validate that the quote is still valid, that the intent was 
 The RPC server passes through known Ethereum JSON-RPC methods to an underlying network of nodes for the corresponding chain. For example, you can query the block number or chain ID:
 
 ```sh
-cast chain-id --rpc-url https://base-mainnet.rpc.ithaca.xyz
+cast chain-id --rpc-url https://base-sepolia.rpc.ithaca.xyz
 
-# 8453
-```
+# 84532
 
 ```sh
-cast block-number --rpc-url https://base-mainnet.rpc.ithaca.xyz
+cast block-number --rpc-url https://base-sepolia.rpc.ithaca.xyz
 
 # 30568194
 ```
