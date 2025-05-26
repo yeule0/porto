@@ -689,9 +689,6 @@ function AssetRow({
   )
 
   const chainId = useChainId()
-  const account = useAccount()
-
-  const blockExplorer = account.chain?.blockExplorers?.default.url ?? ''
 
   const { data: _swapAssets, refetch: refetchSwapAssets } = useSwapAssets({
     chainId,
@@ -759,20 +756,7 @@ function AssetRow({
         (t) => (
           <Toast
             className={t}
-            description={
-              <p>
-                You successfully sent {sendFormState.values.sendAmount} {symbol}
-                <br />
-                <a
-                  className="text-gray12 underline"
-                  href={`${blockExplorer}/tx/${hash}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  View on explorer
-                </a>
-              </p>
-            }
+            description={`You successfully sent ${sendFormState.values.sendAmount} ${symbol}`}
             kind="success"
             title="Transaction completed"
           />
