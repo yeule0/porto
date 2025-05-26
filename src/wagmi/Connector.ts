@@ -18,7 +18,6 @@ import * as Typebox from '../core/internal/typebox/typebox.js'
 import type { ExactPartial } from '../core/internal/types.js'
 import * as Porto from '../core/Porto.js'
 import * as RpcSchema from '../core/RpcSchema.js'
-import * as Storage from '../core/Storage.js'
 
 export function porto<const chains extends readonly [Chain, ...Chain[]]>(
   config: ExactPartial<Porto.Config<chains>> = {},
@@ -45,16 +44,6 @@ export function porto<const chains extends readonly [Chain, ...Chain[]]>(
   return createConnector<Provider, Properties>((wagmiConfig) => {
     const chains = config.chains ?? wagmiConfig.chains ?? []
 
-    const storage = (() => {
-      if (config.storage) return config.storage
-      if (wagmiConfig.storage)
-        return Storage.from({
-          ...wagmiConfig.storage,
-          sizeLimit: 1024 * 1024 * 5, // ≈5MB
-        })
-      return undefined
-    })()
-
     const transports = (() => {
       if (config.transports) return config.transports
       return wagmiConfig.transports
@@ -64,7 +53,6 @@ export function porto<const chains extends readonly [Chain, ...Chain[]]>(
       ...config,
       announceProvider: false,
       chains: chains as never,
-      storage,
       transports,
     })
 
