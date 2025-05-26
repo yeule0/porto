@@ -130,11 +130,6 @@ export default defineConfig({
             text: 'Authentication (SIWE) 🚧',
           },
           {
-            disabled: true,
-            link: '/sdk/guides/custom-fee-tokens',
-            text: 'Custom Fee Tokens 🚧',
-          },
-          {
             link: '/sdk/guides/payments',
             text: 'Payments',
           },
