@@ -66,19 +66,6 @@ const accounts = await porto.provider.request({
   }}
 />
 
-### Modes
-
-TODO
-
-### Storage
-
-Porto comes pre-configured with storage options for browser and non-browser environments.
-Learn more about Porto's [Storage options](/sdk/api/storage).
-
-### Custom Chains
-
-TODO
-
 ## Parameters
 
 ### announceProvider
@@ -101,10 +88,10 @@ See [`Chains`](/sdk/api/chains) for a list of Porto-supported chains.
 
 ### feeToken
 
-- **Type:** `"0x${string}"`
-- **Default:** `"0x0000000000000000000000000000000000000000"` (ETH)
+- **Type:** `'ETH' | 'EXP' | 'USDC'`
+- **Default:** `EXP` (note: will change to `USDC` on Porto launch)
 
-Token to use to pay for fees. Defaults to ETH.
+Token to use to pay for fees.
 
 ### mode
 

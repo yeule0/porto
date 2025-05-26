@@ -175,25 +175,7 @@ export default defineConfig({
             text: 'Dialog',
           },
           {
-            collapsed: true,
             disabled: true,
-            items: [
-              {
-                disabled: true,
-                link: '/sdk/api/mode/dialog',
-                text: '.dialog',
-              },
-              {
-                disabled: true,
-                link: '/sdk/api/mode/contract',
-                text: '.contract',
-              },
-              {
-                disabled: true,
-                link: '/sdk/api/mode/rpcServer',
-                text: '.rpcServer',
-              },
-            ],
             link: '/sdk/api/mode',
             text: 'Mode 🚧',
           },
