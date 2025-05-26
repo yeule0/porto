@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { Env } from '@porto/apps'
 import { LogoLockup, Toast } from '@porto/apps/components'
 import { exp1Config, exp2Config, expNftConfig } from '@porto/apps/contracts'
 import { cx } from 'cva'
@@ -31,6 +32,8 @@ import LucideTrash2 from '~icons/lucide/trash-2'
 import LucideX from '~icons/lucide/x'
 import { config } from '../wagmi.config'
 import { Button } from './Button'
+
+const env = Env.get()
 
 export function HomePage() {
   const [isMounted, setIsMounted] = React.useState(false)
@@ -523,6 +526,22 @@ function SignIn(props: { chainId: ChainId; next: () => void }) {
 export function BuyNow(props: { chainId: ChainId; next: () => void }) {
   const { chainId, next } = props
 
+  const { address } = useAccount()
+  const { data: exp1Balance } = useReadContract({
+    abi: exp1Config.abi,
+    address: exp1Config.address[chainId],
+    args: [address!],
+    functionName: 'balanceOf',
+    query: {
+      enabled: !!address,
+    },
+  })
+
+  // Since we use USDC as the fee token in production,
+  // we will mint EXP to the user if they don't have any
+  // in the call bundle.
+  const shouldMintExp = exp1Balance === 0n && env === 'prod'
+
   const { data, isPending, sendCalls } = useSendCalls({
     mutation: {
       onError(err) {
@@ -617,6 +636,16 @@ export function BuyNow(props: { chainId: ChainId; next: () => void }) {
         onClick={() =>
           sendCalls({
             calls: [
+              ...(shouldMintExp
+                ? [
+                    {
+                      abi: exp1Config.abi,
+                      args: [address!, Value.fromEther('110')],
+                      functionName: 'mint',
+                      to: exp1Config.address[chainId],
+                    },
+                  ]
+                : []),
               {
                 abi: exp1Config.abi,
                 args: [expNftConfig.address[chainId], Value.fromEther('10')],
