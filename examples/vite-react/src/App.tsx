@@ -8,7 +8,7 @@ import {
   useSendCalls,
   useWaitForCallsStatus,
 } from 'wagmi'
-import { exp1Address, exp1Config } from './_generated/contracts'
+import { exp1Address, exp1Config } from './contracts'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -54,8 +54,7 @@ function Account() {
 
 function Connect() {
   const connect = useConnect()
-
-  const connector = connect.connectors.find((x) => x.id === 'xyz.ithaca.porto')!
+  const [connector] = connect.connectors
 
   return (
     <div>
