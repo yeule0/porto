@@ -72,7 +72,7 @@ function Connect() {
 function Balance() {
   const { address } = useAccount()
   const { data: balance } = useReadContract({
-    abi: exp1Config.abi,
+    ...exp1Config,
     args: [address!],
     functionName: 'balanceOf',
     query: {
