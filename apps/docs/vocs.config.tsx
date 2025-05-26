@@ -183,9 +183,8 @@ export default defineConfig({
             text: 'Dialog',
           },
           {
-            disabled: true,
             link: '/sdk/api/mode',
-            text: 'Mode 🚧',
+            text: 'Mode',
           },
           {
             collapsed: true,

@@ -776,7 +776,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
 export declare namespace dialog {
   type Parameters = {
     /**
-     * Wallet embed host.
+     * URL of the dialog embed.
      * @default 'http://stg.id.porto.sh/dialog'
      */
     host?: string | undefined
