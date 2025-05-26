@@ -747,17 +747,45 @@ function resolvePermissions(
     permissionsFeeLimit?: bigint | undefined
   },
 ) {
-  const { feeToken, permissionsFeeLimit } = options
+  const { feeToken = zeroAddress, permissionsFeeLimit } = options
 
-  const spend = key.permissions?.spend?.map((spend) => {
-    const token = feeToken ?? zeroAddress
-    if (spend.token && Address.isEqual(token, spend.token))
-      return {
-        ...spend,
-        limit: spend.limit + (permissionsFeeLimit ?? 0n),
+  const spend = key.permissions?.spend ? [...key.permissions.spend] : []
+
+  if (spend && permissionsFeeLimit) {
+    let index = -1
+    let minPeriod: number = Key.toSerializedSpendPeriod.year
+
+    for (let i = 0; i < spend.length; i++) {
+      const s = spend[i]!
+      if (s.token && Address.isEqual(feeToken, s.token)) {
+        index = i
+        break
       }
-    return spend
-  })
 
-  return { ...key.permissions, ...(spend && { spend }) }
+      const period = Key.toSerializedSpendPeriod[s.period]
+      if (period < minPeriod) minPeriod = period
+    }
+
+    // If there is a token assigned to a spend permission and the fee token
+    // is the same, update the limit to account for the fee.
+    if (index !== -1)
+      spend[index] = {
+        ...spend[index]!,
+        limit: spend[index]!.limit + permissionsFeeLimit,
+      }
+    // Update the spend permissions to account for the fee token.
+    else if (typeof minPeriod === 'number')
+      spend.push({
+        limit: permissionsFeeLimit,
+        period:
+          Key.fromSerializedSpendPeriod[
+            minPeriod as keyof typeof Key.fromSerializedSpendPeriod
+          ],
+        token: feeToken,
+      })
+  }
+
+  console.log(spend)
+
+  return { ...key.permissions, spend }
 }

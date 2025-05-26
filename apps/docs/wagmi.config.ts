@@ -1,10 +1,12 @@
 import { PortoConfig } from '@porto/apps'
-import { Chains, Dialog, Mode } from 'porto'
+import { Dialog, Mode } from 'porto'
 import { porto } from 'porto/wagmi'
-import { createConfig, createStorage, http } from 'wagmi'
+import { createConfig, createStorage } from 'wagmi'
+
+const portoConfig = PortoConfig.getConfig()
 
 export const connector = porto({
-  ...PortoConfig.getConfig(),
+  ...portoConfig,
   mode: Mode.dialog({
     host: PortoConfig.getDialogHost(),
     renderer: Dialog.iframe(),
@@ -12,16 +14,13 @@ export const connector = porto({
 })
 
 export const config = createConfig({
-  chains: [Chains.baseSepolia, Chains.portoDev],
+  chains: portoConfig.chains,
   connectors: [connector],
   multiInjectedProviderDiscovery: false,
   storage: createStorage({
     storage: typeof window !== 'undefined' ? localStorage : undefined,
   }),
-  transports: {
-    [Chains.baseSepolia.id]: http(),
-    [Chains.portoDev.id]: http(),
-  },
+  transports: portoConfig.transports,
 })
 
 declare module 'wagmi' {

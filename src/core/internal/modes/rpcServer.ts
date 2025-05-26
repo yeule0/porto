@@ -22,9 +22,9 @@ import * as FeeToken from '../typebox/feeToken.js'
 import * as RpcServer_viem from '../viem/actions.js'
 
 export const defaultPermissionsFeeLimit = {
-  ETH: Value.fromEther('0.0001'),
-  USDC: Value.fromEther('1'),
-  USDT: Value.fromEther('1'),
+  ETH: '0.0001',
+  USDC: '1',
+  USDT: '1',
 }
 
 /**
@@ -692,7 +692,7 @@ export declare namespace rpcServer {
     /**
      * Fee limit to use for permissions.
      */
-    permissionsFeeLimit?: Record<FeeToken.Kind, bigint> | undefined
+    permissionsFeeLimit?: Record<FeeToken.Kind, string> | undefined
     /**
      * Whether to store pre-calls in a persistent storage.
      *
@@ -748,7 +748,7 @@ export async function resolveFeeToken(
   parameters?:
     | {
         feeToken?: FeeToken.Symbol | Address.Address | undefined
-        permissionsFeeLimit?: Record<string, bigint> | undefined
+        permissionsFeeLimit?: Record<string, string> | undefined
       }
     | undefined,
 ) {
@@ -770,7 +770,10 @@ export async function resolveFeeToken(
   })
 
   const permissionsFeeLimit = feeToken?.kind
-    ? parameters?.permissionsFeeLimit?.[feeToken.kind]
+    ? Value.from(
+        parameters?.permissionsFeeLimit?.[feeToken.kind] ?? '0',
+        feeToken.decimals,
+      )
     : undefined
 
   if (!feeToken) {

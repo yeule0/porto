@@ -138,9 +138,11 @@ export function create(
 ): Porto {
   const {
     chains = defaultConfig.chains,
+    feeToken = defaultConfig.feeToken,
     mode = defaultConfig.mode,
     messenger = defaultConfig.messenger,
     methodPolicies = defaultConfig.methodPolicies,
+    sponsorUrl,
     storage = defaultConfig.storage,
     storageKey = defaultConfig.storageKey,
     transports = defaultConfig.transports,
@@ -149,7 +151,9 @@ export function create(
   const porto = Porto_.create({
     announceProvider: false,
     chains,
+    feeToken,
     mode,
+    sponsorUrl,
     storage,
     storageKey,
     transports,

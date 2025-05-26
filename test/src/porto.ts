@@ -1,4 +1,3 @@
-import { Value } from 'ox'
 import { Chains, Mode, Porto, Storage } from 'porto'
 import { http } from 'viem'
 import * as Porto_internal from '../../src/core/internal/porto.js'
@@ -29,7 +28,7 @@ const rpcUrl = Anvil.enabled
 export function getPorto(
   parameters: {
     mode?: (parameters: {
-      permissionsFeeLimit: Record<string, bigint>
+      permissionsFeeLimit: Record<string, string>
       mock: boolean
     }) => Mode.Mode | undefined
     sponsorUrl?: string | undefined
@@ -41,7 +40,7 @@ export function getPorto(
     mode: mode({
       mock: true,
       permissionsFeeLimit: {
-        USDT: Value.fromEther('100'),
+        USDT: '100',
       },
     }),
     sponsorUrl,
