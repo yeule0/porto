@@ -369,6 +369,9 @@ export namespace wallet_prepareCalls {
               }),
               Type.Object({
                 address: Type.Null(),
+                decimals: Typebox.Optional(
+                  Type.Union([Type.Number(), Type.Null()]),
+                ),
                 direction: Type.Union([
                   Type.Literal('incoming'),
                   Type.Literal('outgoing'),
