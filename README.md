@@ -74,5 +74,6 @@ shall be dual licensed as above, without any additional terms or conditions.
 </sub>
 
 ## Getting Help
+
 Have questions or building something cool with Porto Accounts?  
 Join the Telegram group to chat with the team and other devs: [@porto_devs](https://t.me/porto_devs)
