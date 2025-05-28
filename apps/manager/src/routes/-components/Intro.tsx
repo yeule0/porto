@@ -7,7 +7,7 @@ export function Intro() {
       <p className="flex items-center gap-2 pt-5 font-medium text-sm leading-[22px]">
         <span className="text-white/50">Built by</span>
         <a
-          className="h-[16px]"
+          className="h-[16px] max-w-[75px]"
           href="https://ithaca.xyz"
           rel="noreferrer"
           target="_blank"
