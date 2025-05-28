@@ -178,6 +178,7 @@ export function Dashboard() {
           </div>
         </div>
         <Ariakit.Button
+          tabIndex={-1}
           className="flex w-[150px] items-center justify-center gap-3 hover:cursor-pointer!"
           onClick={() =>
             copyToClipboard(account.address ?? '')
