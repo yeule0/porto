@@ -213,27 +213,6 @@ export function AddFunds(props: AddFunds.Props) {
                 </Button>
               )}
             </div>
-            <p className="text-center text-[13px] text-gray10">
-              By using this service, you agree to the provider's{' '}
-              <a
-                className="text-gray11"
-                href="/"
-                rel="noreferrer"
-                target="_blank"
-              >
-                Terms of Use
-              </a>{' '}
-              and{' '}
-              <a
-                className="text-gray11"
-                href="/"
-                rel="noreferrer"
-                target="_blank"
-              >
-                Privacy Policy
-              </a>
-              .
-            </p>
           </form>
         </Layout.Content>
       </Layout>
