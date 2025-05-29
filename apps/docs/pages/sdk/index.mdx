@@ -102,23 +102,48 @@ function Connect() {
 
 ::::
 
-## Vanilla Usage
+## Vanilla / Viem Usage
 
 You can get started with Porto by creating a new instance with `Porto.create(){:ts}`.
 
 Once set up, you can use the `provider` instance to interact with Porto.
 
-```ts
+:::code-group
+
+```ts twoslash [Vanilla]
 import { Porto } from 'porto'
 
+// 1. Initialize Porto.
 const porto = Porto.create()
 
+// 2. Use JSON-RPC methods.
 const { accounts } = await porto.provider.request({ 
   method: 'wallet_connect'
 })
 ```
 
-See [RPC Reference](/sdk/rpc) for a list of all available methods.
+```ts twoslash [Viem]
+import { custom, createWalletClient } from 'viem'
+import { baseSepolia } from 'viem/chains'
+import { Porto } from 'porto'
+
+// 1. Initialize Porto.
+const porto = Porto.create()
+
+// 2. Initialize Wallet Client.
+const walletClient = createWalletClient({
+  chain: baseSepolia,
+  transport: custom(porto.provider),
+})
+
+// 3. Use Wallet Actions.
+const addresses = await walletClient.requestAddresses()
+```
+
+:::
+
+- See [RPC Reference](/sdk/rpc) for a list of all available JSON-RPC methods.
+- See [Viem's Wallet Actions](https://viem.sh/docs/actions/wallet/introduction)
 
 ## Secure Origins (HTTPS)
 
