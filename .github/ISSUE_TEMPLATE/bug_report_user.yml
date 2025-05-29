@@ -42,12 +42,12 @@ body:
     attributes:
       label: Operating System
       options:
-        - 'Android'
-        - 'Linux'
-        - 'Windows'
         - 'iOS'
         - 'iPadOS'
         - 'macOS'
+        - 'Android'
+        - 'Linux'
+        - 'Windows'
         - 'Other'
     validations:
       required: true
@@ -56,10 +56,10 @@ body:
     attributes:
       label: Browser
       options:
+        - 'Safari'
         - 'Brave'
         - 'Chrome'
         - 'Firefox'
-        - 'Safari'
         - 'Other'
     validations:
       required: true
@@ -69,9 +69,9 @@ body:
       label: Password Manager
       options:
         - 'iCloud Keychain (passkeys)'
-        - 'Google Password Manager'
         - '1Password'
         - 'Bitwarden'
+        - 'Google Password Manager'
         - 'Other'
     validations:
       required: true
