@@ -22,6 +22,8 @@ import type {
   UseQueryReturnType,
 } from 'wagmi/query'
 
+import * as Typebox from '../../core/internal/typebox/typebox.js'
+import * as RpcSchema from '../../core/RpcSchema.js'
 import {
   connect,
   createAccount,
@@ -77,7 +79,7 @@ export function useAdmins<
         if (event.type !== 'adminsChanged') return
         queryClient.setQueryData(queryKey, (data: any) => ({
           ...data,
-          keys: event.data,
+          keys: Typebox.Decode(RpcSchema.wallet_getAdmins.Response, event.data),
         }))
       })
     })()
@@ -377,7 +379,10 @@ export function usePermissions<
         (await activeConnector.getProvider?.()) as EIP1193Provider
       provider.current?.on('message', (event) => {
         if (event.type !== 'permissionsChanged') return
-        queryClient.setQueryData(queryKey, event.data)
+        queryClient.setQueryData(
+          queryKey,
+          Typebox.Decode(RpcSchema.wallet_getPermissions.Response, event.data),
+        )
       })
     })()
   }, [address, activeConnector, queryClient])
