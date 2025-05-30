@@ -234,6 +234,34 @@ describe.each([
         }),
       ).rejects.matchSnapshot()
     })
+
+    test('behavior: disconnect > connect > getAdmins', async () => {
+      const { porto } = getPorto()
+      await porto.provider.request({
+        method: 'wallet_connect',
+        params: [
+          {
+            capabilities: {
+              createAccount: true,
+            },
+          },
+        ],
+      })
+
+      await porto.provider.request({
+        method: 'wallet_disconnect',
+      })
+
+      await porto.provider.request({
+        method: 'wallet_connect',
+      })
+
+      const { address, keys } = await porto.provider.request({
+        method: 'wallet_getAdmins',
+      })
+      expect(address).toBeDefined()
+      expect(keys.length).toBe(1)
+    })
   })
 
   describe('wallet_grantPermissions', () => {
@@ -458,6 +486,98 @@ describe.each([
         method: 'wallet_getPermissions',
       })
       expect(permissions.length).toBe(2)
+    })
+
+    test('behavior: grant on connect > grant another > get after connect', async () => {
+      const { client, porto } = getPorto()
+      const { accounts } = await porto.provider.request({
+        method: 'wallet_connect',
+        params: [
+          {
+            capabilities: {
+              createAccount: true,
+              grantPermissions: {
+                expiry: 9999999999,
+                key: {
+                  publicKey: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+                  type: 'secp256k1',
+                },
+                permissions: {
+                  calls: [{ signature: 'mint()' }],
+                },
+              },
+            },
+          },
+        ],
+      })
+      await porto.provider.request({
+        method: 'wallet_grantPermissions',
+        params: [
+          {
+            expiry: 9999999999,
+            key: {
+              publicKey:
+                '0xcafebabecafebabecafebabecafebabecafebabecafebabecafebabecafebabe',
+              type: 'p256',
+            },
+            permissions: {
+              calls: [{ signature: 'mint()' }],
+              spend: [
+                {
+                  limit: Hex.fromNumber(Value.fromEther('1.5')),
+                  period: 'day',
+                },
+              ],
+            },
+          },
+        ],
+      })
+
+      {
+        const permissions = await porto.provider.request({
+          method: 'wallet_getPermissions',
+        })
+        expect(
+          permissions.map((x) => ({ ...x, address: null })),
+        ).matchSnapshot()
+      }
+
+      await setBalance(client, {
+        address: accounts[0]!.address,
+        value: Value.fromEther('10000'),
+      })
+      const { id } = await porto.provider.request({
+        method: 'wallet_sendCalls',
+        params: [{ calls: [] }],
+      })
+      await waitForCallsStatus(client, {
+        id,
+      })
+
+      {
+        const permissions = await porto.provider.request({
+          method: 'wallet_getPermissions',
+        })
+        expect(
+          permissions.map((x) => ({ ...x, address: null })),
+        ).matchSnapshot()
+      }
+
+      await porto.provider.request({
+        method: 'wallet_disconnect',
+      })
+      await porto.provider.request({
+        method: 'wallet_connect',
+      })
+
+      {
+        const permissions = await porto.provider.request({
+          method: 'wallet_getPermissions',
+        })
+        expect(
+          permissions.map((x) => ({ ...x, address: null })),
+        ).matchSnapshot()
+      }
     })
   })
 

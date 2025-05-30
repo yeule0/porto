@@ -98,6 +98,7 @@ export namespace eth_signTypedData_v4 {
 export namespace wallet_getAdmins {
   export const Parameters = Type.Object({
     address: Typebox.Optional(Primitive.Address),
+    chainId: Typebox.Optional(Primitive.Number),
   })
   export type Parameters = Typebox.StaticDecode<typeof Parameters>
 
@@ -109,6 +110,7 @@ export namespace wallet_getAdmins {
 
   export const Response = Type.Object({
     address: Primitive.Address,
+    chainId: Primitive.Number,
     keys: Type.Array(
       Type.Intersect([
         Type.Pick(Key.Base, ['id', 'publicKey', 'type']),
@@ -152,7 +154,7 @@ export namespace wallet_grantAdmin {
 
   export const Response = Type.Object({
     address: Primitive.Address,
-    chainId: Primitive.Hex,
+    chainId: Primitive.Number,
     key: wallet_getAdmins.Response.properties.keys.items,
   })
   export type Response = Typebox.StaticDecode<typeof Response>
@@ -237,6 +239,7 @@ export namespace wallet_getAccountVersion {
 export namespace wallet_getPermissions {
   export const Parameters = Type.Object({
     address: Typebox.Optional(Primitive.Address),
+    chainId: Typebox.Optional(Primitive.Number),
   })
   export type Parameters = Typebox.StaticDecode<typeof Parameters>
 
@@ -522,6 +525,23 @@ export namespace wallet_getCapabilities {
   )
   export type Response = Typebox.StaticDecode<typeof Response>
   export type Response_raw = Typebox.Static<typeof Response>
+}
+
+export namespace wallet_getKeys {
+  export const Parameters = Type.Object({
+    address: Primitive.Address,
+    chainId: Typebox.Optional(Primitive.Number),
+  })
+  export type Parameters = Typebox.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('wallet_getKeys'),
+    params: Type.Tuple([Parameters]),
+  })
+  export type Request = Typebox.StaticDecode<typeof Request>
+
+  export const Response = Type.Array(Key.WithPermissions)
+  export type Response = Typebox.StaticDecode<typeof Response>
 }
 
 export namespace wallet_prepareCalls {
