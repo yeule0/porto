@@ -204,8 +204,10 @@ exports[`contract > wallet_getPermissions > behavior: grant on connect > grant a
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
+      "spend": undefined,
     },
   },
   {
@@ -221,12 +223,14 @@ exports[`contract > wallet_getPermissions > behavior: grant on connect > grant a
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x14d1120d7b160000",
           "period": "day",
+          "token": null,
         },
       ],
     },
@@ -249,8 +253,10 @@ exports[`contract > wallet_getPermissions > behavior: grant on connect > grant a
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
+      "spend": undefined,
     },
   },
   {
@@ -266,12 +272,14 @@ exports[`contract > wallet_getPermissions > behavior: grant on connect > grant a
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x14d1120d7b160000",
           "period": "day",
+          "token": null,
         },
       ],
     },
@@ -763,8 +771,10 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
+      "spend": undefined,
     },
   },
   {
@@ -780,12 +790,14 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x14d1120d7b160000",
           "period": "day",
+          "token": null,
         },
       ],
     },
@@ -808,8 +820,10 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
+      "spend": undefined,
     },
   },
   {
@@ -825,12 +839,14 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "mint()",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x14d1120d7b160000",
           "period": "day",
+          "token": null,
         },
       ],
     },
@@ -853,22 +869,22 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "0x1249c58b",
-          "to": undefined,
+          "to": null,
         },
         {
           "signature": "0x32323232",
-          "to": "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
+          "to": null,
         },
         {
           "signature": "0x703a60cd",
-          "to": "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x56bc75e2d63100000",
           "period": "year",
-          "token": "0xe1aa25618fa0c7a1cfdab5d6b456af611873b629",
+          "token": null,
         },
       ],
     },
@@ -886,27 +902,27 @@ exports[`rpcServer > wallet_getPermissions > behavior: grant on connect > grant 
       "calls": [
         {
           "signature": "0x1249c58b",
-          "to": undefined,
+          "to": null,
         },
         {
           "signature": "0x32323232",
-          "to": "0xa15bb66138824a1c7167f5e85b957d04dd34e468",
+          "to": null,
         },
         {
           "signature": "0x703a60cd",
-          "to": "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
+          "to": null,
         },
       ],
       "spend": [
         {
           "limit": "0x14d1120d7b160000",
           "period": "day",
-          "token": "0x0000000000000000000000000000000000000000",
+          "token": null,
         },
         {
           "limit": "0x56bc75e2d63100000",
           "period": "day",
-          "token": "0xe1aa25618fa0c7a1cfdab5d6b456af611873b629",
+          "token": null,
         },
       ],
     },
