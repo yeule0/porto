@@ -819,6 +819,7 @@ export function SendTip(props: {
 }
 
 const tiers = [
+  { amount: Value.fromEther('2'), unit: 'week' },
   { amount: Value.fromEther('7'), unit: 'month' },
   { amount: Value.fromEther('75'), unit: 'year' },
 ] as const
