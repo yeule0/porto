@@ -538,7 +538,7 @@ describe.each([
           method: 'wallet_getPermissions',
         })
         expect(
-          permissions.map((x) => ({ ...x, address: null })),
+          permissions.map((x) => ({ ...x, address: null, chainId: null })),
         ).matchSnapshot()
       }
 
@@ -559,7 +559,7 @@ describe.each([
           method: 'wallet_getPermissions',
         })
         expect(
-          permissions.map((x) => ({ ...x, address: null })),
+          permissions.map((x) => ({ ...x, address: null, chainId: null })),
         ).matchSnapshot()
       }
 
@@ -575,7 +575,7 @@ describe.each([
           method: 'wallet_getPermissions',
         })
         expect(
-          permissions.map((x) => ({ ...x, address: null })),
+          permissions.map((x) => ({ ...x, address: null, chainId: null })),
         ).matchSnapshot()
       }
     })
