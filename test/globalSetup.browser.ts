@@ -11,7 +11,7 @@ export default async function () {
           env: {
             ...(process as any).env,
             ...import.meta.env,
-            ANVIL: 'true',
+            ANVIL: (import.meta.env.VITE_LOCAL !== 'false').toString(),
           },
         },
       )
