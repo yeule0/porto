@@ -79,7 +79,10 @@ export function useAdmins<
         if (event.type !== 'adminsChanged') return
         queryClient.setQueryData(queryKey, (data: any) => ({
           ...data,
-          keys: Typebox.Decode(RpcSchema.wallet_getAdmins.Response, event.data),
+          keys: Typebox.Decode(
+            RpcSchema.wallet_getAdmins.Response.properties.keys,
+            event.data,
+          ),
         }))
       })
     })()
