@@ -25,7 +25,8 @@ import { TruncatedAddress } from '~/components/TruncatedAddress'
 import { useAddressTransfers } from '~/hooks/useBlockscoutApi'
 import { useClickOutside } from '~/hooks/useClickOutside'
 import { useSwapAssets } from '~/hooks/useSwapAssets'
-import { useErc20Info } from '~/hooks/useTokenInfo'
+import { useErc20Info, useErc721Info } from '~/hooks/useTokenInfo'
+import { useTokenStandard } from '~/hooks/useTokenStandard'
 import {
   ArrayUtils,
   DateFormatter,
@@ -50,7 +51,12 @@ function TokenSymbol({
   address?: Address.Address | undefined
   display?: 'symbol' | 'name' | 'address'
 }) {
-  const { data: tokenInfo } = useErc20Info(address)
+  const tokenStandard = useTokenStandard(address)
+
+  const { data: tokenInfo } =
+    tokenStandard.standard === 'ERC20'
+      ? useErc20Info(address)
+      : useErc721Info(address)
 
   if (!address) return null
 
@@ -297,12 +303,15 @@ export function Dashboard() {
               data={addressTransfers.data?.items}
               emptyMessage="No transactions yet"
               renderRow={(transfer) => {
-                const amount = Number.parseFloat(
-                  ValueFormatter.format(
-                    BigInt(transfer?.total.value ?? 0),
-                    Number(transfer?.total.decimals ?? 0),
-                  ),
-                ).toFixed(2)
+                const isErc721Transfer = transfer?.token.type === 'ERC-721'
+                const amount = isErc721Transfer
+                  ? BigInt(1)
+                  : Number.parseFloat(
+                      ValueFormatter.format(
+                        BigInt(transfer?.total.value ?? 0),
+                        Number(transfer?.total.decimals ?? 0),
+                      ),
+                    ).toFixed(2)
 
                 return (
                   <tr
