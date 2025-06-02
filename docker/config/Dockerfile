@@ -14,4 +14,8 @@ RUN echo 'deb http://deb.debian.org/debian unstable main' >> /etc/apt/sources.li
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+COPY contracts/account /app/account
+COPY contracts/demo /app/demo
+COPY docker/config /app/
+
 WORKDIR /app 
