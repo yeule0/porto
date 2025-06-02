@@ -17,7 +17,7 @@ services:
       anvil:
         condition: service_healthy
     build:
-      context: .
+      context: https://github.com/ithacaxyz/porto.git
       dockerfile: docker/config/Dockerfile
     user: root
     volumes:
@@ -46,7 +46,7 @@ services:
 
   proxy:
     build:
-      context: .
+      context: https://github.com/ithacaxyz/porto.git
       dockerfile: docker/proxy/Dockerfile
     labels:
       - dev.orbstack.domains=rpc.local
