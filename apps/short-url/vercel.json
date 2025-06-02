@@ -1,0 +1,8 @@
+{
+  "redirects": [
+    {
+      "destination": "https://raw.githubusercontent.com/ithacaxyz/porto/refs/heads/main/docker-compose.yaml",
+      "source": "/docker"
+    }
+  ]
+}
