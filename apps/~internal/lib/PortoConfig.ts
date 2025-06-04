@@ -12,7 +12,9 @@ const defaultChain = {
   dev: import.meta.env.VITE_DEV_CHAIN_ID
     ? Chains.define({
         ...Chains.portoDev,
-        id: Number(import.meta.env.VITE_DEV_CHAIN_ID),
+        id: Number(
+          import.meta.env.VITE_DEV_CHAIN_ID,
+        ) as (typeof Chains.portoDev)['id'],
         rpcUrls: {
           default: {
             http: [import.meta.env.VITE_DEV_RPC_URL],
