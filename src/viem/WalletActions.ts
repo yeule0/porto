@@ -390,6 +390,8 @@ export type Decorator<
   viem_WalletActions<chain, account>,
   (typeof supportedWalletActions)[number]
 > & {
+  connect: (parameters: connect.Parameters) => Promise<connect.ReturnType>
+  disconnect: () => Promise<void>
   getPermissions: (
     parameters: getPermissions.Parameters,
   ) => Promise<getPermissions.ReturnType>
@@ -407,6 +409,8 @@ export function decorator<
   account extends Account.Account | undefined,
 >(client: Client<Transport, chain, account>): Decorator<chain, account> {
   return {
+    connect: (parameters) => connect(client, parameters),
+    disconnect: () => disconnect(client),
     getAddresses: () => getAddresses(client),
     getCallsStatus: (parameters) => getCallsStatus(client, parameters),
     getCapabilities: () => getCapabilities(client),
