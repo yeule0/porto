@@ -14,12 +14,14 @@ import * as Utils from './internal/utils.js'
 import * as Mode from './Mode.js'
 import * as Storage from './Storage.js'
 
+const browser = typeof window !== 'undefined' && typeof document !== 'undefined'
+
 export const defaultConfig = {
   announceProvider: true,
   chains: [Chains.baseSepolia],
   feeToken: 'EXP',
-  mode: typeof window !== 'undefined' ? Mode.dialog() : Mode.rpcServer(),
-  storage: typeof window !== 'undefined' ? Storage.idb() : Storage.memory(),
+  mode: browser ? Mode.dialog() : Mode.rpcServer(),
+  storage: browser ? Storage.idb() : Storage.memory(),
   storageKey: 'porto.store',
   transports: {
     [Chains.baseSepolia.id]: http(),
