@@ -712,9 +712,9 @@ export type Decorator<
 }
 
 export function decorator<
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain | undefined,
-  account extends Account.Account | undefined = Account.Account | undefined,
+  transport extends Transport,
+  chain extends Chain | undefined,
+  account extends Account.Account | undefined,
 >(client: Client<transport, chain, account>): Decorator<chain, account> {
   return {
     createAccount: (parameters) => createAccount(client, parameters),

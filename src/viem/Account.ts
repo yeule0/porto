@@ -90,9 +90,10 @@ export declare namespace from {
       | Address.Address
       | AccountParameter,
   > = Readonly<
-    account extends AccountParameter
-      ? Assign<Account, account>
-      : { address: account }
+    Assign<
+      Account,
+      account extends AccountParameter ? account : { address: account }
+    >
   >
 }
 
