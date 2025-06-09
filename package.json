@@ -19,6 +19,7 @@
     "clean": "rm -rf src/_dist ./tsconfig.build.tsbuildinfo src/tsconfig.build.tsbuildinfo",
     "deps": "pnpx taze -r",
     "dev": "pnpm preconstruct && pnpm --filter playground --filter dialog --filter id dev",
+    "dev:all": "pnpm preconstruct && pnpm --filter playground --filter dialog --filter id --docs --filter wagmi dev",
     "dev:anvil": "pnpm preconstruct && ANVIL=true pnpm --filter playground --filter dialog --filter id dev",
     "dev:wagmi": "pnpm preconstruct && pnpm --filter wagmi-example --filter dialog --filter id dev",
     "docs:build": "pnpm --filter docs build",
@@ -64,7 +65,7 @@
     "vitest": "catalog:",
     "wagmi": "catalog:"
   },
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=22.5"
   },
