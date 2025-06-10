@@ -54,10 +54,12 @@ If you would like to request support, please open up a GitHub issue.
 PREP is a technique by Biconomy which is ~basically Nick's method but for EIP7702.
 
 **Pros**:
+
 - Cheap smart account deployments with resource lock capabilities. It's basically a cheaper method than Create2-based smart account deployments.
 - Can tie the account initialization with the deployment transaction, which means that you don't have the Gnosis Safe-style vulnerability of uninitialized accounts across chains.
 
 **Cons**:
+
 - Everything in Create2-based smart contract deployments. Just PITA to get the same address for a user across every chain, it's doable, but this adds unnecessary complexity.
 - With Passkey, there is the issue of 'discoverability', i.e. how do you know which passkey is for which address? So you usually want to name your passkey with your address. So there's a chicken-egg problem where you cannot know the address of your account because the passkey pubkey is baked into the address generation process, but you also cannot name the passkey after-the-fact because of how webauthn works. So to solve this, a registry needed to be created and some smart techniques used to decouple the passkey creation from the account while getting the no-frontrunning benefit.
 - The biggest disqualifier was the inability to do "Create Account w/ Passkey + add session key" in 1 Passkey popup. To achieve 'real world' auth, it's necessary to be able to say "I am creating an account with a passkey AND I am also authorizing the app to e.g. spend $1/hour on my behalf" (or similar, w/ session keys). This just isn't possible because webauthn.create() cannot be used to also sign an additional payload, and baking the session key creation code in the initcode was unacceptable for x-chain deployments.
