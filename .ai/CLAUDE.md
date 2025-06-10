@@ -2,6 +2,24 @@
 
 This file provides essential information for Claude AI (and other AI assistants) working with the Porto codebase.
 
+## Mandatory GitHub Interaction Rules
+
+### Required Tools
+
+1. **GitHub MCP**: `mcp__github__*` functions (authenticated, no rate limits)
+2. **GitHub CLI**: `gh` commands (authenticated via CLI)
+3. **NEVER**: Direct API calls, web scraping, or unauthenticated requests
+
+### Examples
+
+✅ **Correct**: `mcp__github__get_pull_request` or `gh pr view`
+❌ **Wrong**: Direct API calls to `api.github.com`
+
+### Pull Requests
+
+- You are allowed to open pull requests for this repository.
+- Always use `mcp__github__create_pull_request` or `gh pr create` to create pull requests.
+
 ## About Porto
 
 Porto is a Next-Generation Account Stack for Ethereum that provides a secure, scalable, and user-friendly account system. It's built as a TypeScript monorepo with multiple integrations and applications.
