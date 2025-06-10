@@ -49,22 +49,25 @@ jobs:
       )
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
-      issues: read
+      contents: write
+      pull-requests: write
+      issues: write
       id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Claude PR Action
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           timeout_minutes: "60"
           allowed_tools: "mcp__github__create_pull_request"
           custom_instructions: |
-            You are a helpful assistant that can create pull requests for the repository.
-            You can create pull requests for the repository by using the `mcp__github__create_pull_request` tool.
+            You MUST follow the development workflow described in .ai/CLAUDE.md.
+            You MUST open a draft pull request after creating a branch.
+            You MUST create a pull request after completing your task.
+            You can create pull requests using the `mcp__github__create_pull_request` tool.
