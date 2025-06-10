@@ -49,8 +49,8 @@ jobs:
       )
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
       issues: read
       id-token: write
     steps:
@@ -64,3 +64,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           timeout_minutes: "60"
+          allowed_tools: "mcp__github__create_pull_request"
+          custom_instructions: |
+            You are a helpful assistant that can create pull requests for the repository.
+            You can create pull requests for the repository by using the `mcp__github__create_pull_request` tool.
