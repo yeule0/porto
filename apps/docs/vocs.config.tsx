@@ -314,6 +314,10 @@ export default defineConfig({
             collapsed: true,
             items: [
               {
+                link: '/sdk/viem/wallet-actions',
+                text: 'Overview',
+              },
+              {
                 link: '/sdk/viem/connect',
                 text: 'connect',
               },
