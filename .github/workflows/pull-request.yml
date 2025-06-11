@@ -14,6 +14,7 @@ jobs:
     secrets: inherit
 
   auto-review:
+    name: Claude PR Review
     runs-on: ubuntu-latest
     permissions:
       contents: read

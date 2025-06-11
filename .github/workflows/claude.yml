@@ -12,6 +12,7 @@ on:
 
 jobs:
   check-permissions:
+    name: Check permissions
     runs-on: ubuntu-latest
     outputs:
       has-permission: ${{ steps.check.outputs.has-permission }}
@@ -45,6 +46,7 @@ jobs:
             }
 
   claude-code-action:
+    name: Run Claude
     needs: check-permissions
     if: |
       needs.check-permissions.outputs.has-permission == 'true' && (
