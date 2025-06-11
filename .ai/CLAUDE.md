@@ -237,6 +237,17 @@ We implemented PREP and ran it for weeks, evaluated the pros/cons and we didn't 
 PREP was implemented and ran for a number of weeks. After evaluating the pros/cons, it was decided that the pattern did not meet the needs of the Porto Stack. It was replaced with an ephemeral private key approach.
 ```
 
+### Writing Changelog Entries
+
+When writing changelog entries, follow these guidelines:
+
+- Sentences lead with verbs such as “Customize…”, “Automatically route…”, “Build and deploy…”, “Click on…”. This keeps the copy action-oriented and user-focused.
+- Larger narrative intros use “we” (“Today, we’re launching Porto…”) while instruction paragraphs pivot to second person (“You’ll see your own personalized feed…”). The mix is friendly yet authoritative.
+- Each feature gets 1-3 tight paragraphs that start with the user benefit before diving into detail. Jargon is kept product-specific and is usually explained in one line (e.g., “hybrid semantic search combines AI vector embeddings with keyword matching”).
+- Big releases open with a bit of storytelling or a rhetorical setup (e.g., “Every product has bugs. More than we can ever fix… Polishing Season is about turning that ‘someday’ into ‘today’”). These break the terseness and add personality. 
+- Present tense dominates; sentences are short, rarely exceed two clauses.
+
+
 #### Additional Guidelines
 
 - Use clear, concise language
