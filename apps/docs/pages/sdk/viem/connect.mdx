@@ -6,6 +6,8 @@ import { TryItOut } from '../../../components/TryItOut'
 
 Viem Action for connecting an account using [ERC-7846](https://github.com/ethereum/ERCs/pull/779). Uses [`wallet_connect`](/sdk/rpc/wallet_connect) under the hood.
 
+## Usage
+
 :::code-group
 
 ```ts twoslash [example.ts]
@@ -70,20 +72,20 @@ const result = await WalletActions.connect(client, {
 <TryItOut
   fn={async ({ client }) => {
     return await WalletActions.connect(client, {
-      grantPermissions: { 
-        expiry: Math.floor(Date.now() / 1_000) + 60 * 60, // 1 hour 
-        permissions: { 
-          calls: [{ 
-            signature: 'transfer(address,uint256)', 
-            to: '0x29f45fc3ed1d0ffafb5e2af9cc6c3ab1555cd5a2', 
-          }], 
-          spend: [{ 
-            limit: parseEther('50'), // 50 EXP 
-            period: 'day', 
-            token: '0x29f45fc3ed1d0ffafb5e2af9cc6c3ab1555cd5a2', 
-          }], 
-        }, 
-      }, 
+      grantPermissions: {
+        expiry: Math.floor(Date.now() / 1_000) + 60 * 60, // 1 hour
+        permissions: {
+          calls: [{
+            signature: 'transfer(address,uint256)',
+            to: '0x29f45fc3ed1d0ffafb5e2af9cc6c3ab1555cd5a2',
+          }],
+          spend: [{
+            limit: parseEther('50'), // 50 EXP
+            period: 'day',
+            token: '0x29f45fc3ed1d0ffafb5e2af9cc6c3ab1555cd5a2',
+          }],
+        },
+      },
     })
   }}
   transformResultCode={(code) => {
