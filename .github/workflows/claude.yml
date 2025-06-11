@@ -73,7 +73,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           timeout_minutes: "60"
-          allowed_tools: "mcp__github__create_pull_request"
+          allowed_tools: "mcp__github__create_pull_request,Bash(pnpm check),Bash(pnpm check:*),Bash(pnpm test),Bash(pnpm test:*)"
           custom_instructions: |
             You MUST follow the development workflow described in .ai/CLAUDE.md.
             You MUST open a draft pull request after creating a branch.
