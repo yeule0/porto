@@ -7,6 +7,44 @@ import * as Primitive from './primitive.js'
 import * as Typebox from './typebox.js'
 import { Type } from './typebox.js'
 
+export namespace account_setEmail {
+  export const Parameters = Type.Object({
+    email: Type.String({ format: 'email' }),
+    walletAddress: Primitive.Address,
+  })
+
+  export type Parameters = Typebox.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('account_setEmail'),
+    params: Type.Tuple([Parameters]),
+  })
+  export type Request = Typebox.StaticDecode<typeof Request>
+
+  export const Response = Type.Null()
+  export type Response = Typebox.StaticDecode<typeof Response>
+}
+
+export namespace account_verifyEmail {
+  export const Parameters = Type.Object({
+    chainId: Primitive.Number,
+    email: Type.String({ format: 'email' }),
+    token: Type.String(),
+    walletAddress: Primitive.Address,
+  })
+
+  export type Parameters = Typebox.StaticDecode<typeof Parameters>
+
+  export const Request = Type.Object({
+    method: Type.Literal('account_verifyEmail'),
+    params: Type.Tuple([Parameters]),
+  })
+  export type Request = Typebox.StaticDecode<typeof Request>
+
+  export const Response = Type.Null()
+  export type Response = Typebox.StaticDecode<typeof Response>
+}
+
 export namespace wallet_addFunds {
   export const Parameters = Type.Object({
     address: Typebox.Optional(Primitive.Address),
@@ -371,6 +409,7 @@ export namespace wallet_connect {
     address: Typebox.Optional(Primitive.Address),
     createAccount: Typebox.Optional(C.createAccount.Request),
     credentialId: Typebox.Optional(Type.String()),
+    email: Typebox.Optional(Type.Boolean()),
     grantPermissions: Typebox.Optional(C.grantPermissions.Request),
     preCalls: Typebox.Optional(C.preCalls.Request),
     selectAccount: Typebox.Optional(Type.Boolean()),

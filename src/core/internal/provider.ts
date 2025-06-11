@@ -67,6 +67,40 @@ export function from<
       const state = store.getState()
 
       switch (request.method) {
+        case 'account_verifyEmail': {
+          if (state.accounts.length === 0)
+            throw new ox_Provider.DisconnectedError()
+
+          const [parameters] = request._decoded.params
+          const { chainId, email, token, walletAddress } = parameters
+
+          const client = getClient(chainId)
+
+          if (chainId && chainId !== client.chain.id)
+            throw new ox_Provider.ChainDisconnectedError()
+
+          const account = walletAddress
+            ? state.accounts.find((account) =>
+                Address.isEqual(account.address, walletAddress),
+              )
+            : state.accounts[0]
+          if (!account) throw new ox_Provider.UnauthorizedError()
+
+          return await getMode().actions.verifyEmail({
+            account,
+            chainId,
+            email,
+            internal: {
+              client,
+              config,
+              request,
+              store,
+            },
+            token,
+            walletAddress,
+          })
+        }
+
         case 'wallet_addFunds': {
           if (state.accounts.length === 0)
             throw new ox_Provider.DisconnectedError()
@@ -710,6 +744,7 @@ export function from<
 
           const {
             createAccount,
+            email,
             grantPermissions: permissions,
             selectAccount,
           } = capabilities ?? {}
@@ -722,10 +757,11 @@ export function from<
           }
 
           const { accounts, preCalls } = await (async () => {
-            if (createAccount) {
+            if (email || createAccount) {
               const { label = undefined } =
                 typeof createAccount === 'object' ? createAccount : {}
               const { account } = await getMode().actions.createAccount({
+                email,
                 internal,
                 label,
                 permissions,

@@ -1,6 +1,6 @@
 import * as Address from 'ox/Address'
 import type * as Errors from 'ox/Errors'
-import type * as Hex from 'ox/Hex'
+import * as Hex from 'ox/Hex'
 import * as Secp256k1 from 'ox/Secp256k1'
 import {
   type Calls,
@@ -494,6 +494,41 @@ export declare namespace sendPreparedCalls {
 }
 
 /**
+ * Sets email for address
+ *
+ * @example
+ * TODO
+ *
+ * @param client - Client to use.
+ * @param parameters - Parameters.
+ * @returns Result.
+ */
+export async function setEmail<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: setEmail.Parameters,
+): Promise<setEmail.ReturnType>
+export async function setEmail(
+  client: Client,
+  parameters: setEmail.Parameters,
+) {
+  const { email, walletAddress } = parameters
+  return await ServerActions.setEmail(client, {
+    email,
+    walletAddress,
+  })
+}
+
+export declare namespace setEmail {
+  export type Parameters = ServerActions.setEmail.Parameters
+
+  export type ReturnType = ServerActions.setEmail.ReturnType
+
+  export type ErrorType =
+    | ServerActions.setEmail.ErrorType
+    | Errors.GlobalErrorType
+}
+
+/**
  * Broadcasts an account upgrade.
  *
  * @example
@@ -561,6 +596,44 @@ export declare namespace upgradeAccount {
 
   type ErrorType =
     | ServerActions.upgradeAccount.ErrorType
+    | Errors.GlobalErrorType
+}
+
+/**
+ * Verifies email for address
+ *
+ * @example
+ * TODO
+ *
+ * @param client - Client to use.
+ * @param parameters - Parameters.
+ * @returns Result.
+ */
+export async function verifyEmail<chain extends Chain | undefined>(
+  client: Client<Transport, chain>,
+  parameters: verifyEmail.Parameters,
+): Promise<verifyEmail.ReturnType>
+export async function verifyEmail(
+  client: Client,
+  parameters: verifyEmail.Parameters,
+) {
+  const { chainId, email, signature, token, walletAddress } = parameters
+  return await ServerActions.verifyEmail(client, {
+    chainId,
+    email,
+    signature,
+    token,
+    walletAddress,
+  })
+}
+
+export declare namespace verifyEmail {
+  export type Parameters = ServerActions.verifyEmail.Parameters
+
+  export type ReturnType = ServerActions.verifyEmail.ReturnType
+
+  export type ErrorType =
+    | ServerActions.verifyEmail.ErrorType
     | Errors.GlobalErrorType
 }
 

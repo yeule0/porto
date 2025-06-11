@@ -4,6 +4,7 @@ import { Actions, Hooks } from 'porto/remote'
 
 import { porto } from '~/lib/Porto'
 import * as Router from '~/lib/Router'
+import { Email } from '../-components/Email'
 import { SignIn } from '../-components/SignIn'
 import { SignUp } from '../-components/SignUp'
 
@@ -32,10 +33,12 @@ function RouteComponent() {
     capabilities?.createAccount === false
 
   const respond = useMutation({
-    mutationFn({
+    async mutationFn({
+      email,
       signIn,
       selectAccount,
     }: {
+      email?: string
       signIn?: boolean
       selectAccount?: boolean
     }) {
@@ -52,7 +55,16 @@ function RouteComponent() {
             ...params[0],
             capabilities: {
               ...params[0]?.capabilities,
-              createAccount: params[0]?.capabilities?.createAccount || !signIn,
+              createAccount: email
+                ? {
+                    ...(typeof params[0]?.capabilities?.createAccount ===
+                    'object'
+                      ? params[0]?.capabilities?.createAccount
+                      : {}),
+                    label: email,
+                  }
+                : params[0]?.capabilities?.createAccount || !signIn,
+              email: Boolean(email),
               selectAccount,
             },
           },
@@ -60,6 +72,15 @@ function RouteComponent() {
       } as typeof request)
     },
   })
+
+  if (capabilities?.email ?? true)
+    return (
+      <Email
+        loading={respond.isPending}
+        onApprove={(options) => respond.mutate(options)}
+        permissions={capabilities?.grantPermissions?.permissions}
+      />
+    )
 
   if (signIn)
     return (
