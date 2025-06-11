@@ -3,6 +3,8 @@ name: Claude PR Assistant
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    types: [ready_for_review]
   pull_request_review_comment:
     types: [created]
   issues:
