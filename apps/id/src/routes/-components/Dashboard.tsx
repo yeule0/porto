@@ -690,15 +690,17 @@ export function Dashboard() {
                   >
                     <td className="text-left">
                       <div className="flex flex-row items-center gap-x-2">
-                        <div className="hidden size-6.25 items-center justify-center rounded-full bg-emerald-100 sm:flex">
+                        <div className="flex size-6.75 items-center justify-center rounded-full bg-emerald-100">
                           <WalletIcon className="size-4 text-teal-600" />
                         </div>
-                        <span className="font-medium text-gray12">
+                        <div className="w-full pl-1 font-medium text-gray12">
                           <TruncatedAddress
                             address={key.id ?? key.publicKey}
-                            className="text-sm sm:text-md"
+                            className="justify-start text-left text-sm sm:text-md"
+                            end={10}
+                            start={10}
                           />
-                        </span>
+                        </div>
                       </div>
                     </td>
 

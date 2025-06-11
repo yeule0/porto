@@ -6,9 +6,9 @@ import * as React from 'react'
 import * as v from 'valibot'
 import { useAccount, useConnect, useConnectors } from 'wagmi'
 import LucideCheck from '~icons/lucide/check'
-import LucideFingerprint from '~icons/lucide/fingerprint'
 import LucideOctagonAlert from '~icons/lucide/octagon-alert'
 import LucidePictureInPicture2 from '~icons/lucide/picture-in-picture-2'
+import IconFingerprint from '~icons/porto/finger-print'
 import { Layout } from './-components/Layout.tsx'
 
 export const Route = createFileRoute('/_layout/email/verify')({
@@ -66,7 +66,7 @@ function RouteComponent() {
         "When you're ready, we will ask you to sign from your Porto account.",
       icon: (
         <div className="flex size-15 items-center justify-center rounded-full bg-blue3">
-          <LucideFingerprint className="size-7 text-blue9" />
+          <IconFingerprint className="size-7 text-blue9" />
         </div>
       ),
       subtext: "We just need to make sure it's you!",
