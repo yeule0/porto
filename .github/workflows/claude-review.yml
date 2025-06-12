@@ -7,7 +7,6 @@ on:
 jobs:
   claude-review:
     name: Claude Review
-    needs: check-permissions
     runs-on: ubuntu-latest
     permissions:
       contents: write
