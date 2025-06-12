@@ -73,7 +73,7 @@ function RouteComponent() {
     },
   })
 
-  if (capabilities?.email)
+  if (capabilities?.email ?? true)
     return (
       <Email
         defaultValue={
