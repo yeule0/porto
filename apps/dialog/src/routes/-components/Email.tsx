@@ -7,7 +7,13 @@ import LucideLogIn from '~icons/lucide/log-in'
 import IconScanFace from '~icons/porto/scan-face'
 
 export function Email(props: Email.Props) {
-  const { loading, onApprove, permissions, variant = 'sign-in' } = props
+  const {
+    defaultValue = '',
+    loading,
+    onApprove,
+    permissions,
+    variant = 'sign-in',
+  } = props
 
   const hostname = Dialog.useStore((state) => state.referrer?.url?.hostname)
 
@@ -73,6 +79,7 @@ export function Email(props: Email.Props) {
             </label>
             <Input
               className="w-full user-invalid:bg-gray3 user-invalid:ring-red9"
+              defaultValue={defaultValue}
               name="email"
               placeholder="example@ithaca.xyz"
               type="email"
@@ -102,6 +109,7 @@ export function Email(props: Email.Props) {
 
 export namespace Email {
   export type Props = {
+    defaultValue?: string | undefined
     loading: boolean
     onApprove: (p: { email?: string; signIn?: boolean }) => void
     permissions?: Permissions.Props

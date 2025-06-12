@@ -73,9 +73,14 @@ function RouteComponent() {
     },
   })
 
-  if (capabilities?.email ?? true)
+  if (capabilities?.email)
     return (
       <Email
+        defaultValue={
+          typeof capabilities?.createAccount === 'object'
+            ? capabilities?.createAccount?.label || ''
+            : undefined
+        }
         loading={respond.isPending}
         onApprove={(options) => respond.mutate(options)}
         permissions={capabilities?.grantPermissions?.permissions}
