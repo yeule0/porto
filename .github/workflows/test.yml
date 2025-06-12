@@ -3,14 +3,18 @@ on:
   workflow_call:
   workflow_dispatch:
     inputs:
-      relay-ref:
-        type: string
-        description: 'Relay ref to use'
-        default: ''
       contracts-ref:
         type: string
-        description: 'Contracts ref to use'
+        description: 'Contracts ref'
         default: ''
+      relay-ref:
+        type: string
+        description: 'Relay ref'
+        default: ''
+      relay-release:
+        type: boolean
+        description: 'Perform relay image build and push'
+        default: true
   repository_dispatch:
     types: ['relay-release', 'relay-deployment']
 
@@ -19,15 +23,15 @@ env:
 
 jobs:
   relay-release:
-    name: Relay Release
+    name: Publish Relay Docker Image
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
       relay_version: ${{ steps.trigger-relay.outputs.short_sha }}
     steps:
-      - name: Trigger relay release and wait
+      - name: Trigger release workflow and wait
         id: trigger-relay
-        if: inputs.relay-ref != ''
+        if: inputs.relay-ref != '' && inputs.relay-release == 'true'
         env:
           GH_TOKEN: ${{ secrets.RELAY_GH_TOKEN }}
         run: |
@@ -64,7 +68,7 @@ jobs:
       VITE_FAUCET_PRIVATE_KEY_DEPLOYMENT: ${{ secrets.VITE_FAUCET_PRIVATE_KEY_DEPLOYMENT }}
       VITE_DISPATCH_TYPE: ${{ github.event_name == 'repository_dispatch' && github.event.action || '' }}
       VITE_GECKO_API: ${{ secrets.VITE_GECKO_API }}
-      VITE_RELAY_VERSION: ${{ needs.relay-release.outputs.relay_version }}
+      VITE_RELAY_VERSION: ${{ needs.relay-release.outputs.relay_version || inputs.relay-ref }}
 
     steps:
       - name: Clone repository
@@ -85,14 +89,6 @@ jobs:
       - name: Set up Docker
         if: matrix.local == 'true'
         uses: docker/setup-docker-action@v4
-
-      - name: Login to GitHub Container Registry
-        if: matrix.local == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: jxom
-          password: ${{ secrets.RELAY_GH_TOKEN }}
 
       - name: Install Playwright
         if: matrix.browser == 'true'
