@@ -11,10 +11,6 @@ on:
         type: string
         description: 'Contracts ref to use'
         default: ''
-      porto-ref:
-        type: string
-        description: 'Porto ref to use'
-        default: 'main'
   repository_dispatch:
     types: ['relay-release', 'relay-deployment']
 
@@ -51,7 +47,7 @@ jobs:
     strategy:
       matrix:
         # Only run deployment tests on main branch or when triggered by a repository dispatch, and also when a *-ref input is not provided.
-        local: ${{ fromJSON(((github.ref == 'refs/heads/main' || github.event_name == 'repository_dispatch') && (inputs.relay-ref == '' && inputs.contracts-ref == '' && inputs.porto-ref == 'main')) && '["true", "false"]' || '["true"]') }}
+        local: ${{ fromJSON(((github.ref == 'refs/heads/main' || github.event_name == 'repository_dispatch') && (inputs.relay-ref == '' && inputs.contracts-ref == '')) && '["true", "false"]' || '["true"]') }}
         browser: ['true', 'false']
     env: 
       CI: true
@@ -69,7 +65,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-          ref: ${{ inputs.porto-ref }}
 
       - name: Checkout contracts submodule at specific ref
         if: inputs.contracts-ref != ''
