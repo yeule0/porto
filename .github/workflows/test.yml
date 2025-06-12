@@ -22,8 +22,11 @@ jobs:
     name: Relay Release
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      relay_version: ${{ steps.trigger-relay.outputs.short_sha }}
     steps:
       - name: Trigger relay release and wait
+        id: trigger-relay
         if: inputs.relay-ref != ''
         env:
           GH_TOKEN: ${{ secrets.RELAY_GH_TOKEN }}
@@ -38,6 +41,9 @@ jobs:
           # Get the latest run ID and wait for it to complete
           run_id=$(gh run list --repo ithacaxyz/relay --workflow=release.yml --limit=1 --json databaseId | jq -r '.[0].databaseId')
           gh run watch $run_id --repo ithacaxyz/relay
+          
+          short_sha=$(gh run view $run_id --repo ithacaxyz/relay --json headSha | jq -r '.headSha' | cut -c 1-7)
+          echo "short_sha=$short_sha" >> $GITHUB_OUTPUT
 
   test:
     name: Tests (${{ matrix.local == 'true' && 'Local' || 'Deployment' }}, ${{ matrix.browser == 'true' && 'Browser' || 'Node' }})
@@ -58,7 +64,7 @@ jobs:
       VITE_FAUCET_PRIVATE_KEY_DEPLOYMENT: ${{ secrets.VITE_FAUCET_PRIVATE_KEY_DEPLOYMENT }}
       VITE_DISPATCH_TYPE: ${{ github.event_name == 'repository_dispatch' && github.event.action || '' }}
       VITE_GECKO_API: ${{ secrets.VITE_GECKO_API }}
-      VITE_RELAY_VERSION: ${{ inputs.relay-ref }}
+      VITE_RELAY_VERSION: ${{ needs.relay-release.outputs.relay_version }}
 
     steps:
       - name: Clone repository
