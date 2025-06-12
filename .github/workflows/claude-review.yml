@@ -2,7 +2,7 @@ name: Claude Review
 
 on:
   pull_request:
-    types: [opened, ready_for_review]
+    types: [opened, ready_for_review, labeled]
 
 jobs:
   claude-review:
@@ -28,11 +28,24 @@ jobs:
             const isNotClaude = context.payload.pull_request?.user?.login !== 'claude-bot' && 
                                 context.payload.issue?.user?.login !== 'claude-bot';
             
-            // Check if PR is not a draft
+            // Check if this is a labeled event with the 'claude-review' label
+            const isClaudeReviewLabel = github.event_name === 'pull_request' && 
+                                       context.payload.action === 'labeled' && 
+                                       context.payload.label?.name === 'claude-review';
+            
+            // Check if PR is not a draft (for opened/ready_for_review events)
             const isNotDraft = !context.payload.pull_request?.draft;
             
-            const shouldReview = isNotClaude && isNotDraft;
-            console.log(`Is not Claude: ${isNotClaude}, Is not draft: ${isNotDraft}, Should review: ${shouldReview}`);
+            // Should review if:
+            // 1. Claude review label was added, OR
+            // 2. PR was opened/ready_for_review and is not a draft
+            const shouldReview = isNotClaude && (isClaudeReviewLabel || 
+                                (context.payload.action !== 'labeled' && isNotDraft));
+            
+            console.log(`Event: ${github.event_name}, Action: ${context.payload.action}`);
+            console.log(`Is not Claude: ${isNotClaude}, Is claude-review label: ${isClaudeReviewLabel}, Is not draft: ${isNotDraft}`);
+            console.log(`Should review: ${shouldReview}`);
+            
             core.setOutput('should_review', shouldReview);
             return shouldReview;
 
