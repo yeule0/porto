@@ -57,7 +57,7 @@ jobs:
     strategy:
       matrix:
         # Only run deployment tests on main branch or when triggered by a repository dispatch, and also when a *-ref input is not provided.
-        local: ${{ fromJSON(((github.ref == 'refs/heads/main' || github.event_name == 'repository_dispatch') && (inputs.relay-ref == '' && inputs.contracts-ref == '')) && '["true", "false"]' || '["true"]') }}
+        local: ${{ fromJSON(((github.ref == 'refs/heads/main' || github.event_name == 'repository_dispatch') && (inputs.relay-ref == '' || inputs.contracts-ref == '')) && '["true", "false"]' || '["true"]') }}
         browser: ['true', 'false']
     env: 
       CI: true
