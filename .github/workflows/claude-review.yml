@@ -29,7 +29,7 @@ jobs:
                                 context.payload.issue?.user?.login !== 'claude-bot';
             
             // Check if this is a labeled event with the 'claude-review' label
-            const isClaudeReviewLabel = github.event_name === 'pull_request' && 
+            const isClaudeReviewLabel = context.eventName === 'pull_request' && 
                                        context.payload.action === 'labeled' && 
                                        context.payload.label?.name === 'claude-review';
             
@@ -42,7 +42,12 @@ jobs:
             const shouldReview = isNotClaude && (isClaudeReviewLabel || 
                                 (context.payload.action !== 'labeled' && isNotDraft));
             
-            console.log(`Event: ${github.event_name}, Action: ${context.payload.action}`);
+            console.log(`Event: ${context.eventName}, Action: ${context.payload.action}`);
+            console.log(`Label name: "${context.payload.label?.name}"`);
+            console.log(`Checking conditions:`);
+            console.log(`  eventName === 'pull_request': ${context.eventName === 'pull_request'}`);
+            console.log(`  action === 'labeled': ${context.payload.action === 'labeled'}`);
+            console.log(`  label name === 'claude-review': ${context.payload.label?.name === 'claude-review'}`);
             console.log(`Is not Claude: ${isNotClaude}, Is claude-review label: ${isClaudeReviewLabel}, Is not draft: ${isNotDraft}`);
             console.log(`Should review: ${shouldReview}`);
             
