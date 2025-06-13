@@ -123,6 +123,7 @@ export const rpcServer = defineInstance((parameters?: RpcServerParameters) => {
       ]
 
       try {
+        const debug = process.env.VITE_RPC_DEBUG === 'true'
         await process_.start(($) => $`docker run ${args_}`, {
           ...options,
           resolver({ process, resolve, reject }) {
@@ -130,14 +131,12 @@ export const rpcServer = defineInstance((parameters?: RpcServerParameters) => {
             setTimeout(3_000).then(resolve)
             process.stdout.on('data', (data) => {
               const message = data.toString()
-              if (import.meta.env.VITE_RPC_DEBUG === 'true')
-                console.log(message)
+              if (debug) console.log(message)
               if (message.includes('Started relay service')) resolve()
             })
             process.stderr.on('data', (data) => {
               const message = data.toString()
-              if (import.meta.env.VITE_RPC_DEBUG === 'true')
-                console.log(message)
+              if (debug) console.log(message)
               if (message.includes('WARNING')) return
               reject(data)
             })
