@@ -56,7 +56,8 @@ body:
     id: os-version
     attributes:
       label: Operating System version
-      description: The current version of your operating system.
+      description: What version of the operating system mentioned are you using?
+      placeholder: x.y.z (do not write `latest`)
     validations:
       required: true
 
@@ -76,7 +77,8 @@ body:
     id: browser-version
     attributes:
       label: Browser version
-      description: The current version of your browser.
+      description: What version of the borwser mentioned are you using?
+      placeholder: x.y.z (do not write `latest`)
     validations:
       required: true
 
@@ -93,10 +95,11 @@ body:
       required: true
 
   - type: input
-    id: pm-version
+    id: pw-manager-verion
     attributes:
-      label: Password Manager version
-      description: The current version of your password manager.
+      label: Passwоrd Manager version
+      description: What version of the Passwоrd Manager mentioned are you using?
+      placeholder: x.y.z (do not write `latest`)
     validations:
       required: true
 
