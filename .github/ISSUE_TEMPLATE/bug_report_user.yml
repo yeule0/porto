@@ -52,6 +52,14 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: os-version
+    attributes:
+      label: Operating System version
+      description: The current version of your operating system.
+    validations:
+      required: true
+
   - type: dropdown
     attributes:
       label: Browser
@@ -64,6 +72,14 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: browser-version
+    attributes:
+      label: Browser version
+      description: The current version of your browser.
+    validations:
+      required: true
+
   - type: dropdown
     attributes:
       label: Password Manager
@@ -73,6 +89,14 @@ body:
         - 'Bitwarden'
         - 'Google Password Manager'
         - 'Other'
+    validations:
+      required: true
+
+  - type: input
+    id: pm-version
+    attributes:
+      label: Password Manager version
+      description: The current version of your password manager.
     validations:
       required: true
 
