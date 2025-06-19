@@ -82,9 +82,9 @@ export async function createAccount(_: unknown, args: createAccount.Arguments) {
 
 export declare namespace createAccount {
   type Arguments = {
-    /** Dialog hostname. */
-    dialog?: string | undefined
     /** Create a server key with admin privileges. */
     adminKey?: boolean | undefined
+    /** Dialog hostname. */
+    dialog?: string | undefined
   }
 }
