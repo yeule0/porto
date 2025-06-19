@@ -31,7 +31,10 @@
       "!test/**/_generated/**",
       "!apps/**/routeTree.gen.ts",
       "!apps/**/dist/**",
-      "!**/_dist/**"
+      "!**/_dist/**",
+      "!**/dist/**",
+      "!**/node_modules/**",
+      "!**/.next/**"
     ]
   },
   "formatter": {
