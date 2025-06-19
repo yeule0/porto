@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import * as Provider from 'ox/Provider'
 import { Actions, Hooks } from 'porto/remote'
 
 import * as Dialog from '~/lib/Dialog'
@@ -48,6 +49,31 @@ function RouteComponent() {
         throw new Error('request is not a wallet_connect request.')
 
       const params = request.params ?? []
+
+      const relayUrl = new URLSearchParams(window.location.search).get(
+        'relayUrl',
+      )
+      const capabilities = params[0]?.capabilities
+      const grantAdmins = capabilities?.grantAdmins
+
+      // If any admins need to be authorized, we need to check the
+      // authority & validity of the request.
+      if (grantAdmins && grantAdmins.length > 0) {
+        // If the request did not come from a local relay (CLI), do
+        // not allow.
+        if (!relayUrl || new URL(relayUrl).hostname !== 'localhost')
+          return Actions.respond(porto, request, {
+            error: new Provider.UnauthorizedError(),
+          }).catch(() => {})
+
+        // If the keys are not trusted by the relay, do not allow.
+        const publicKeys = grantAdmins.map((admin) => admin.publicKey)
+        const isValid = await verifyKeys(relayUrl, publicKeys)
+        if (!isValid)
+          return Actions.respond(porto, request, {
+            error: new Provider.UnauthorizedError(),
+          }).catch(() => {})
+      }
 
       return Actions.respond(
         porto,
@@ -103,6 +129,8 @@ function RouteComponent() {
     },
   })
 
+  if (respond.isSuccess) return
+
   if (capabilities?.email ?? true)
     return (
       <Email
@@ -114,6 +142,7 @@ function RouteComponent() {
         loading={respond.isPending}
         onApprove={(options) => respond.mutate(options)}
         permissions={capabilities?.grantPermissions?.permissions}
+        variant={capabilities?.createAccount ? 'sign-up' : 'sign-in'}
       />
     )
 
@@ -135,4 +164,24 @@ function RouteComponent() {
       permissions={capabilities?.grantPermissions?.permissions}
     />
   )
+}
+
+/** Utility to verify CLI public keys via relay. */
+async function verifyKeys(
+  relayUrl: string,
+  publicKeys: string[],
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${relayUrl}/.well-known/keys`)
+    if (!response.ok) return false
+
+    const data = await response.json()
+    const validKeys = data.keys as string[]
+
+    // Check if all provided public keys are in the valid keys list
+    return publicKeys.every((key) => validKeys.includes(key))
+  } catch (error) {
+    console.error('Failed to verify CLI keys:', error)
+    return false
+  }
 }
