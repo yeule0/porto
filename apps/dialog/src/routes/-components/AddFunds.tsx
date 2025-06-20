@@ -18,7 +18,29 @@ import QrCodeIcon from '~icons/lucide/qr-code'
 import TriangleAlertIcon from '~icons/lucide/triangle-alert'
 import XIcon from '~icons/lucide/x'
 
-const presetAmounts = ['25', '50', '100', '250']
+const presetAmounts = ['25', '50', '100', '250'] as const
+
+const onrampOptions = import.meta.env.VITE_ONRAMP_OPTIONS?.split(',') ?? []
+
+function stripeOnrampUrl(amount: number) {
+  if (amount < 1 || amount > 30_000) {
+    console.warn(
+      `Invalid amount for Stripe onramp: ${amount}. Must be between 1 and 30,000.`,
+    )
+    return
+  }
+
+  const searchParams = new URLSearchParams({
+    destination_currency: 'usdc',
+    destination_network: 'base',
+    ref: 'porto',
+    source_amount: amount.toString(),
+    source_currency: 'usd',
+  })
+  const url = new URL('https://crypto.link.com')
+  url.search = searchParams.toString()
+  return url.toString()
+}
 
 export function AddFunds(props: AddFunds.Props) {
   const {
@@ -167,11 +189,11 @@ export function AddFunds(props: AddFunds.Props) {
               >
                 Buy & deposit
               </Button>
-              {import.meta.env.VITE_FLAGS?.includes('onramp') && (
-                <>
-                  <PayButton variant="apple" />
-                  <PayButton variant="google" />
-                </>
+              {onrampOptions.includes('stripe-hosted') && (
+                <PayButton
+                  url={stripeOnrampUrl(Number(amount))}
+                  variant="stripe"
+                />
               )}
             </div>
             <div className="col-span-1 row-span-1">
@@ -200,7 +222,7 @@ export function AddFunds(props: AddFunds.Props) {
                   </div>
                 </div>
               </Button>
-              {import.meta.env.VITE_FLAGS?.includes('onramp') && (
+              {onrampOptions.includes('card') && (
                 <Button className="w-full px-3!" type="button">
                   <div className="flex w-full flex-row items-center justify-between">
                     <div className="flex items-center gap-2">
