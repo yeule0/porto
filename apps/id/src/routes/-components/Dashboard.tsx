@@ -968,10 +968,10 @@ function AssetRow({
           },
         ],
         capabilities: {
-          meta: { feeToken: zeroAddress },
+          feeToken: zeroAddress,
         },
       })
-    } else {
+    } else
       sendCalls.sendCalls({
         calls: [
           {
@@ -987,7 +987,6 @@ function AssetRow({
           },
         ],
       })
-    }
   }
 
   const ref = React.useRef<HTMLTableCellElement | null>(null)
