@@ -2,4 +2,4 @@
 "porto": patch
 ---
 
-Tweaked `MerchantRpc.requestHandler` parameters 
+Tweaked `MerchantRpc.requestHandler` parameters
