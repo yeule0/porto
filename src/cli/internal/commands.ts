@@ -48,6 +48,12 @@ export async function createAccount(_: unknown, args: createAccount.Arguments) {
   })
   s.stop('Onramped.')
 
+  // Send success message to the dialog.
+  Dialog.messenger.send('success', {
+    content: 'You have successfully created an account.',
+    title: 'Account created',
+  })
+
   // Execute a noop call to deploy the account.
   if (adminKey) {
     const { digest, ...request } = await client.request({
@@ -76,12 +82,6 @@ export async function createAccount(_: unknown, args: createAccount.Arguments) {
     await Actions.waitForCallsStatus(client, { id: result[0]!.id })
     s.stop('Account initialized.')
   }
-
-  // Send success message to the dialog.
-  Dialog.messenger.send('success', {
-    content: 'You have successfully created an account.',
-    title: 'Account created',
-  })
 
   if (adminKey) {
     const reveal = await prompts.confirm({
