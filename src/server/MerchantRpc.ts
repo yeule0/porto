@@ -1,5 +1,3 @@
-// TODO: add `requestListener`.
-
 import { type Address, type Hex, RpcRequest, RpcResponse, TypedData } from 'ox'
 import { createClient, rpcSchema } from 'viem'
 
