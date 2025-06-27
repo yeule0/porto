@@ -13,6 +13,7 @@ import { Key, Mode } from 'porto'
 import { MerchantRpc } from 'porto/server'
 import { encodeFunctionData, hashMessage, hashTypedData } from 'viem'
 import { readContract, setCode, waitForCallsStatus } from 'viem/actions'
+import { verifySiweMessage } from 'viem/siwe'
 import { describe, expect, test, vi } from 'vitest'
 
 import { accountOldProxyAddress } from '../../../test/src/_generated/addresses.js'
@@ -1257,6 +1258,53 @@ describe.each([
           ],
         }),
       ).rejects.matchSnapshot()
+    })
+
+    test('behavior: `signInWithEthereum` capability', async () => {
+      const { client, porto } = getPorto()
+
+      const res = await porto.provider.request({
+        method: 'wallet_connect',
+        params: [
+          {
+            capabilities: {
+              createAccount: true,
+              signInWithEthereum: {
+                chainId: client.chain.id,
+                domain: 'example.com',
+                nonce: 'deadbeef',
+                uri: 'http://example.com/',
+              },
+            },
+          },
+        ],
+      })
+      const { message, signature } =
+        res.accounts.at(0)?.capabilities?.signInWithEthereum ?? {}
+      if (message && signature) {
+        switch (type) {
+          case 'contract': {
+            await expect(
+              verifySiweMessage(client, { message, signature }),
+            ).resolves.toBeTruthy()
+            break
+          }
+          case 'rpcServer': {
+            const { valid } = await porto.provider.request({
+              method: 'wallet_verifySignature',
+              params: [
+                {
+                  address: res.accounts.at(0)?.address!,
+                  digest: hashMessage(message),
+                  signature,
+                },
+              ],
+            })
+            expect(valid).toBeTruthy()
+            break
+          }
+        }
+      }
     })
   })
 
