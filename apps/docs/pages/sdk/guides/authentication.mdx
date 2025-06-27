@@ -92,6 +92,12 @@ Now that we are connected, the last step is to verify the Sign in with Ethereum 
 Using `provider` until there is a `useVerifySignature` hook added to `'porto/wagmi'`
 :::
 
+:::note
+You may also use the [`ServerActions.verifySignature` Action](/sdk/viem/ServerActions/verifySignature) to verify 
+the signature from the [RPC Server](/rpc-server) directly. This is useful if you wish to verify a signature
+on the server.
+:::
+
 ```tsx
 import type { Porto } from 'porto'
 import { useChainId, useConnect } from 'wagmi'
