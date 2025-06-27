@@ -111,8 +111,10 @@ export default defineConfig(({ mode }) => {
 
           const startRpcServer = async ({
             accountProxy = accountProxyAddress,
+            legacyAccountProxy,
           }: {
             accountProxy?: string
+            legacyAccountProxy?: string
           } = {}) => {
             const containerName = 'playground'
             ChildProcess.spawnSync('docker', ['rm', '-f', containerName])
@@ -128,9 +130,11 @@ export default defineConfig(({ mode }) => {
                 port: rpcServerConfig.port,
               },
               intentGasBuffer: 100_000n,
+              legacyDelegationProxy: legacyAccountProxy,
               orchestrator: orchestratorAddress,
               simulator: simulatorAddress,
               txGasBuffer: 100_000n,
+              version: '7537e85',
             }).start()
             await fetch(rpcServerConfig.rpcUrl + '/start')
             return stop
@@ -152,6 +156,7 @@ export default defineConfig(({ mode }) => {
             stopRpcServer()
             stopRpcServer = await startRpcServer({
               accountProxy: accountNewProxyAddress,
+              legacyAccountProxy: accountProxyAddress,
             })
             res.statusCode = 302
             res.setHeader('Location', '/')
