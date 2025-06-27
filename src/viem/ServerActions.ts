@@ -25,6 +25,7 @@ export {
   getCallsStatus,
   getCapabilities,
   health,
+  verifySignature,
 } from './internal/serverActions.js'
 
 /**

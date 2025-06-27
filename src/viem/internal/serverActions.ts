@@ -22,6 +22,7 @@ import {
   type ValueOf,
   withCache,
 } from 'viem'
+import { verifyHash } from 'viem/actions'
 import {
   type GetExecuteErrorReturnType,
   getExecuteError,
@@ -623,24 +624,42 @@ export async function verifySignature<chain extends Chain | undefined>(
 ): Promise<verifySignature.ReturnType> {
   const { address, chain = client.chain, digest, signature } = parameters
   try {
+    async function fallback() {
+      const valid = await verifyHash(client, {
+        address,
+        hash: digest,
+        signature,
+      })
+      return {
+        proof: null,
+        valid,
+      }
+    }
+
     const method = 'wallet_verifySignature' as const
     type Schema = Extract<RpcSchema.Viem[number], { Method: typeof method }>
-    const result = await client.request<Schema>(
-      {
-        method,
-        params: [
-          Value.Encode(RpcSchema.wallet_verifySignature.Parameters, {
-            address,
-            chainId: chain?.id,
-            digest,
-            signature,
-          } as RpcSchema.wallet_verifySignature.Parameters),
-        ],
-      },
-      {
-        retryCount: 0,
-      },
-    )
+    const result = await (async () => {
+      const result = await client
+        .request<Schema>(
+          {
+            method,
+            params: [
+              Value.Encode(RpcSchema.wallet_verifySignature.Parameters, {
+                address,
+                chainId: chain?.id,
+                digest,
+                signature,
+              } as RpcSchema.wallet_verifySignature.Parameters),
+            ],
+          },
+          {
+            retryCount: 0,
+          },
+        )
+        .catch(fallback)
+      if (result.valid) return result
+      return fallback()
+    })()
     return Value.Parse(RpcSchema.wallet_verifySignature.Response, result)
   } catch (error) {
     parseSchemaError(error)
