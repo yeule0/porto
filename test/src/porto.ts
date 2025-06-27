@@ -21,10 +21,6 @@ export const exp2Config = {
   address: exp2Address,
 } as const
 
-const rpcUrl = Anvil.enabled
-  ? RpcServer.instances.odyssey.rpcUrl
-  : 'https://porto-dev.rpc.ithaca.xyz'
-
 export function getPorto(
   parameters: {
     mode?: (parameters: {
@@ -32,9 +28,16 @@ export function getPorto(
       mock: boolean
     }) => Mode.Mode | undefined
     merchantRpcUrl?: string | undefined
+    rpcUrl?: string | undefined
   } = {},
 ) {
-  const { mode = Mode.rpcServer, merchantRpcUrl } = parameters
+  const {
+    mode = Mode.rpcServer,
+    merchantRpcUrl,
+    rpcUrl = Anvil.enabled
+      ? RpcServer.instances.portoDev.rpcUrl
+      : 'https://porto-dev.rpc.ithaca.xyz',
+  } = parameters
   const porto = Porto.create({
     chains: [chain],
     merchantRpcUrl,

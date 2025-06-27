@@ -11,7 +11,6 @@ import {
 } from 'ox'
 import { Key, Mode } from 'porto'
 import { MerchantRpc } from 'porto/server'
-import { ServerActions } from 'porto/viem'
 import { encodeFunctionData, hashMessage, hashTypedData } from 'viem'
 import { readContract, setCode, waitForCallsStatus } from 'viem/actions'
 import { describe, expect, test, vi } from 'vitest'
@@ -25,6 +24,7 @@ import {
   exp1Address,
   getPorto as getPorto_,
 } from '../../../test/src/porto.js'
+import * as RpcServer from '../../../test/src/rpcServer.js'
 import * as ServerClient from '../../viem/ServerClient.js'
 import * as WalletClient from '../../viem/WalletClient.js'
 
@@ -34,7 +34,12 @@ describe.each([
 ] as const)('%s', (type, mode) => {
   if (!mode) return
 
-  const getPorto = (config: { merchantRpcUrl?: string | undefined } = {}) =>
+  const getPorto = (
+    config: {
+      merchantRpcUrl?: string | undefined
+      rpcUrl?: string | undefined
+    } = {},
+  ) =>
     getPorto_({
       ...config,
       mode,
@@ -925,29 +930,12 @@ describe.each([
     })
   })
 
-  // TODO: fix (broken from https://github.com/ithacaxyz/relay/pull/622)
-  describe.skip('wallet_updateAccount', () => {
+  describe('wallet_updateAccount', () => {
     test.runIf(Anvil.enabled && type === 'rpcServer')('default', async () => {
       const { porto } = getPorto()
       const client = ServerClient.fromPorto(porto).extend(() => ({
         mode: 'anvil',
       }))
-
-      const capabilities = await ServerActions.getCapabilities(client)
-      vi.spyOn(ServerActions, 'getCapabilities').mockResolvedValue({
-        ...capabilities,
-        contracts: {
-          ...capabilities.contracts,
-          accountImplementation: {
-            address: accountOldProxyAddress,
-            version: '0.0.1',
-          },
-          accountProxy: {
-            address: accountOldProxyAddress,
-            version: '0.0.1',
-          },
-        },
-      })
 
       const {
         accounts: [account],
@@ -984,28 +972,47 @@ describe.each([
       })
       expect(version).toMatchInlineSnapshot(`
         {
-          "current": "0.0.1",
-          "latest": "0.1.1",
+          "current": "0.3.2",
+          "latest": "0.3.2",
         }
       `)
 
-      const { id: id2 } = await porto.provider.request({
-        method: 'wallet_updateAccount',
+      const { porto: porto_newAccount } = getPorto({
+        rpcUrl: RpcServer.instances.portoDev_newAccount.rpcUrl,
       })
-
-      if (id2)
-        await waitForCallsStatus(WalletClient.fromPorto(porto), {
-          id: id2,
-        })
+      porto_newAccount._internal.store.setState(
+        porto._internal.store.getState(),
+      )
 
       {
-        const version = await porto.provider.request({
+        const version = await porto_newAccount.provider.request({
           method: 'wallet_getAccountVersion',
         })
         expect(version).toMatchInlineSnapshot(`
           {
-            "current": "0.1.1",
-            "latest": "0.1.1",
+            "current": "0.3.2",
+            "latest": "69.0.0",
+          }
+        `)
+      }
+
+      const { id: id2 } = await porto_newAccount.provider.request({
+        method: 'wallet_updateAccount',
+      })
+
+      if (id2)
+        await waitForCallsStatus(WalletClient.fromPorto(porto_newAccount), {
+          id: id2,
+        })
+
+      {
+        const version = await porto_newAccount.provider.request({
+          method: 'wallet_getAccountVersion',
+        })
+        expect(version).toMatchInlineSnapshot(`
+          {
+            "current": "69.0.0",
+            "latest": "69.0.0",
           }
         `)
       }

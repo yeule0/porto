@@ -19,6 +19,7 @@ type RpcServerParameters = {
     metricsPort?: number | undefined
   }
   image?: string | undefined
+  legacyDelegationProxy?: string | undefined
   orchestrator: string
   quoteTtl?: number | undefined
   registry?: string | undefined

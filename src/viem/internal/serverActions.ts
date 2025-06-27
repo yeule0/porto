@@ -59,7 +59,7 @@ export async function getCapabilities<
           method,
           params: [chainIds],
         }),
-      { cacheKey: method },
+      { cacheKey: `${client.uid}.${method}` },
     )
     const parsed = (() => {
       if (options.raw) return result as never
@@ -210,7 +210,7 @@ export async function health(client: Client): Promise<health.ReturnType> {
       client.request<Schema>({
         method,
       }),
-    { cacheKey: method },
+    { cacheKey: `${client.uid}.${method}` },
   )
   return Value.Parse(RpcSchema.health.Response, result)
 }
