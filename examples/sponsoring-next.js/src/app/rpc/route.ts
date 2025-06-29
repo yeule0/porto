@@ -1,5 +1,5 @@
 import { MerchantRpc } from 'porto/server'
-import * as Contracts from '../../contracts.ts'
+import * as Contracts from '../contracts'
 
 export const GET = MerchantRpc.GET
 
