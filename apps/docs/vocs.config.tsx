@@ -221,7 +221,16 @@ export default defineConfig({
             text: 'Mode',
           },
           {
-            collapsed: true,
+            collapsed: false,
+            items: [
+              {
+                link: '/sdk/api/merchantRpc/requestHandler',
+                text: 'requestHandler',
+              },
+            ],
+            text: 'MerchantRpc',
+          },
+          {
             link: '/sdk/api/storage',
             text: 'Storage',
           },
