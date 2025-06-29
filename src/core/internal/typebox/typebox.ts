@@ -10,9 +10,9 @@ import {
   type TUndefined,
   type TUnion,
   Type,
-} from '@sinclair/typebox/type'
+} from '@sinclair/typebox'
 
-export { Type } from '@sinclair/typebox/type'
+export { Type } from '@sinclair/typebox'
 export { Clean, Decode, Encode, Value } from '@sinclair/typebox/value'
 
 import type { DeepReadonly, OneOf as OneOfType } from '../types.js'

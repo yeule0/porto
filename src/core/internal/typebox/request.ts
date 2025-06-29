@@ -1,4 +1,4 @@
-import type { Union } from '@sinclair/typebox/type'
+import type { Union } from '@sinclair/typebox'
 import * as Json from 'ox/Json'
 import * as RpcResponse from 'ox/RpcResponse'
 import * as U from '../utils.js'

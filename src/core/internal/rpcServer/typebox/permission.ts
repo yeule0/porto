@@ -1,4 +1,4 @@
-import type { StaticDecode } from '@sinclair/typebox/type'
+import type { StaticDecode } from '@sinclair/typebox'
 
 import * as Primitive from '../../typebox/primitive.js'
 import * as Typebox from '../../typebox/typebox.js'

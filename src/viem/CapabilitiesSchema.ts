@@ -1,4 +1,4 @@
-import type * as Type from '@sinclair/typebox/type'
+import type * as Type from '@sinclair/typebox'
 import type { ValueOf } from 'viem'
 import type * as Rpc from '../core/internal/typebox/rpc.js'
 
