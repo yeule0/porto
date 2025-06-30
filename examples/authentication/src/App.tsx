@@ -1,6 +1,6 @@
 import { Hooks } from 'porto/wagmi'
 import { useState } from 'react'
-import { useAccount, useChainId, useConnectors, useDisconnect } from 'wagmi'
+import { useAccount, useConnectors, useDisconnect } from 'wagmi'
 
 export function App() {
   const { isConnected } = useAccount()
@@ -44,7 +44,6 @@ function Account() {
 }
 
 function SignIn() {
-  const chainId = useChainId()
   const connect = Hooks.useConnect()
   const [connector] = useConnectors()
 
@@ -60,7 +59,6 @@ function SignIn() {
           const result = await connect.mutateAsync({
             connector,
             signInWithEthereum: {
-              chainId,
               nonce,
             },
           })

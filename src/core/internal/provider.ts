@@ -766,6 +766,8 @@ export function from<
           const siwePayload = capabilities?.signInWithEthereum
             ? ({
                 ...capabilities?.signInWithEthereum,
+                chainId:
+                  capabilities?.signInWithEthereum.chainId ?? client.chain.id,
                 domain: capabilities?.signInWithEthereum.domain!,
                 resources: capabilities?.signInWithEthereum.resources as
                   | string[]

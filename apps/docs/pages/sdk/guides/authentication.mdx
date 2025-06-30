@@ -63,10 +63,9 @@ Wagmi does not return `capabilities` as part of `useConnect.connect` at the mome
 
 ```tsx
 import { Hooks } from 'porto/wagmi'
-import { useChainId, useConnectors } from 'wagmi'
+import { useConnectors } from 'wagmi'
 
 export function Connect() {
-  const chainId = useChainId()
   const connect = Hooks.useConnect()
   const connectors = useConnectors()
 
@@ -83,10 +82,7 @@ export function Connect() {
         // Add `signInWithEthereum` to `connect`.
         const result = await connect.mutateAsync({
           connector,
-          signInWithEthereum: { // [!code ++]
-            chainId, // [!code ++]
-            nonce, // [!code ++]
-          }, // [!code ++]
+          signInWithEthereum: { nonce }, // [!code ++]
         })
 
         // Authenticate with server. // [!code ++]

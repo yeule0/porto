@@ -149,10 +149,10 @@ type GrantPermissions = {
 ```ts
 type SignInWithEthereum = {
   /* Required fields */
-  chainId: number
   nonce: string
 
   /* Optional fields */
+  chainId?: number | undefined
   domain?: string | undefined // Defaults to window/iframe parent
   expirationTime?: Date | undefined
   issuedAt?: Date | undefined

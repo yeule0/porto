@@ -1270,7 +1270,6 @@ describe.each([
             capabilities: {
               createAccount: true,
               signInWithEthereum: {
-                chainId: client.chain.id,
                 domain: 'example.com',
                 nonce: 'deadbeef',
                 uri: 'http://example.com/',

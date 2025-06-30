@@ -29,7 +29,7 @@ export namespace createAccount {
 
 export namespace signInWithEthereum {
   export const Request = Type.Object({
-    chainId: Type.Number(),
+    chainId: Typebox.Optional(Type.Number()),
     domain: Typebox.Optional(Type.String()),
     expirationTime: Typebox.Optional(Type.Date()),
     issuedAt: Typebox.Optional(Type.Date()),

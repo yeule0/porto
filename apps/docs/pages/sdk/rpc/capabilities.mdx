@@ -346,9 +346,9 @@ The following JSON-RPC methods support the `signInWithEthereum` request capabili
 type Capability = {
   signInWithEthereum: {
     /* Required fields */
-    chainId: number
     nonce: string
     /* Optional fields */
+    chainId?: number | undefined
     domain?: string | undefined // Defaults to window/iframe parent
     expirationTime?: Date | undefined
     issuedAt?: Date | undefined
@@ -372,7 +372,6 @@ const capabilities = await provider.request({
   params: [{
     capabilities: {
       signInWithEthereum: {
-        chainId: 84532,
         nonce: await fetch("/api/nonce"),
       }
     },
@@ -405,7 +404,6 @@ const capabilities = await provider.request({
   params: [{
     capabilities: {
       signInWithEthereum: {
-        chainId: 84532,
         nonce: await fetch("/api/nonce"),
       }
     },
