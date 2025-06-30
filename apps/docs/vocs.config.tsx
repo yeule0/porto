@@ -173,6 +173,10 @@ export default defineConfig({
             text: 'Onboard & Discover Accounts',
           },
           {
+            link: '/sdk/guides/authentication',
+            text: 'Authentication (SIWE)',
+          },
+          {
             link: '/sdk/guides/payments',
             text: 'Payments',
           },
@@ -183,10 +187,6 @@ export default defineConfig({
           {
             link: '/sdk/guides/subscriptions',
             text: 'Subscriptions',
-          },
-          {
-            link: '/sdk/guides/authentication',
-            text: 'Authentication (SIWE)',
           },
           {
             disabled: true,

@@ -31,7 +31,7 @@ function Account() {
       {account.status !== 'disconnected' && (
         <button
           onClick={() => {
-            fetch('/api/logout', { credentials: 'include' })
+            fetch('/api/logout', { credentials: 'include', method: 'POST' })
             disconnect.disconnect()
           }}
           type="button"

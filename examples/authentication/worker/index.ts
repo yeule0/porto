@@ -71,7 +71,7 @@ app.get(
   },
 )
 
-app.get(
+app.post(
   '/logout',
   jwt.jwt({ cookie: 'auth', secret: env.JWT_SECRET }),
   async (c) => {
