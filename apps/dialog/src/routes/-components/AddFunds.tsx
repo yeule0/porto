@@ -181,7 +181,7 @@ export function AddFunds(props: AddFunds.Props) {
                 <hr className="flex-1" />
               </div>
             </div>
-            <div className="col-span-1 row-span-1 space-y-2.5">
+            <div className="col-span-1 row-span-1">
               <Button
                 className="w-full px-3!"
                 onClick={() => setView('deposit-crypto')}
@@ -200,7 +200,13 @@ export function AddFunds(props: AddFunds.Props) {
                   </div>
                 </div>
               </Button>
-              <Button className="w-full px-3!" type="button">
+              <Button
+                className="w-full px-3! disabled:opacity-50"
+                disabled
+                hidden
+                title="Coming soon"
+                type="button"
+              >
                 <div className="flex w-full flex-row items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CardIcon className="size-5" />
