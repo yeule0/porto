@@ -48,6 +48,9 @@ function SignIn() {
         onClick={() =>
           connect.mutateAsync({
             connector,
+            signInWithEthereum: {
+              authUrl: '/api/siwe',
+            },
           })
         }
         type="button"
