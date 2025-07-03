@@ -174,7 +174,11 @@ export function AddFunds(props: AddFunds.Props) {
                 </Button>
               ) : (
                 <PayButton
-                  url={stripeOnrampUrl(Number(amount))}
+                  disabled={!address}
+                  url={stripeOnrampUrl({
+                    address: address!,
+                    amount: Number(amount),
+                  })}
                   variant="stripe"
                 />
               )}
