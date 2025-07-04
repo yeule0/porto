@@ -940,26 +940,18 @@ async function getAuthUrl(
   authUrl: string | undefined,
   { storage }: { storage: Storage },
 ) {
-  const defaultAuthUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/api/siwe`
-      : undefined
-
   // If no auth URL is provided, check if we have a stored one
-  if (!authUrl) {
-    const storedAuthUrl = await storage.getItem('porto.siwe.authUrl')
-    if (typeof storedAuthUrl === 'string') return storedAuthUrl
-    return defaultAuthUrl
-  }
+  const storedAuthUrl = await storage.getItem<string>('porto.siwe.authUrl')
+  if (!authUrl && storedAuthUrl) return storedAuthUrl
 
   // Resolve relative URLs
   const resolvedUrl =
-    authUrl.startsWith('/') && typeof window !== 'undefined'
+    authUrl?.startsWith('/') && typeof window !== 'undefined'
       ? `${window.location.origin}${authUrl}`
       : authUrl
 
   // Store the resolved auth URL for future use (e.g., disconnect)
-  await storage.setItem('porto.siwe.authUrl', resolvedUrl)
+  if (authUrl) await storage.setItem('porto.siwe.authUrl', resolvedUrl)
 
   return resolvedUrl
 }
