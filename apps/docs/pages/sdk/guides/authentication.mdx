@@ -35,7 +35,7 @@ import { generateSiweNonce } from 'viem/siwe'
 const app = new Hono().basePath('/api')
 const porto = Porto.create()
 
-app.get('/siwe/nonce', (c) => c.text(generateSiweNonce()))
+app.get('/siwe/nonce', (c) => c.json({ nonce: generateSiweNonce() }))
 
 app.post('/siwe', async (c) => { /* ... */ })
 
