@@ -1065,10 +1065,10 @@ function AssetRow({
                           )}
                           data-field={`${address}-recipient`}
                           name={sendForm.names.sendRecipient}
-                          onInput={(value) =>
+                          onInput={(event) =>
                             sendForm.setValue(
                               sendForm.names.sendRecipient,
-                              value,
+                              event.currentTarget.value,
                             )
                           }
                           pattern="^0x[a-fA-F0-9]{40}$"
