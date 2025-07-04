@@ -133,7 +133,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
             // Extract the capabilities from the request.
             const [{ capabilities }] = request._decoded.params ?? [{}]
 
-            const authUrl = await getAuthUrl(
+            const authUrl = getAuthUrl(
               capabilities?.signInWithEthereum?.authUrl ?? config.authUrl,
               { storage },
             )
@@ -237,7 +237,10 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const { config } = internal
         const { storage } = config
 
-        const authUrl = await getAuthUrl(config.authUrl, { storage })
+        const authUrl =
+          getAuthUrl(config.authUrl, { storage }) ??
+          (await storage.getItem<string | undefined>('porto.siwe.authUrl'))
+
         if (authUrl) {
           const response = await fetch(authUrl + '/logout', {
             credentials: 'include',
@@ -403,7 +406,7 @@ export function dialog(parameters: dialog.Parameters = {}) {
         const accounts = await (async () => {
           const [{ capabilities }] = request._decoded.params ?? [{}]
 
-          const authUrl = await getAuthUrl(
+          const authUrl = getAuthUrl(
             capabilities?.signInWithEthereum?.authUrl ?? config.authUrl,
             { storage },
           )
@@ -936,14 +939,10 @@ export async function resolveFeeToken(
   return overrideFeeToken ?? feeToken
 }
 
-async function getAuthUrl(
+function getAuthUrl(
   authUrl: string | undefined,
   { storage }: { storage: Storage },
 ) {
-  // If no auth URL is provided, check if we have a stored one
-  const storedAuthUrl = await storage.getItem<string>('porto.siwe.authUrl')
-  if (!authUrl && storedAuthUrl) return storedAuthUrl
-
   // Resolve relative URLs
   const resolvedUrl =
     authUrl?.startsWith('/') && typeof window !== 'undefined'
@@ -951,7 +950,7 @@ async function getAuthUrl(
       : authUrl
 
   // Store the resolved auth URL for future use (e.g., disconnect)
-  if (authUrl) await storage.setItem('porto.siwe.authUrl', resolvedUrl)
+  if (authUrl) storage.setItem('porto.siwe.authUrl', resolvedUrl)
 
   return resolvedUrl
 }
