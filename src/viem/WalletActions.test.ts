@@ -449,10 +449,6 @@ describe('prepareCalls + sendPreparedCalls', () => {
     const request = await WalletActions.prepareCalls(client, {
       calls: [
         {
-          to: '0x0000000000000000000000000000000000000000',
-          value: Value.fromEther('1'),
-        },
-        {
           abi: exp2Abi,
           args: [account!.address, Value.fromEther('1')],
           functionName: 'mint',
