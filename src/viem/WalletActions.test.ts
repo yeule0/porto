@@ -1,5 +1,5 @@
 import { Value } from 'ox'
-import { Key, WalletClient } from 'porto/viem'
+import { Key, ServerActions, WalletClient } from 'porto/viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import * as Actions from 'viem/actions'
 import { describe, expect, test } from 'vitest'
@@ -461,6 +461,13 @@ describe('prepareCalls + sendPreparedCalls', () => {
       account: account!.address,
       ...request.typedData,
     })
+
+    const { valid } = await ServerActions.verifySignature(serverClient, {
+      address: account!.address,
+      digest: request.digest,
+      signature,
+    })
+    expect(valid).toBe(true)
 
     const response = await WalletActions.sendPreparedCalls(client, {
       ...request,
