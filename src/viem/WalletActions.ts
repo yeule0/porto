@@ -5,12 +5,16 @@
  * API is solidified & stable.
  */
 
-import type {
-  Chain,
-  Client,
-  PrivateKeyAccount,
-  Transport,
-  WalletActions as viem_WalletActions,
+import {
+  type Call,
+  type Calls,
+  type Chain,
+  type Client,
+  encodeFunctionData,
+  type Narrow,
+  type PrivateKeyAccount,
+  type Transport,
+  type WalletActions as viem_WalletActions,
 } from 'viem'
 import {
   getAddresses,
@@ -61,7 +65,9 @@ export async function connect(
           RpcSchema.wallet_connect.Capabilities,
           Typebox.Clean(
             RpcSchema.wallet_connect.Capabilities,
-            parameters satisfies RpcSchema.wallet_connect.Capabilities,
+            Typebox.Clone(
+              parameters,
+            ) satisfies RpcSchema.wallet_connect.Capabilities,
           ),
         ),
       },
@@ -254,6 +260,63 @@ export declare namespace grantPermissions {
   >
 }
 
+export async function prepareCalls<
+  const calls extends readonly unknown[] = readonly unknown[],
+>(
+  client: Client,
+  parameters: prepareCalls.Parameters<calls>,
+): Promise<prepareCalls.ReturnType> {
+  const method = 'wallet_prepareCalls' as const
+  type Method = typeof method
+  const response = await client.request<
+    Extract<RpcSchema_viem.Wallet[number], { Method: Method }>
+  >({
+    method,
+    params: [
+      Typebox.Encode(
+        RpcSchema.wallet_prepareCalls.Parameters,
+        Typebox.Clean(
+          RpcSchema.wallet_prepareCalls.Parameters,
+          Typebox.Clone({
+            ...parameters,
+            calls: (parameters.calls ?? []).map((c) => {
+              const call = c as Call
+              const data = (() => {
+                if (!call.abi) return call.data
+                return encodeFunctionData(call)
+              })()
+              return {
+                ...call,
+                data,
+              }
+            }),
+          } satisfies RpcSchema.wallet_prepareCalls.Parameters),
+        ),
+      ),
+    ],
+  })
+
+  return Typebox.Decode(
+    RpcSchema.wallet_prepareCalls.Response,
+    response satisfies Typebox.Static<
+      typeof RpcSchema.wallet_prepareCalls.Response
+    >,
+  )
+}
+
+export declare namespace prepareCalls {
+  type Parameters<calls extends readonly unknown[] = readonly unknown[]> = Omit<
+    Typebox.StaticDecode<typeof RpcSchema.wallet_prepareCalls.Parameters>,
+    'calls'
+  > & {
+    calls?: Calls<Narrow<calls>> | undefined
+  }
+
+  type ReturnType = Typebox.StaticDecode<
+    typeof RpcSchema.wallet_prepareCalls.Response
+  >
+}
+
 export async function revokeAdmin(
   client: Client,
   parameters: revokeAdmin.Parameters,
@@ -315,6 +378,45 @@ export declare namespace revokePermissions {
       >,
       'capabilities'
     >
+}
+
+export async function sendPreparedCalls(
+  client: Client,
+  parameters: sendPreparedCalls.Parameters,
+): Promise<sendPreparedCalls.ReturnType> {
+  const method = 'wallet_sendPreparedCalls' as const
+  type Method = typeof method
+  const response = await client.request<
+    Extract<RpcSchema_viem.Wallet[number], { Method: Method }>
+  >({
+    method,
+    params: [
+      Typebox.Encode(
+        RpcSchema.wallet_sendPreparedCalls.Parameters,
+        Typebox.Clean(
+          RpcSchema.wallet_sendPreparedCalls.Parameters,
+          parameters satisfies RpcSchema.wallet_sendPreparedCalls.Parameters,
+        ),
+      ),
+    ],
+  })
+
+  return Typebox.Decode(
+    RpcSchema.wallet_sendPreparedCalls.Response,
+    response satisfies Typebox.Static<
+      typeof RpcSchema.wallet_sendPreparedCalls.Response
+    >,
+  )
+}
+
+export declare namespace sendPreparedCalls {
+  type Parameters = Typebox.StaticDecode<
+    typeof RpcSchema.wallet_sendPreparedCalls.Parameters
+  >
+
+  type ReturnType = Typebox.StaticDecode<
+    typeof RpcSchema.wallet_sendPreparedCalls.Response
+  >
 }
 
 export async function upgradeAccount(
@@ -398,7 +500,13 @@ export type Decorator<
   grantPermissions: (
     parameters: grantPermissions.Parameters,
   ) => Promise<grantPermissions.ReturnType>
+  prepareCalls: (
+    parameters: prepareCalls.Parameters,
+  ) => Promise<prepareCalls.ReturnType>
   revokePermissions: (parameters: revokePermissions.Parameters) => Promise<void>
+  sendPreparedCalls: (
+    parameters: sendPreparedCalls.Parameters,
+  ) => Promise<sendPreparedCalls.ReturnType>
   upgradeAccount: (
     parameters: upgradeAccount.Parameters,
   ) => Promise<upgradeAccount.ReturnType>
@@ -417,9 +525,11 @@ export function decorator<
     getChainId: () => getChainId(client),
     getPermissions: (parameters) => getPermissions(client, parameters),
     grantPermissions: (parameters) => grantPermissions(client, parameters),
+    prepareCalls: (parameters) => prepareCalls(client, parameters),
     requestAddresses: () => requestAddresses(client),
     revokePermissions: (parameters) => revokePermissions(client, parameters),
     sendCalls: (parameters) => sendCalls(client, parameters),
+    sendPreparedCalls: (parameters) => sendPreparedCalls(client, parameters),
     showCallsStatus: (parameters) => showCallsStatus(client, parameters),
     signMessage: (parameters) => signMessage(client, parameters),
     signTypedData: (parameters) => signTypedData(client, parameters),

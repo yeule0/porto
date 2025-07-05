@@ -534,7 +534,7 @@ export namespace wallet_prepareCalls {
     capabilities: Typebox.Optional(Capabilities),
     chainId: Typebox.Optional(Primitive.Number),
     from: Typebox.Optional(Primitive.Address),
-    key: Type.Optional(
+    key: Typebox.Optional(
       Type.Object({
         prehash: Typebox.Optional(Type.Boolean()),
         publicKey: Primitive.Hex,
@@ -561,7 +561,7 @@ export namespace wallet_prepareCalls {
       Type.Intersect([
         Rpc_server.wallet_prepareCalls.ResponseCapabilities,
         Type.Object({
-          quote: Typebox.Optional(Quote.Quote),
+          quote: Typebox.Optional(Quote.Signed),
         }),
       ]),
     ),
@@ -572,10 +572,19 @@ export namespace wallet_prepareCalls {
       }),
       calls: Parameters.properties.calls,
       nonce: Primitive.BigInt,
-      quote: Typebox.Optional(Type.Partial(Quote.Quote)),
+      quote: Typebox.Optional(Type.Partial(Quote.Signed)),
     }),
     digest: Primitive.Hex,
-    key: Type.Object(Parameters.properties.key.properties),
+    key: Type.Object({
+      prehash: Typebox.Optional(Type.Boolean()),
+      publicKey: Primitive.Hex,
+      type: Type.Union([
+        Type.Literal('p256'),
+        Type.Literal('secp256k1'),
+        Type.Literal('webauthn-p256'),
+        Type.Literal('address'),
+      ]),
+    }),
     typedData: Type.Object({
       domain: Type.Object({
         chainId: Type.Number(),

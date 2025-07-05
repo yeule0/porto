@@ -1,8 +1,16 @@
-import { WalletClient } from 'porto/viem'
+import { Value } from 'ox'
+import { Key, WalletClient } from 'porto/viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import * as Actions from 'viem/actions'
 import { describe, expect, test } from 'vitest'
 import { setBalance } from '../../test/src/actions.js'
-import { getPorto } from '../../test/src/porto.js'
+import {
+  exp1Abi,
+  exp1Address,
+  exp2Abi,
+  exp2Address,
+  getPorto,
+} from '../../test/src/porto.js'
 import * as WalletActions from './WalletActions.js'
 
 describe('connect', () => {
@@ -309,5 +317,166 @@ describe('upgradeAccount', () => {
     await WalletActions.upgradeAccount(client, {
       account,
     })
+  })
+})
+
+describe('prepareCalls + sendPreparedCalls', () => {
+  test('default', async () => {
+    const { client: serverClient, porto } = getPorto()
+    const client = WalletClient.fromPorto(porto)
+
+    const sessionKey = Key.createSecp256k1()
+
+    const {
+      accounts: [account],
+    } = await WalletActions.connect(client, {
+      createAccount: true,
+      grantPermissions: {
+        expiry: 9999999999,
+        key: sessionKey,
+        permissions: {
+          calls: [{ to: exp1Address }],
+          spend: [
+            {
+              limit: 1000000000000n,
+              period: 'day',
+              token: exp1Address,
+            },
+          ],
+        },
+      },
+    })
+
+    await setBalance(serverClient, {
+      address: account!.address,
+      value: Value.fromEther('10000'),
+    })
+
+    const request = await WalletActions.prepareCalls(client, {
+      calls: [
+        {
+          abi: exp1Abi,
+          args: [account!.address, Value.fromEther('1')],
+          functionName: 'mint',
+          to: exp1Address,
+        },
+      ],
+      key: sessionKey,
+    })
+
+    const signature = await Key.sign(sessionKey, {
+      payload: request.digest,
+      wrap: false,
+    })
+
+    const response = await WalletActions.sendPreparedCalls(client, {
+      ...request,
+      signature,
+    })
+
+    expect(response[0]!.id).toBeDefined()
+
+    const { status } = await Actions.waitForCallsStatus(client, {
+      id: response[0]!.id,
+    })
+
+    expect(status).toBe('success')
+  })
+
+  test('behavior: admin key', async () => {
+    const { client: serverClient, porto } = getPorto()
+    const client = WalletClient.fromPorto(porto)
+
+    const adminKey = Key.createSecp256k1()
+
+    const {
+      accounts: [account],
+    } = await WalletActions.connect(client, {
+      createAccount: true,
+      grantAdmins: [adminKey],
+    })
+
+    await setBalance(serverClient, {
+      address: account!.address,
+      value: Value.fromEther('10000'),
+    })
+
+    const request = await WalletActions.prepareCalls(client, {
+      calls: [
+        {
+          abi: exp1Abi,
+          args: [account!.address, Value.fromEther('1')],
+          functionName: 'mint',
+          to: exp1Address,
+        },
+      ],
+      key: adminKey,
+    })
+
+    const signature = await Key.sign(adminKey, {
+      payload: request.digest,
+      wrap: false,
+    })
+
+    const response = await WalletActions.sendPreparedCalls(client, {
+      ...request,
+      signature,
+    })
+
+    expect(response[0]!.id).toBeDefined()
+
+    const { status } = await Actions.waitForCallsStatus(client, {
+      id: response[0]!.id,
+    })
+
+    expect(status).toBe('success')
+  })
+
+  test('behavior: sign typed data', async () => {
+    const { client: serverClient, porto } = getPorto()
+    const client = WalletClient.fromPorto(porto)
+
+    const {
+      accounts: [account],
+    } = await WalletActions.connect(client, {
+      createAccount: true,
+    })
+
+    await setBalance(serverClient, {
+      address: account!.address,
+    })
+
+    const request = await WalletActions.prepareCalls(client, {
+      calls: [
+        {
+          to: '0x0000000000000000000000000000000000000000',
+          value: Value.fromEther('1'),
+        },
+        {
+          abi: exp2Abi,
+          args: [account!.address, Value.fromEther('1')],
+          functionName: 'mint',
+          to: exp2Address,
+        },
+      ],
+    })
+
+    const signature = await Actions.signTypedData(client, {
+      account: account!.address,
+      ...request.typedData,
+    })
+
+    const response = await WalletActions.sendPreparedCalls(client, {
+      ...request,
+      signature,
+    })
+
+    expect(response[0]!.id).toBeDefined()
+
+    const { status } = await Actions.waitForCallsStatus(client, {
+      id: response[0]!.id,
+    })
+
+    expect(status).toBe('success')
   })
 })

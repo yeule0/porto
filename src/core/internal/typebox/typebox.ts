@@ -1,4 +1,5 @@
 import {
+  Clone as clone,
   FormatRegistry,
   Kind,
   type Static as Static_typebox,
@@ -16,12 +17,17 @@ export { Type } from '@sinclair/typebox'
 export { Clean, Decode, Encode, Value } from '@sinclair/typebox/value'
 
 import type { DeepReadonly, OneOf as OneOfType } from '../types.js'
+import { normalizeValue } from '../utils.js'
 
 FormatRegistry.Set('email', (value) =>
   /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i.test(
     value,
   ),
 )
+
+export function Clone<T>(value: T): T {
+  return clone(normalizeValue(value)) as never
+}
 
 export function OneOf<schemas extends TSchema[]>(
   schemas: [...schemas],

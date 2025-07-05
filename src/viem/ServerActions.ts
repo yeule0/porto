@@ -247,7 +247,7 @@ export namespace prepareCalls {
 
   export type ReturnType = {
     capabilities: ServerActions.prepareCalls.ReturnType['capabilities'] & {
-      quote: Quote.Quote
+      quote: Quote.Signed
     }
     context: ServerActions.prepareCalls.ReturnType['context']
     digest: ServerActions.prepareCalls.ReturnType['digest']
