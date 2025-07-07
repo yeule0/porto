@@ -590,9 +590,11 @@ export namespace wallet_verifySignature {
         Type.Object({
           /** Address of an account (either delegated or stored) that the signature was verified against. */
           account: Primitive.Address,
-          /** The key hash that signed the digest. */
-          initPreCall: Typebox.Optional(PreCall.PreCall),
           /** Initialization precall. Provided, if account is a stored account which has not been delegated. */
+          initPreCall: Typebox.Optional(
+            Type.Union([PreCall.PreCall, Type.Null()]),
+          ),
+          /** The key hash that signed the digest. */
           keyHash: Primitive.Hex,
         }),
         Type.Null(),
