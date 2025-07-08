@@ -138,7 +138,9 @@ export function fromWindow(
         if (event.data.topic !== topic) return
         if (id && event.data.id !== id) return
         if (targetOrigin && event.origin !== targetOrigin) return
-        listener(event.data.payload, event)
+        // Deserialize WebAuthn objects if present
+        const payload = Utils.deserializeWebAuthnResponse(event.data.payload)
+        listener(payload, event)
       }
       w.addEventListener('message', handler)
       listeners.set(topic, handler)
