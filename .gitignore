@@ -57,3 +57,6 @@ CLAUDE.local.md
 .claude/settings.local.json
 
 .mkcert
+
+.env.*
+!.env.example
